@@ -1,19 +1,5 @@
 // #!/usr/bin/env nextflow
 
-// TODO: proper logging!
-// TODO: ERRORHANDLING: check if all fastas in each file are valid: use e.g. biopythons SEQ-IO
-// TODO: make initial .fasta tally after extracting of tar gz files. maybe count() operator?
-// TODO: more compression formats?
-// TODO: hmmer client?
-// TODO: interfaces/file formats for genome specific ranks
-// TODO: show false positive/negative rate
-// TODO: change: run all models, occlude later
-// TODO: tcl module for phenDB/PICA
-// TODO: Singularity container ==> check licence of 3rd party software.......
-// TODO: communication web framework nextflow => pick framework etc.
-
-// TODO: relational database for PICA models and genotypes (sqlite) ==> representation of ranks ==> description of enogs
-
 // define static variables
 file(params.workdir).mkdir()
 outdir = "$params.workdir/${file(params.inputfolder).getBaseName()}_results/"
