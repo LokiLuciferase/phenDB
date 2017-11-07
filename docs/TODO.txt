@@ -1,0 +1,25 @@
+###Global todo file for this project
+##feel free to enter TODOs and sign in to stuff you are tackling
+
+Computational framework:
+-NF pipeline to go from .fasta/.tar.gz files on HDD to result files on HDD (x) (LL & PP, close to completion)
+--error handling of sequences ( )
+--logging all errors and what exactly happened for each bin ( )
+-Singularity or Docker container for perfect encapsulation and reproducibility ( ) (not started)
+-Tcl environmental module for PhenDB database ( ) (Not started; input from PH how to do it at CUBE?)
+-Auf jeden fall output tgz generieren mit output files.
+
+Web server:
+-change default values for NOT NULL ( )
+
+Database:
+-indices für wichtige, oft referenzierte felder
+-model versionsnummer dabei überall wo model vorkommt
+-completeness contamination für bins zu bins hinzugeben
+--modell version cont comp fnr fpr für alle kombinationen (fette table)
+--table model_update entfernen: ist duplikat
+
+Other stuff:
+-Get CUBE github push access and make repo for phenDB
+-Django am server oder VM
+-gleich alles in DB schreiben
