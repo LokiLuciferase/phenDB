@@ -1,5 +1,5 @@
 // #!/usr/bin/env nextflow
-
+//
 // define static variables
 file(params.workdir).mkdir()
 outdir = "$params.workdir/${file(params.inputfolder).getBaseName()}_results/"
