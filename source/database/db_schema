@@ -2,60 +2,64 @@
 PRAGMA foreign_keys = ON;
 
 CREATE TABLE JOB (
-  JobID TEXT PRIMARY KEY,
-  UserIP TEXT,
-  UserEmail TEXT,
-  JobDate DATE,
-  FolderPath TEXT,
-  JobStatus TEXT
+  job_id TEXT PRIMARY KEY,
+  user_ip TEXT,
+  user_email TEXT,
+  job_date DATE,
+  folder_path TEXT,
+  job_status TEXT
 );
 
 CREATE TABLE BIN (
-  BinID TEXT PRIMARY KEY,
-  JobID TEXT,
-  GenomePath TEXT,
-  Mdsum TEXT,
-  IsValid BOOLEAN,
-  FOREIGN KEY(JobID) REFERENCES JOB(JobID)
+  bin_id TEXT,
+  job_id TEXT,
+  genome_path TEXT,
+  mdsum TEXT PRIMARY KEY,
+  errors TEXT,
+  FOREIGN KEY(job_id) REFERENCES JOB(job_id)
 );
 
 CREATE TABLE ENOG (
-  EnogID TEXT PRIMARY KEY,
-  EnogDescription TEXT
+  enog_id TEXT PRIMARY KEY,
+  enog_description TEXT
 );
 
 CREATE TABLE MODEL (
-  ModelID TEXT PRIMARY KEY,
-  ModelDescription TEXT,
-  TrainDate DATE
+  model_id TEXT PRIMARY KEY,
+  model_description TEXT,
+  model_version_nr TEXT,
+  train_date DATE,
+
 );
 
 CREATE TABLE MODEL_ENOG_RANKS (
-  ID INTEGER PRIMARY KEY,
-  ModelID TEXT,
-  EnogID TEXT,
-  InternalRank INTEGER,
-  FOREIGN KEY(ModelID) REFERENCES MODEL(ModelID),
-  FOREIGN KEY(EnogID) REFERENCES ENOG(EnogID)
+  model_id TEXT,
+  enog_id TEXT,
+  internal_rank INTEGER,
+  FOREIGN KEY(model_id) REFERENCES MODEL(model_id),
+  FOREIGN KEY(enog_id) REFERENCES ENOG(enog_id)
+  PRIMARY KEY(model_id, enog_id)
 );
 
 CREATE TABLE RESULT_ENOG (
-  ID INTEGER PRIMARY KEY,
-  EnogID TEXT,
-  BinID TEXT,
-  FOREIGN KEY(EnogID) REFERENCES MODEL(EnogID),
-  FOREIGN KEY(BinID) REFERENCES BIN(BinID)
+  enog_id TEXT,
+  mdsum TEXT,
+  FOREIGN KEY(enog_id) REFERENCES MODEL(enog_id),
+  FOREIGN KEY(mdsum) REFERENCES BIN(mdsum)
+  PRIMARY KEY(enog_id, mdsum)
+
 );
 
 CREATE TABLE RESULT_MODEL (
-  ID INTEGER PRIMARY KEY,
-  BinID TEXT,
-  ModelID TEXT,
-  Verdict BOOLEAN,
-  Accuracy REAL,
-  FPR REAL,
-  FNR REAL,
-  TrainDate DATE,
-  FOREIGN KEY(ModelID) REFERENCES MODEL(ModelID),
-  FOREIGN KEY(BinID) REFERENCES BIN(BinID)
+  mdsum TEXT,
+  model_id TEXT,
+  model_version_nr TEXT,
+  verdict BOOLEAN,
+  accuracy REAL,
+  train_date DATE,
+  FOREIGN KEY(model_id) REFERENCES MODEL(model_id),
+  FOREIGN_KEY(model_version_nr) REFERENCES MODEL(model_version_nr),
+  FOREIGN KEY(mdsum) REFERENCES BIN(mdsum),
+  FOREIGN KEY(train_date) REFERENCES MODEL(train_date)
+  PRIMARY KEY(mdsum, model_id, model_version_nr,)
 );
