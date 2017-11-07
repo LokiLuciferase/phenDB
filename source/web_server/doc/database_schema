@@ -21,31 +21,33 @@ CREATE TABLE BIN (
 
 CREATE TABLE ENOG (
   enog_id TEXT PRIMARY KEY,
-  enog_description TEXT
+  enog_description TEXT,
 );
 
 CREATE TABLE MODEL (
   model_id TEXT PRIMARY KEY,
   model_description TEXT,
   model_version_nr TEXT,
-  train_date DATE,
+  train_date DATE
 
 );
 
 CREATE TABLE MODEL_ENOG_RANKS (
   model_id TEXT,
+  model_version_nr TEXT,
   enog_id TEXT,
   internal_rank INTEGER,
   FOREIGN KEY(model_id) REFERENCES MODEL(model_id),
-  FOREIGN KEY(enog_id) REFERENCES ENOG(enog_id)
-  PRIMARY KEY(model_id, enog_id)
+  FOREIGN KEY(enog_id) REFERENCES ENOG(enog_id),
+  FOREIGN KEY(model_version_nr) REFERENCES MODEL(model_version_nr),
+  PRIMARY KEY(model_id, model_version_nr, enog_id)
 );
 
 CREATE TABLE RESULT_ENOG (
   enog_id TEXT,
   mdsum TEXT,
-  FOREIGN KEY(enog_id) REFERENCES MODEL(enog_id),
-  FOREIGN KEY(mdsum) REFERENCES BIN(mdsum)
+  FOREIGN KEY(enog_id) REFERENCES ENOG(enog_id),
+  FOREIGN KEY(mdsum) REFERENCES BIN(mdsum),
   PRIMARY KEY(enog_id, mdsum)
 
 );
