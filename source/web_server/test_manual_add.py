@@ -14,7 +14,7 @@ django.setup()
 
 from phenotypePredictionApp.models import *
 
-newjob = job(user_ip="192.168.0.1", user_email="luxxus1@gmail.com", folder_path="/path/to/folder", job_status="FUBAR")
+newjob = job(user_ip="192.168.0.1", user_email="test@gmail.com", folder_path="/path/to/folder", job_status="FUBAR")
 newjob.save()
 
 newbin = bin(bin_id="abc",
