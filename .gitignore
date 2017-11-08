@@ -100,3 +100,9 @@ ENV/
 # mypy
 .mypy_cache/
 /phenDB.iml
+/.idea/deployment.xml
+/.idea/sqldialects.xml
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/inspectionProfiles/Project_Default.xml

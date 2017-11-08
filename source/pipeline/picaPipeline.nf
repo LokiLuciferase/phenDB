@@ -158,6 +158,7 @@ process hmmer {
 process compleconta {
 
     module "muscle"
+    module "compleconta"
 
     input:
     set val(binname), file(hmmeritem), file(prodigalitem) from hmmerout
@@ -166,7 +167,7 @@ process compleconta {
     set val(binname), file(hmmeritem), file(prodigalitem), file("complecontaitem.txt") into complecontaout
 
     """
-    python2 $params.compleconta_path $prodigalitem $hmmeritem | tail -1 > complecontaitem.txt
+    compleconta.py $prodigalitem $hmmeritem | tail -1 > complecontaitem.txt
     """
 }
 
@@ -194,6 +195,7 @@ process accuracy {
 // call pica for every sample for every condition in parallel
 process pica {
 
+    module 'pica'
     memory = '500 MB'
     errorStrategy 'ignore'  //model files not yet complete, TODO: remove this!!!!
 
@@ -213,7 +215,7 @@ process pica {
     """
     echo -ne "${binname}\t" > tempfile.tmp
     cut -f1 $hmmeritem | tr "\\n" "\\t" >> tempfile.tmp
-    python2 $params.pica_path -m $TEST_MODEL -t $RULEBOOK -s tempfile.tmp > picaout.result
+    test.py -m $TEST_MODEL -t $RULEBOOK -s tempfile.tmp > picaout.result
     echo -n \$(cat picaout.result | cut -f2 | tail -n1)
     """
     }
