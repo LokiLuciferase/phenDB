@@ -13,7 +13,7 @@ Computational framework:
 Web server:
 -change default values for NOT NULL ( )
 -user interface ( ) (FP)
-
+-change access logic upon file upload to fit the database created by LL ( )
 
 Database ( ) (LL):
 -indices für wichtige, oft referenzierte felder
