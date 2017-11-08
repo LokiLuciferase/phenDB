@@ -22,7 +22,9 @@ newbin = bin(bin_id="abc",
              job=newjob,
              genome_path=r"D:\atav1st\Dropbox\coding\py\GitHub\phenDB\docs\TODO.txt",
              md5sum="iamarandomstringlolol121212",
-             errors="FUUUUBAR")
+             errors="FUUUUBAR",
+             comple=0.1,
+             conta=0.99999)
 newbin.save()
 
 newmodel = model(model_id="COOL", model_desc="Is the organism cool?")

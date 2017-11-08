@@ -16,9 +16,6 @@ Web server:
 -change access logic upon file upload to fit the database created by LL ( )
 
 Database ( ) (LL):
--indices für wichtige, oft referenzierte felder
--model versionsnummer dabei überall wo model vorkommt
--completeness contamination für bins zu bins hinzugeben
 --modell version cont comp fnr fpr für alle kombinationen (fette table)
 
 
