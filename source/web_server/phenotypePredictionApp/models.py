@@ -86,6 +86,7 @@ class model(models.Model):
         ]
 
     model_id = models.TextField(primary_key=True)
+    #version_nr =models.TextField(primary_key=True)
     model_desc = models.TextField()
     model_train_date = models.DateField(auto_now_add=True)
 
