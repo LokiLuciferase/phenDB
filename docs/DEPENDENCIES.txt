@@ -1,4 +1,7 @@
 python3
-nextflow (requires java8)
-django (requires python)
-
+nextflow (requires java8), installed as suggested on the nextflow homepage
+django (requires python), installed via pip (pip for python3)
+prodigal
+hmmer
+PICA
+Biopyhton

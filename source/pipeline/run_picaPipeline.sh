@@ -5,6 +5,7 @@ CUTOFF="0.75"
 INFOLDER="/scratch/swe_ws17/data/test"
 JOBNAME=$(basename $INFOLDER)
 ABOVE_WORKFOLDER="/scratch/swe_ws17/phenDB_lueftinger/results/"  # for testing, replace this with your testing folder!
+#ABOVE_WORKFOLDER="/scratch/swe_ws17/phenDB_peneder/results/"  # for testing, replace this with your testing folder!
 WORKFOLDER="${ABOVE_WORKFOLDER}/${JOBNAME}_results"
 LOGFOLDER="$WORKFOLDER/logs"
 PROGRESS="$LOGFOLDER/progress.log"
@@ -22,6 +23,7 @@ module unload java
 module load java/1.8u152
 module load nextflow
 
+# alternative nextflow bin location: /proj/swe_ws17/bin/nextflow
 nohup nextflow ./picaPipeline.nf --accuracy_cutoff $CUTOFF --inputfolder $INFOLDER \
 --workdir $ABOVE_WORKFOLDER --omit_nodes $NODEOFFS -profile cluster  &> $LOGLOC &
 sleep 3
