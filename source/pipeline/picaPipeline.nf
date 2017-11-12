@@ -78,7 +78,6 @@ truly_all_input_files.subscribe {
 
 // Passes every fasta file through Biopythons SeqIO to check for corrupted files    TODO: test this
 process fasta_sanity_check {
-
     errorStrategy 'ignore'
 
     input:
@@ -86,22 +85,30 @@ process fasta_sanity_check {
 
     output:
     set val(binname), file("sanitychecked.fasta") into fasta_sanitycheck_out
-    stdout into fasta_errorchannel
 
     script:
     binname = item.getBaseName()
     """
     #!/usr/bin/env python
     from Bio import SeqIO
+    from Bio.Seq import Seq
+    from Bio.Alphabet import IUPAC
+    from Bio import Alphabet
+    import sys, os
+
     
     with open("sanitychecked.fasta","w") as outfile:
-        for read in SeqIO.parse("${item}", "fasta"):
-            SeqIO.write(read, outfile, "fasta")        
+        for read in SeqIO.parse("${item}", "fasta", IUPAC.ambiguous_dna):
+            if not Alphabet._verify_alphabet(read.seq):
+                with open("${errorfile}", "a") as myfile:
+                    myfile.write("There was an unexpected letter in the sequence, aborted further processing. Allowed letters are G,A,T,C,R,Y,W,S,M,K,H,B,V,D,N ")
+                os.remove("sanitychecked.fasta")
+                sys.exit("There was an unexpected letter in the sequence, aborting")
+            SeqIO.write(read, outfile, "fasta")
+
     """
 
 }
-// Prints all errors of the fasta_sanity_check to file
-fasta_errorchannel.subscribe {errorfile.append(it)}
 
 // Print the number of fasta files to a file for progress display
 all_fasta_input_files2.count().subscribe {fastafilecount.text=it} //LL: beautiful!
