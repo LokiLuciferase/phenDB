@@ -2,7 +2,8 @@
 // define static variables
 
 file(params.workdir).mkdir()
-outdir = "$params.workdir/${file(params.inputfolder).getBaseName()}_results/"
+jobname = file(params.inputfolder).getBaseName()
+outdir = "$params.workdir/${jobname}_results/"
 file(outdir).mkdir()
 models = file(params.modelfolder).listFiles()
 input_files = Channel.fromPath("${params.inputfolder}/*.fasta")
@@ -158,7 +159,7 @@ process hmmer {
 process compleconta {
 
     module "muscle"
-    module "compleconta"
+    module "compleconta/0.1"
 
     input:
     set val(binname), file(hmmeritem), file(prodigalitem) from hmmerout
