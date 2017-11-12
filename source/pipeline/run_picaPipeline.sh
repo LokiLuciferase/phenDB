@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -e
-
+# TODO: change absolute paths when needed
 # check if command line arguments are supplied
 if [ $# -eq 3 ]; then
     INFOLDER=$1
@@ -13,6 +13,8 @@ else
 fi
 
 PIPELINEFILE="/scratch/swe_ws17/phenDB_lueftinger/source/pipeline/picaPipeline.nf"
+DJANGO_SETTINGS_MODULE="phenotypePrediction.settings"
+PYTHONPATH="/scratch/swe_ws17/phenDB_lueftinger/source/web_server/phenotypePrediction:/scratch/swe_ws17/phenDB_lueftinger/source/web_server/phenotypePredictionApp:$PYTHONPATH"
 JOBNAME=$(basename $INFOLDER)
 WORKFOLDER="${ABOVE_WORKFOLDER}/${JOBNAME}_results"
 LOGFOLDER="$WORKFOLDER/logs"

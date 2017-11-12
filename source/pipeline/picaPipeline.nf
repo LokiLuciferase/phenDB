@@ -18,6 +18,7 @@ log.info"""
 
     Input folder containing .fasta genomes (--inputfolder): $params.inputfolder
     Output directory: $outdir
+    Job name: $jobname
     
     Disabled compute nodes (for hmmer computation) (--omit_nodes): $params.omit_nodes
     Accuracy cutoff for displaying PICA results (--accuracy_cutoff): $params.accuracy_cutoff
@@ -113,6 +114,19 @@ process fasta_sanity_check {
 // Print the number of fasta files to a file for progress display
 all_fasta_input_files2.count().subscribe {fastafilecount.text=it} //LL: beautiful!
 
+process md5sum {
+
+    input:
+    set val(binname), file(item) from fasta_sanitycheck_out
+
+    output:
+    set val(binname), stdout, file(item) into md5_out
+
+    script:
+    """
+    echo -n \$(md5sum ${item} | cut -f1 -d" ")
+    """
+}
 
 // call prodigal for every sample in parallel
 // output each result as a set of the sample id and the path to the prodigal outfile
@@ -122,10 +136,10 @@ process prodigal {
     memory = "2 GB"
 
     input:
-    set val(binname), file(item) from fasta_sanitycheck_out
+    set val(binname), val(mdsum), file(item) from md5_out
 
     output:
-    set val(binname), file("prodigalout.faa") into prodigalout
+    set val(binname), val(mdsum), file("prodigalout.faa") into prodigalout
 
     script:
     """
@@ -142,10 +156,10 @@ process hmmer {
     module "hmmer"
 
     input:
-    set val(binname), file(item) from prodigalout
+    set val(binname), val(mdsum), file(item) from prodigalout
 
     output:
-    set val(binname), file("hmmer.out"), file(item) into hmmerout
+    set val(binname), val(mdsum), file("hmmer.out"), file(item) into hmmerout
 
     script:
     """
@@ -169,14 +183,62 @@ process compleconta {
     module "compleconta/0.1"
 
     input:
-    set val(binname), file(hmmeritem), file(prodigalitem) from hmmerout
+    set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem) from hmmerout
 
     output:
-    set val(binname), file(hmmeritem), file(prodigalitem), file("complecontaitem.txt") into complecontaout
+    set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem), file("complecontaitem.txt") into complecontaout
 
     """
     compleconta.py $prodigalitem $hmmeritem | tail -1 > complecontaitem.txt
     """
+}
+
+
+complecontaout.into{complecontaout_continue; bin_to_db}
+
+process write_bin_to_db { //TODO: implement checking if bin already exists
+
+    errorStrategy 'ignore'
+
+    input:
+    set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem), file(complecontaitem) from bin_to_db
+
+    script:
+"""
+#!/home/user/lueftinger/miniconda3/envs/py3env/bin/python3
+
+import django
+import sys
+import os
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import IntegrityError
+os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"    
+
+django.setup()
+from phenotypePredictionApp.models import job, bin
+
+try:
+    parentjob = job.objects.get(job_id="${jobname}")
+except ObjectDoesNotExist:
+    sys.exit("Job not found.")
+
+# get completeness and contamination
+with open("${complecontaitem}", "r") as ccfile:
+    cc = ccfile.readline().split()
+
+# write bin to database
+try:
+    newbin = bin(bin_id="${binname}",
+                 file_name="${binname}.fasta",
+                 comple=cc[0],
+                 conta=cc[1],
+                 md5sum="${mdsum}",
+                 job_id="${jobname}")
+    
+    newbin.save()
+except IntegrityError:
+    sys.exit("Skipping adding of already known bin")
+"""
 }
 
 // compute accuracy from compleconta output and model intrinsics (once for each model).
@@ -186,11 +248,11 @@ process accuracy {
     errorStrategy 'ignore'  //model files not yet complete, TODO: remove this!!!!
 
     input:
-    set val(binname), file(hmmeritem), file(prodigalitem), file(complecontaitem) from complecontaout
+    set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem), file(complecontaitem) from complecontaout_continue
     each model from models
 
     output:
-    set val(binname), val(model), file(hmmeritem), file(prodigalitem), file(complecontaitem), stdout into accuracyout
+    set val(binname), val(mdsum), val(model), file(hmmeritem), file(prodigalitem), file(complecontaitem), stdout into accuracyout
 
     script:
     RULEBOOK = model.getBaseName()
@@ -208,10 +270,10 @@ process pica {
     errorStrategy 'ignore'  //model files not yet complete, TODO: remove this!!!!
 
     input:
-    set val(binname), val(model), file(hmmeritem), file(prodigalitem), file(complecontaitem), val(accuracy) from accuracyout
+    set val(binname), val(mdsum), val(model), file(hmmeritem), file(prodigalitem), file(complecontaitem), val(accuracy) from accuracyout
 
     output:
-    set val(binname), val(RULEBOOK), stdout, val(accuracy) into picaout  //print decision on stdout, and put stdout into return set
+    set val(binname), val(mdsum), val(RULEBOOK), stdout, val(accuracy) into picaout  //print decision on stdout, and put stdout into return set
 
     script:
     RULEBOOK = model.getBaseName()
@@ -239,11 +301,71 @@ process pica {
 }
 
 // merge all results into a file called $id.results and move each file to results folder.
-picaout.collectFile() { item ->
-    [ "${item[0]}.results", "${item[1]} ${item[2]} ${item[3]}" ]
-}
-.subscribe { it.copyTo(outdir) }
+picaout.into{pica_db_write; pica_out_write}
 
+pica_out_write.collectFile() { item ->
+    [ "${item[0]}.results", "${item[2]} ${item[3]} ${item[4]}" ]  // use given bin name as filename
+}.subscribe { it.copyTo(outdir) }
+
+//// TODO: the following process might work already, but the necessary models are not in place yet
+//
+//
+//pica_db_write.collectFile() { item ->
+//    [ "${item[1]}.results", "${item[2]} ${item[3]} ${item[4]}" ]  // use md5sum as filename
+//}
+//process write_pica_result_to_db { //TODO: change python executable when migrating to vm!
+//
+//    errorStrategy 'ignore'
+//
+//    input:
+//    file(mdsum_file) from db_write
+//
+//    output:
+//    stdout exo
+//
+//    script:
+//"""
+//#!/home/user/lueftinger/miniconda3/envs/py3env/bin/python3
+//
+//import django
+//import sys
+//import os
+//from django.core.exceptions import ObjectDoesNotExist
+//from django.db import IntegrityError
+//os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
+//
+//django.setup()
+//from phenotypePredictionApp.models import job, bin, model, result_model
+//
+//# get job from db
+//try:
+//    parentjob = job.objects.get(job_id="${jobname}")
+//except ObjectDoesNotExist:
+//    sys.exit("Job not found.")
+//
+//# get bin from db
+//try:
+//    parentbin = bin.objects.get(md5sum="${mdsum_file.getBaseName()}")
+//except ObjectDoesNotExist:
+//    sys.exit("Bin for this result not found.")
+//
+//conditions = []
+//with open("${mdsum_file}", "r") as picaresults:
+//    for line in picaresults:
+//        conditions.append(line.split())
+//
+//for result in conditions:
+//    try:
+//        boolean_verdict = result[1] if result[1] != "N/A" else None
+//        modelresult = result_model(verdict=boolean_verdict,
+//                                   accuracy=result[2],
+//                                   bin_id="${mdsum_file.getBaseName()}",
+//                                   model_id="result[0])
+//        modelresult.save()
+//    except (IntegrityError, ) as e:
+//        sys.exit(e)
+//"""
+//}
 
 
 workflow.onComplete {

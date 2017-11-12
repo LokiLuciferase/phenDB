@@ -5,7 +5,7 @@
 # this script manually enters lines into database using django
 # enters a job and an assorted bin into the database
 # and prints them afterwards
-
+#
 import os
 import django
 from django.utils import timezone
@@ -48,10 +48,10 @@ samplejob = job(job_id="test_working", user_ip="192.168.0.1", user_email="abc@te
 samplejob.save()
 
 
-print(job.objects.all())
-print(bin.objects.all())
-print(model.objects.all())
-print(enog.objects.all())
-print(model_enog_ranks.objects.all())
-print(result_model.objects.all())
-print(result_enog.objects.all())
+# print(job.objects.all())
+# print(bin.objects.all())
+# print(model.objects.all())
+# print(enog.objects.all())
+# print(model_enog_ranks.objects.all())
+# print(result_model.objects.all())
+# print(result_enog.objects.all())

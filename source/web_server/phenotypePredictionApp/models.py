@@ -33,7 +33,7 @@ class job(models.Model):
     job_id = models.TextField(default=uuid.uuid4(), primary_key=True)
     user_ip = models.TextField()
     user_email = models.TextField()
-    job_date = models.DateTimeField(auto_now_add=True)
+    job_date = models.DateTimeField(auto_now=True)
     folder_path = models.TextField()
     output_tgz = models.FileField(upload_to=upload_function)
     job_status = models.TextField()
@@ -86,9 +86,9 @@ class model(models.Model):
         ]
 
     model_id = models.TextField(primary_key=True)
-    #version_nr =models.TextField(primary_key=True)
+    version_nr = models.TextField()
     model_desc = models.TextField()
-    model_train_date = models.DateField(auto_now_add=True)
+    model_train_date = models.DateField(auto_now=True)
 
     def __str__(self):
         return "Name: {mid}\tDescription: {md}\tDate of Training: {mtd}".format(mid=self.model_id,

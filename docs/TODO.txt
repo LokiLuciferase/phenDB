@@ -3,8 +3,6 @@
 
 Computational framework:
 -NF pipeline to go from .fasta/.tar.gz files on HDD to result files on HDD (x) (PP, close to completion)
---error handling of sequences ( )
-- create md5sum of bins (only from the sequence?)
 --logging all errors and what exactly happened for each bin ( )
 -Singularity or Docker container for perfect encapsulation and reproducibility ( ) (not started)
 -Tcl environmental module for PhenDB database ( ) (Not started; input from PH how to do it at CUBE?)
@@ -21,6 +19,6 @@ Database ( ) (LL):
 
 Other stuff:
 -Django am server oder VM
--gleich alles in DB schreiben
+-gleich alles in DB schreiben (LL: bin dabei)
 
 Presentation:
