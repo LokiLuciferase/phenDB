@@ -86,14 +86,14 @@ class model(models.Model):
         ]
 
     model_id = models.TextField(primary_key=True)
-    version_nr = models.TextField()
+    version_nr = models.IntegerField()
     model_desc = models.TextField()
     model_train_date = models.DateField(auto_now=True)
 
     def __str__(self):
-        return "Name: {mid}\tDescription: {md}\tDate of Training: {mtd}".format(mid=self.model_id,
+        return "Name: {mid}\tVersion Nr: {vnr}\t Description: {md}\tDate of Training: {mtd}".format(mid=self.model_id,
                                                                                 md=self.model_desc,
-                                                                                mtd=str(self.model_train_date))
+                                                                                mtd=str(self.model_train_date), vnr=self.version_nr)
 
 
 class model_enog_ranks(models.Model):
