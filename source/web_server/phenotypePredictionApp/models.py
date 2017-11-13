@@ -80,20 +80,21 @@ class enog(models.Model):
 
 class model(models.Model):
 
-    class Meta:
-        indexes = [
-            models.Index(fields=['model_id'])
-        ]
+    #class Meta:
+     #   indexes = [
+      #      models.Index(fields=['model_id'])
+       # ]
 
-    model_id = models.TextField(primary_key=True)
+    model_id = models.TextField()
     version_nr = models.IntegerField()
+    is_newest = models.BooleanField()
     model_desc = models.TextField()
     model_train_date = models.DateField(auto_now=True)
 
     def __str__(self):
-        return "Name: {mid}\tVersion Nr: {vnr}\t Description: {md}\tDate of Training: {mtd}".format(mid=self.model_id,
+        return "Name: {mid}\tVersion Nr: {vnr}\t Description: {md}\tDate of Training: {mtd} \t is_newest= {new}".format(mid=self.model_id,
                                                                                 md=self.model_desc,
-                                                                                mtd=str(self.model_train_date), vnr=self.version_nr)
+                                                                                mtd=str(self.model_train_date), vnr=self.version_nr, new=self.is_newest)
 
 
 class model_enog_ranks(models.Model):
@@ -106,7 +107,7 @@ class model_enog_ranks(models.Model):
 
     model = models.ForeignKey(model)
     enog = models.ForeignKey(enog)
-    internal_rank = models.IntegerField()
+    internal_rank = models.FloatField()
 
     def __str__(self):
         return "Enog ID: {eid}\tModel ID: {mid}\tRank {ir}\t(Model trained on {mtd}".format(eid=self.enog_id,
