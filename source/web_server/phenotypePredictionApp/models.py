@@ -3,8 +3,9 @@ import uuid
 from django.contrib.contenttypes.models import ContentType
 
 def upload_function(instance):
-    subfolder = instance.job_id
-    filename = instance.file_name
+    print('upload called')
+    subfolder = instance.key
+    filename = instance.filename
     return "documents/" + subfolder + "/" + filename
 
 # LL: the following two tables should be removed after functionality of web interface has been ported

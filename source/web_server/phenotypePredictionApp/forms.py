@@ -1,5 +1,5 @@
 from django import forms
-from phenotypePredictionApp.models import UploadedFile
+from .models import UploadedFile
 
 
 class FileForm(forms.ModelForm):

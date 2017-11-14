@@ -22,11 +22,13 @@ def sendinput(request):
                'showResult' : 'block'}
     postobj = request.POST.copy()
     fileobj = request.FILES.copy()
+    key = uuid.uuid4()
+    postobj['key'] = key
 
     #works only if just one file is uploaded
-    for file_name, file in request.FILES.items():
-        name = request.FILES[file_name].name
-        postobj['file_name'] = name  #LL: indented this because I'm like 99% sure that's what you wanted
+    for filename, file in request.FILES.items():
+        name = request.FILES[filename].name
+    postobj['filename'] = name
 
     form = FileForm(postobj, fileobj)
     if(form.is_valid()):
@@ -34,4 +36,11 @@ def sendinput(request):
         modelInstance = form.save(commit=False)
         modelInstance.save()
         # startProcess(key)
+    return HttpResponse(template.render(context, request))
+
+def getResults(request):
+    print("works")
+    template = loader.get_template('phenotypePredictionApp/index.xhtml')
+    context = {'result' : 'No result yet',
+               'showResult' : 'none'}
     return HttpResponse(template.render(context, request))
