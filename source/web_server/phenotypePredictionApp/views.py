@@ -22,20 +22,31 @@ def sendinput(request):
                'showResult' : 'block'}
     postobj = request.POST.copy()
     fileobj = request.FILES.copy()
-    key = uuid.uuid4()
+    key = str(uuid.uuid4())
     postobj['key'] = key
 
     #works only if just one file is uploaded
     for filename, file in request.FILES.items():
         name = request.FILES[filename].name
     postobj['filename'] = name
+    postobj['fileInput'] = fileobj['fileInput']
+
+    print(postobj['filename'])
+    print(postobj['key'])
+
 
     form = FileForm(postobj, fileobj)
-    if(form.is_valid()):
-        print("is valid")
-        modelInstance = form.save(commit=False)
-        modelInstance.save()
+
+    print(form.data)
+    print('\n')
+    print(fileobj)
+
+    #if(form.is_valid()):
+        #print("is valid")
+    modelInstance = form.save(commit=False)
+    modelInstance.save()
         # startProcess(key)
+
     return HttpResponse(template.render(context, request))
 
 def getResults(request):
