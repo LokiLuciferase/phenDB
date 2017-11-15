@@ -196,6 +196,7 @@ process compleconta {
 
 complecontaout.into{complecontaout_continue; bin_to_db}
 
+// write the bin properties to database
 process write_bin_to_db { //TODO: implement checking if bin already exists
 
     errorStrategy 'ignore'
@@ -284,7 +285,7 @@ process pica {
     if (accuracy_float >= accuracy_cutoff) {
     """
     echo -ne "${binname}\t" > tempfile.tmp
-    cut -f1 $hmmeritem | tr "\\n" "\\t" >> tempfile.tmp
+    cut -f2 $hmmeritem | tr "\\n" "\\t" >> tempfile.tmp
     test.py -m $TEST_MODEL -t $RULEBOOK -s tempfile.tmp > picaout.result
     echo -n \$(cat picaout.result | cut -f2 | tail -n1)
     """
@@ -293,7 +294,7 @@ process pica {
     else {
     """
     echo -ne "${binname}\t" > tempfile.tmp
-    cut -f1 $hmmeritem | tr "\\n" "\\t" >> tempfile.tmp
+    cut -f2 $hmmeritem | tr "\\n" "\\t" >> tempfile.tmp
     echo "N/A" > picaout.result
     echo -n \$(cat picaout.result | cut -f2 | tail -n1)
     """
@@ -307,65 +308,65 @@ pica_out_write.collectFile() { item ->
     [ "${item[0]}.results", "${item[2]} ${item[3]} ${item[4]}" ]  // use given bin name as filename
 }.subscribe { it.copyTo(outdir) }
 
-//// TODO: the following process might work already, but the necessary models are not in place yet
-//
-//
-//pica_db_write.collectFile() { item ->
-//    [ "${item[1]}.results", "${item[2]} ${item[3]} ${item[4]}" ]  // use md5sum as filename
-//}
-//process write_pica_result_to_db { //TODO: change python executable when migrating to vm!
-//
-//    errorStrategy 'ignore'
-//
-//    input:
-//    file(mdsum_file) from db_write
-//
-//    output:
-//    stdout exo
-//
-//    script:
-//"""
-//#!/home/user/lueftinger/miniconda3/envs/py3env/bin/python3
-//
-//import django
-//import sys
-//import os
-//from django.core.exceptions import ObjectDoesNotExist
-//from django.db import IntegrityError
-//os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
-//
-//django.setup()
-//from phenotypePredictionApp.models import job, bin, model, result_model
-//
-//# get job from db
-//try:
-//    parentjob = job.objects.get(job_id="${jobname}")
-//except ObjectDoesNotExist:
-//    sys.exit("Job not found.")
-//
-//# get bin from db
-//try:
-//    parentbin = bin.objects.get(md5sum="${mdsum_file.getBaseName()}")
-//except ObjectDoesNotExist:
-//    sys.exit("Bin for this result not found.")
-//
-//conditions = []
-//with open("${mdsum_file}", "r") as picaresults:
-//    for line in picaresults:
-//        conditions.append(line.split())
-//
-//for result in conditions:
-//    try:
-//        boolean_verdict = result[1] if result[1] != "N/A" else None
-//        modelresult = result_model(verdict=boolean_verdict,
-//                                   accuracy=result[2],
-//                                   bin_id="${mdsum_file.getBaseName()}",
-//                                   model_id="result[0])
-//        modelresult.save()
-//    except (IntegrityError, ) as e:
-//        sys.exit(e)
-//"""
-//}
+
+
+pica_db_write.collectFile() { item ->
+    [ "${item[1]}.results", "${item[2]} ${item[3]} ${item[4]}" ]  // use md5sum as filename
+}
+process write_pica_result_to_db { //TODO: change python executable when migrating to vm!
+
+    errorStrategy 'ignore'
+
+    input:
+    file(mdsum_file) from db_write
+
+    output:
+    stdout exo
+
+    script:
+"""
+#!/home/user/lueftinger/miniconda3/envs/py3env/bin/python3
+
+import django
+import sys
+import os
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import IntegrityError
+os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
+
+django.setup()
+from phenotypePredictionApp.models import job, bin, model, result_model
+
+# get job from db
+try:
+    parentjob = job.objects.get(job_id="${jobname}")
+except ObjectDoesNotExist:
+    sys.exit("Job not found.")
+
+# get bin from db
+try:
+    parentbin = bin.objects.get(md5sum="${mdsum_file.getBaseName()}")
+except ObjectDoesNotExist:
+    sys.exit("Bin for this result not found.")
+
+conditions = []
+with open("${mdsum_file}", "r") as picaresults:
+    for line in picaresults:
+        conditions.append(line.split())
+
+for result in conditions:
+    try:
+        boolean_verdict = result[1] if result[1] != "N/A" else None
+        modelresult = result_model(verdict=boolean_verdict,
+                                   accuracy=result[2],
+                                   bin_id="${mdsum_file.getBaseName()}",
+                                   model_id="result[0],
+                                   is_newest=1)
+        modelresult.save()
+    except (IntegrityError, ) as e:
+        sys.exit(e)
+"""
+}
 
 
 workflow.onComplete {
