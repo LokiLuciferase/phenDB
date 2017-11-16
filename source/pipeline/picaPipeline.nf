@@ -1,4 +1,4 @@
-// #!/usr/bin/env nextflow
+#!/usr/bin/env nextflow
 // define static variables
 
 file(params.workdir).mkdir()
@@ -296,7 +296,7 @@ process pica {
     echo -ne "${binname}\t" > tempfile.tmp
     cut -f2 $hmmeritem | tr "\\n" "\\t" >> tempfile.tmp
     echo "N/A" > picaout.result
-    echo -n \$(cat picaout.result | cut -f2 | tail -n1)
+    echo -n \$(cat picaout.result | tail -n1 | cut -f2,3 | tr "\t" " ")
     """
     }
 }
@@ -310,7 +310,7 @@ pica_out_write.collectFile() { item ->
 
 
 
-pica_db_write.collectFile() { item ->
+db_written = pica_db_write.collectFile() { item ->
     [ "${item[1]}.results", "${item[2]} ${item[3]} ${item[4]}" ]  // use md5sum as filename
 }
 process write_pica_result_to_db { //TODO: change python executable when migrating to vm!
@@ -318,7 +318,7 @@ process write_pica_result_to_db { //TODO: change python executable when migratin
     errorStrategy 'ignore'
 
     input:
-    file(mdsum_file) from db_write
+    file(mdsum_file) from db_written
 
     output:
     stdout exo
@@ -358,7 +358,7 @@ for result in conditions:
     try:
         boolean_verdict = result[1] if result[1] != "N/A" else None
         modelresult = result_model(verdict=boolean_verdict,
-                                   accuracy=result[2],
+                                   accuracy=result[3],
                                    bin_id="${mdsum_file.getBaseName()}",
                                    model_id="result[0],
                                    is_newest=1)

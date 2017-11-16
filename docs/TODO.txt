@@ -7,6 +7,7 @@ Computational framework:
 -Singularity or Docker container for perfect encapsulation and reproducibility ( ) (not started)
 -Auf jeden fall output tgz generieren mit output files.
 -change pipeline such that single files in the model folder are no problem
+-add probability prediction from pica to output/db
 
 Web server:
 -change default values for NOT NULL ( )

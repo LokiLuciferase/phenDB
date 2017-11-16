@@ -10,7 +10,7 @@ def startProcess(keyname):
     # absPath = PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
     ## start pipeline runscript with path to input folder and output superdirectory
     runscript_path = "/scratch/swe_ws17/phenDB_lueftinger/source/pipeline/run_picaPipeline.sh"
-    infolder = "/scratch/swe_ws17/data/test_working"
+    infolder = "/scratch/swe_ws17/data/singletest"
     above_workfolder = "/scratch/swe_ws17/phenDB_lueftinger/test_runs/results"
     pica_cutoff = "0.5"
 
