@@ -20,5 +20,10 @@ Database ( ) (LL):
 Other stuff:
 -Django am server oder VM
 -gleich alles in DB schreiben (LL: bin dabei)
+- model: appear, disappear, change. Upon update: overwrite and check dates against dates in databases
+- enogs: enog4.5 -> clear specification. /mirror eggnogs are static!
+-if there is a new enog version nr: wipe out the database. need a description of that.
 
 Presentation:
+deliverabels, milestones, responisibilities
+problems, alternatives
