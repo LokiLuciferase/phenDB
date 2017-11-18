@@ -44,9 +44,11 @@ from phenotypePredictionApp.models import *
 # newresult_model.save()
 
 ## add job manually for testing purposes
-samplejob = job(job_id="test_working", user_ip="192.168.0.1", user_email="abc@test.com", folder_path="/scratch/swe_ws17/data/test_working", job_status="should_work")
-samplejob.save()
-
+modelresult = result_model(verdict=True,
+                           accuracy=0.9,
+                           bin_id="ef3b0d4426a4bad774779172830bc968",
+                           model_id="AEROBE_1")
+modelresult.save()
 
 # print(job.objects.all())
 # print(bin.objects.all())

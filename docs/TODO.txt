@@ -2,12 +2,9 @@
 ##feel free to enter TODOs and sign in to stuff you are tackling
 
 Computational framework:
--NF pipeline to go from .fasta/.tar.gz files on HDD to result files on HDD (x) (PP, close to completion)
 -logging all errors and what exactly happened for each bin ( )
--Singularity or Docker container for perfect encapsulation and reproducibility ( ) (not started)
+-Singularity or Docker container for perfect encapsulation and reproducibility ( )
 -Auf jeden fall output tgz generieren mit output files.
--change pipeline such that single files in the model folder are no problem
--add probability prediction from pica to output/db
 
 Web server:
 -change default values for NOT NULL ( )

@@ -16,11 +16,11 @@ log.info"""
     
     PhenDB Pipeline started.
 
-    Input folder containing .fasta genomes (--inputfolder): $params.inputfolder
+    Input folder containing bin files (--inputfolder): $params.inputfolder
     Output directory: $outdir
     Job name: $jobname
     
-    Disabled compute nodes (for hmmer computation) (--omit_nodes): $params.omit_nodes
+    Disabled compute nodes (for hmmer computation) (--omit_nodes): ${(params.omit_nodes == "") ? "None" : params.omit_nodes }
     Accuracy cutoff for displaying PICA results (--accuracy_cutoff): $params.accuracy_cutoff
 
     ##################################################################################
@@ -116,6 +116,8 @@ all_fasta_input_files2.count().subscribe {fastafilecount.text=it} //LL: beautifu
 
 process md5sum {
 
+    tag { binname }
+
     input:
     set val(binname), file(item) from fasta_sanitycheck_out
 
@@ -131,6 +133,8 @@ process md5sum {
 // call prodigal for every sample in parallel
 // output each result as a set of the sample id and the path to the prodigal outfile
 process prodigal {
+
+    tag { binname }
 
     module "prodigal"
     memory = "2 GB"
@@ -151,6 +155,8 @@ process prodigal {
 // very un-nextflow, but necessary: after each completed round, the ID is written to global file progressbar_hmmer
 // ((number of lines in file/number of samples)*100)) == overall progress of hmmer
 process hmmer {
+
+    tag { binname }
 
     maxForks 1  //do not parallelize!
     module "hmmer"
@@ -179,6 +185,8 @@ process hmmer {
 // compute contamination and completeness using compleconta
 process compleconta {
 
+    tag { binname }
+
     module "muscle"
     module "compleconta/0.1"
 
@@ -197,7 +205,10 @@ process compleconta {
 complecontaout.into{complecontaout_continue; bin_to_db}
 
 // write the bin properties to database
+//TODO: disable passing of errors when adding result_enog rows after we have added all enogs to database
 process write_bin_to_db { //TODO: implement checking if bin already exists
+
+    tag { binname }
 
     errorStrategy 'ignore'
 
@@ -216,7 +227,7 @@ from django.db import IntegrityError
 os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"    
 
 django.setup()
-from phenotypePredictionApp.models import job, bin
+from phenotypePredictionApp.models import *
 
 try:
     parentjob = job.objects.get(job_id="${jobname}")
@@ -239,11 +250,28 @@ try:
     newbin.save()
 except IntegrityError:
     sys.exit("Skipping adding of already known bin")
+    
+#write hmmer output to result_enog table
+with open("${hmmeritem}", "r") as enogresfile:
+    for line in enogresfile:
+        try:
+            enogfield = line.split()[1]
+            print("Attempting to add enog {en} from bin {bn} to database.".format(en=enogfield,
+                                                                                  bn="${binname}"))
+            newenog = result_enog(bin_id="${binname}",
+                                  enog_id=enogfield)
+            newenog.save()
+        except IntegrityError:
+            print("Skipping due to IntegrityError.")
+            continue               
+
 """
 }
 
 // compute accuracy from compleconta output and model intrinsics (once for each model).
 process accuracy {
+
+    tag { "${binname}_${model.getBaseName()}" }
 
     memory = '10 MB'
     errorStrategy 'ignore'  //model files not yet complete, TODO: remove this!!!!
@@ -255,16 +283,21 @@ process accuracy {
     output:
     set val(binname), val(mdsum), val(model), file(hmmeritem), file(prodigalitem), file(complecontaitem), stdout into accuracyout
 
+    when:
+    model.isDirectory()
+
     script:
     RULEBOOK = model.getBaseName()
-    ACCURCYFILE = "$model/${RULEBOOK}.accuracy"
+    ACCURACYFILE = "$model/${RULEBOOK}.accuracy"
     """
-    python2 $params.balanced_accuracy_path $ACCURCYFILE $complecontaitem
+    python2 $params.balanced_accuracy_path $ACCURACYFILE $complecontaitem
     """
 }
 
 // call pica for every sample for every condition in parallel
 process pica {
+
+    tag { "${binname}_${model.getBaseName()}" }
 
     module 'pica'
     memory = '500 MB'
@@ -285,17 +318,17 @@ process pica {
     if (accuracy_float >= accuracy_cutoff) {
     """
     echo -ne "${binname}\t" > tempfile.tmp
-    cut -f2 $hmmeritem | tr "\\n" "\\t" >> tempfile.tmp
+    cut -f2 $hmmeritem | tr "\n" "\t" >> tempfile.tmp
     test.py -m $TEST_MODEL -t $RULEBOOK -s tempfile.tmp > picaout.result
-    echo -n \$(cat picaout.result | cut -f2 | tail -n1)
+    echo -n \$(cat picaout.result | tail -n1 | cut -f2,3 | tr "\t" " ")
     """
     }
 
     else {
     """
     echo -ne "${binname}\t" > tempfile.tmp
-    cut -f2 $hmmeritem | tr "\\n" "\\t" >> tempfile.tmp
-    echo "N/A" > picaout.result
+    cut -f2 $hmmeritem | tr "\n" "\t" >> tempfile.tmp
+    echo "N/A\tNA" > picaout.result
     echo -n \$(cat picaout.result | tail -n1 | cut -f2,3 | tr "\t" " ")
     """
     }
@@ -306,13 +339,14 @@ picaout.into{pica_db_write; pica_out_write}
 
 pica_out_write.collectFile() { item ->
     [ "${item[0]}.results", "${item[2]} ${item[3]} ${item[4]}" ]  // use given bin name as filename
-}.subscribe { it.copyTo(outdir) }
-
+}.subscribe { it.copyTo(outdir) }  //TODO: pack this to tar.gz
 
 
 db_written = pica_db_write.collectFile() { item ->
     [ "${item[1]}.results", "${item[2]} ${item[3]} ${item[4]}" ]  // use md5sum as filename
 }
+
+//TODO: change model addition process! right now all results are added to version 1!!
 process write_pica_result_to_db { //TODO: change python executable when migrating to vm!
 
     errorStrategy 'ignore'
@@ -356,18 +390,18 @@ with open("${mdsum_file}", "r") as picaresults:
 
 for result in conditions:
     try:
-        boolean_verdict = result[1] if result[1] != "N/A" else None
+        get_bool = {"YES": True, "NO": False, "N/A": None}
+        boolean_verdict = get_bool[result[1]]
         modelresult = result_model(verdict=boolean_verdict,
-                                   accuracy=result[3],
+                                   accuracy=float(result[3].split()[0]),
                                    bin_id="${mdsum_file.getBaseName()}",
-                                   model_id="result[0],
-                                   is_newest=1)
+                                   model_id=result[0]+"_1"
+                                   )
         modelresult.save()
     except (IntegrityError, ) as e:
         sys.exit(e)
 """
 }
-
 
 workflow.onComplete {
     println "picaPipeline completed at: $workflow.complete"
