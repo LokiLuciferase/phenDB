@@ -27,10 +27,10 @@ class job(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['job_id'])
+            models.Index(fields=['job_name'])
         ]
 
-    job_id = models.TextField(default=uuid.uuid4(), primary_key=True)
+    job_name = models.TextField(default=uuid.uuid4(), primary_key=True)
     user_ip = models.TextField()
     user_email = models.TextField()
     job_date = models.DateTimeField(auto_now=True)
@@ -49,17 +49,15 @@ class bin(models.Model):
             models.Index(fields=['md5sum'])
         ]
 
-    bin_id = models.TextField()
-    file_name = models.TextField()
+    bin_name = models.TextField()
     job = models.ForeignKey(job)
-    genome_path = models.TextField()
     md5sum = models.TextField(primary_key=True)
     errors = models.TextField()
     comple = models.FloatField()
     conta = models.FloatField()
 
     def __str__(self):
-        return "File name: {fn}\nErrors: {err}".format(fn=self.file_name,
+        return "File name: {fn}\nErrors: {err}".format(fn=self.bin_name,
                                                        err=self.errors if self.errors else "")
 
 
@@ -67,27 +65,27 @@ class enog(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['enog_id'])
+            models.Index(fields=['enog_name'])
         ]
 
-    enog_id = models.TextField(primary_key=True)
+    enog_name = models.TextField(primary_key=True)
     enog_descr = models.TextField()
 
     def __str__(self):
-        return "ID: {eid}\tDescription: {ed}".format(eid=self.enog_id,
+        return "ID: {eid}\tDescription: {ed}".format(eid=self.enog_name,
                                                      ed=self.enog_descr)
 
 
 class model(models.Model):
 
-    #class Meta:
-     #   indexes = [
-      #      models.Index(fields=['model_name'])
-       # ]
+    class Meta:
+        unique_together = ('model_name', 'version_nr')
+        indexes = [
+            models.Index(fields=['model_name', 'version_nr'])
+       ]
 
     model_name = models.TextField()
     version_nr = models.IntegerField()
-    mname_vnr = models.TextField(primary_key=True)
     is_newest = models.BooleanField()
     model_desc = models.TextField()
     model_train_date = models.DateField(auto_now=True)
@@ -147,7 +145,7 @@ class result_model(models.Model):
     accuracy = models.FloatField()
 
     def __str__(self):
-        return "Bin {mds}: {v} ({acc} accuracy) for model {mid} trained on {mtd}.".format(mds=self.bin.bin_id,
+        return "Bin {mds}: {v} ({acc} accuracy) for model {mid} trained on {mtd}.".format(mds=self.bin.bin_name,
                                                                                           v=str(self.verdict),
                                                                                           acc=str(self.accuracy),
                                                                                           mid=self.model.model_name,
