@@ -2,20 +2,20 @@
 ##feel free to enter TODOs and sign in to stuff you are tackling
 
 Computational framework:
--NF pipeline to go from .fasta/.tar.gz files on HDD to result files on HDD (x) (PP, close to completion)
---logging all errors and what exactly happened for each bin ( )
--Singularity or Docker container for perfect encapsulation and reproducibility ( ) (not started)
--Tcl environmental module for PhenDB database ( ) (Not started; input from PH how to do it at CUBE?)
+-logging all errors and what exactly happened for each bin ( )
+-Singularity or Docker container for perfect encapsulation and reproducibility ( )
 -Auf jeden fall output tgz generieren mit output files.
 
 Web server:
 -change default values for NOT NULL ( )
 -user interface ( ) (FP)
 -change access logic upon file upload to fit the database created by LL ( )
+-think about malicious access prevention
+-benchmark pipeline on VM using different node settings
 
 Database ( ) (LL):
---modell version cont comp fnr fpr für alle kombinationen (fette table)
-
+-modell version cont comp fnr fpr für alle kombinationen (fette table)
+-better names for "model" model
 
 Other stuff:
 -Django am server oder VM
@@ -24,6 +24,12 @@ Other stuff:
 - enogs: enog4.5 -> clear specification. /mirror eggnogs are static!
 -if there is a new enog version nr: wipe out the database. need a description of that.
 
+Output:
+-give information on important missing enogs when NO is predicted
+
 Presentation:
+full specification of:
+    how are enogs entered into database
+    how are models entered
 deliverabels, milestones, responisibilities
 problems, alternatives

@@ -13,8 +13,8 @@ else
 fi
 
 PIPELINEFILE="/scratch/swe_ws17/phenDB_lueftinger/source/pipeline/picaPipeline.nf"
-DJANGO_SETTINGS_MODULE="phenotypePrediction.settings"
-PYTHONPATH="/scratch/swe_ws17/phenDB_lueftinger/source/web_server/phenotypePrediction:/scratch/swe_ws17/phenDB_lueftinger/source/web_server/phenotypePredictionApp:$PYTHONPATH"
+export DJANGO_SETTINGS_MODULE="phenotypePrediction.settings"
+export PYTHONPATH="/scratch/swe_ws17/phenDB_lueftinger/source/web_server:$PYTHONPATH"
 JOBNAME=$(basename $INFOLDER)
 WORKFOLDER="${ABOVE_WORKFOLDER}/${JOBNAME}_results"
 LOGFOLDER="$WORKFOLDER/logs"
@@ -34,18 +34,18 @@ module load java/1.8u152
 module load nextflow
 
 nohup nextflow $PIPELINEFILE --accuracy_cutoff $CUTOFF --inputfolder $INFOLDER \
---workdir $ABOVE_WORKFOLDER --omit_nodes $NODEOFFS -profile cluster  &> $LOGLOC &
-sleep 3
+--workdir $ABOVE_WORKFOLDER --omit_nodes $NODEOFFS -profile standard  &> $LOGLOC &
 
 until [ -s $FASTAFILECOUNTFOLDER ]; do
     sleep 1
 done
 totalnum=$(cat $FASTAFILECOUNTFOLDER)
-
-res="0.0"
-while [ "$res" != "100.00" ]; do
-    sleep 1
-    donenum=$(cat $PROGRESS | wc -l)
-    res=$(bc <<< "scale=2; ($donenum/($totalnum))*100")
-    echo -ne "Job completion: $res%"\\r
-done
+tail -f $LOGLOC
+#
+#res="0.0"
+#while [ "$res" != "100.00" ]; do
+#    sleep 1
+#    donenum=$(cat $PROGRESS | wc -l)
+#    res=$(bc <<< "scale=2; ($donenum/($totalnum))*100")
+#    echo -ne "Job completion: $res%"\\r
+#done

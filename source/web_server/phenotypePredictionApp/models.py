@@ -82,17 +82,18 @@ class model(models.Model):
 
     #class Meta:
      #   indexes = [
-      #      models.Index(fields=['model_id'])
+      #      models.Index(fields=['model_name'])
        # ]
 
-    model_id = models.TextField()
+    model_name = models.TextField()
     version_nr = models.IntegerField()
+    mname_vnr = models.TextField(primary_key=True)
     is_newest = models.BooleanField()
     model_desc = models.TextField()
     model_train_date = models.DateField(auto_now=True)
 
     def __str__(self):
-        return "Name: {mid}\tVersion Nr: {vnr}\t Description: {md}\tDate of Training: {mtd} \t is_newest= {new}".format(mid=self.model_id,
+        return "Name: {mid}\tVersion Nr: {vnr}\t Description: {md}\tDate of Training: {mtd} \t is_newest= {new}".format(mid=self.model_name,
                                                                                 md=self.model_desc,
                                                                                 mtd=str(self.model_train_date), vnr=self.version_nr, new=self.is_newest)
 
@@ -111,7 +112,7 @@ class model_enog_ranks(models.Model):
 
     def __str__(self):
         return "Enog ID: {eid}\tModel ID: {mid}\tRank {ir}\t(Model trained on {mtd}".format(eid=self.enog_id,
-                                                                                           mid=self.model.model_id,
+                                                                                           mid=self.model.model_name,
                                                                                            ir=str(self.internal_rank),
                                                                                            mtd=str(self.model.model_train_date))
 
@@ -149,5 +150,5 @@ class result_model(models.Model):
         return "Bin {mds}: {v} ({acc} accuracy) for model {mid} trained on {mtd}.".format(mds=self.bin.bin_id,
                                                                                           v=str(self.verdict),
                                                                                           acc=str(self.accuracy),
-                                                                                          mid=self.model_id,
+                                                                                          mid=self.model.model_name,
                                                                                           mtd=str(self.model.model_train_date))
