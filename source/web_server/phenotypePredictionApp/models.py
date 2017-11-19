@@ -16,6 +16,8 @@ class UploadedFile(models.Model):
     key = models.TextField(default=uuid.uuid4())
     filename = models.TextField()
     fileInput = models.FileField(upload_to = upload_function)
+    def get_absolute_url(self):
+        return "results/%s/" % self.key
 
 
 class ResultFile(models.Model):

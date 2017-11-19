@@ -2,8 +2,10 @@ from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
 from .forms import FileForm
+from django.shortcuts import redirect
 import uuid
 from businessLogic.startProcess import startProcess
+from phenotypePredictionApp.models import UploadedFile
 from pprint import pprint
 
 # Create your views here.
@@ -12,7 +14,9 @@ def index(request):
     print("index called")
     template = loader.get_template('phenotypePredictionApp/index.xhtml')
     context = {'result' : 'No result yet',
-               'showResult' : 'none'}
+               'showResult' : 'none',
+               'showProgressBar' : 'none',
+               'refresh' : False}
     return HttpResponse(template.render(context, request))
 
 def sendinput(request):
@@ -47,11 +51,14 @@ def sendinput(request):
         modelInstance.save()
         startProcess(key)
 
-    return HttpResponse(template.render(context, request))
+    resultObj = UploadedFile.objects.get(key=key)
+    return redirect(resultObj)
 
 def getResults(request):
     print("works")
     template = loader.get_template('phenotypePredictionApp/index.xhtml')
     context = {'result' : 'No result yet',
-               'showResult' : 'none'}
+               'showResult' : 'none',
+               'showProgressBar' : 'block',
+               'refresh' : True}
     return HttpResponse(template.render(context, request))
