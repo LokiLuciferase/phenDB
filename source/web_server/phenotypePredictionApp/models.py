@@ -52,7 +52,7 @@ class bin(models.Model):
         ]
 
     bin_name = models.TextField()
-    job = models.ForeignKey(job)
+    job = models.ForeignKey(job, on_delete=models.CASCADE)
     md5sum = models.TextField(primary_key=True)
     errors = models.TextField()
     comple = models.FloatField()
