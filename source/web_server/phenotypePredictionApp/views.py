@@ -3,7 +3,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
 from .forms import FileForm
 import uuid
-#from businessLogic.startProcess import demoProcess
+from businessLogic.startProcess import startProcess
 from pprint import pprint
 
 # Create your views here.
@@ -41,11 +41,11 @@ def sendinput(request):
     print('\n')
     print(fileobj)
 
-    #if(form.is_valid()):
-        #print("is valid")
-    modelInstance = form.save(commit=False)
-    modelInstance.save()
-        # startProcess(key)
+    if(form.is_valid()):
+        print("is valid")
+        modelInstance = form.save(commit=False)
+        modelInstance.save()
+        startProcess(key)
 
     return HttpResponse(template.render(context, request))
 
