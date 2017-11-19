@@ -43,7 +43,8 @@ class job(models.Model):
     user_email = models.TextField()
     job_date = models.DateTimeField(auto_now=True)
     folder_path = models.TextField()
-    output_tgz = models.FileField(upload_to=upload_function)
+    #???
+    output_tgz = models.FileField(upload_to=upload_function_upload)
     job_status = models.TextField()
 
     def __str__(self):
