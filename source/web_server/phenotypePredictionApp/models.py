@@ -2,9 +2,10 @@ from django.db import models
 import uuid
 from django.contrib.contenttypes.models import ContentType
 
-def upload_function(instance):
-    subfolder = instance.job_id
-    filename = instance.file_name
+def upload_function(instance, filename):
+    print('upload called')
+    subfolder = instance.key
+    filename = instance.filename
     return "documents/" + subfolder + "/" + filename
 
 # LL: the following two tables should be removed after functionality of web interface has been ported
@@ -14,8 +15,9 @@ def upload_function(instance):
 class UploadedFile(models.Model):
     key = models.TextField(default=uuid.uuid4())
     filename = models.TextField()
-    file_input = models.FileField(upload_to = upload_function)
-    job_date = models.DateTimeField(auto_now_add=True)
+    fileInput = models.FileField(upload_to = upload_function)
+    def get_absolute_url(self):
+        return "results/%s/" % self.key
 
 
 class ResultFile(models.Model):
