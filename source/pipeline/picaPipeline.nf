@@ -210,7 +210,7 @@ process write_bin_to_db { //TODO: implement checking if bin already exists
 
     tag { binname }
 
-    errorStrategy 'ignore'
+    //errorStrategy 'ignore'
 
     input:
     set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem), file(complecontaitem) from bin_to_db
@@ -243,11 +243,10 @@ with open("${complecontaitem}", "r") as ccfile:
 # write bin to database
 try:
     newbin = bin(bin_name="${binname}",
-                 file_name="${binname}.fasta",
                  comple=cc[0],
                  conta=cc[1],
                  md5sum="${mdsum}",
-                 job_name="${jobname}")
+                 job=job.objects.get(job_name="${jobname}"))
     
     newbin.save()
 except IntegrityError:
@@ -260,8 +259,8 @@ with open("${hmmeritem}", "r") as enogresfile:
             enogfield = line.split()[1]
             print("Attempting to add enog {en} from bin {bn} to database.".format(en=enogfield,
                                                                                   bn="${binname}"))
-            newenog = result_enog(bin_name="${binname}",
-                                  enog_name=enogfield)
+            newenog = result_enog(bin=bin.objects.get(bin_name="${binname}"),
+                                  enog=enog.objects.get(enog_name=enogfield))
             newenog.save()
         except IntegrityError:
             print("Skipping due to IntegrityError.")
@@ -330,7 +329,7 @@ process pica {
     """
     echo -ne "${binname}\t" > tempfile.tmp
     cut -f2 $hmmeritem | tr "\n" "\t" >> tempfile.tmp
-    echo "N/A\tNA" > picaout.result
+    echo "N/A\tN/A" > picaout.result
     echo -n \$(cat picaout.result | tail -n1 | cut -f2,3 | tr "\t" " ")
     """
     }
@@ -351,7 +350,7 @@ db_written = pica_db_write.collectFile() { item ->
 //TODO: change model addition process! right now all results are added to version 1!!
 process write_pica_result_to_db { //TODO: change python executable when migrating to vm!
 
-    errorStrategy 'ignore'
+    //errorStrategy 'ignore'
 
     input:
     file(mdsum_file) from db_written
@@ -361,7 +360,9 @@ process write_pica_result_to_db { //TODO: change python executable when migratin
 
     script:
 """
-#!/home/user/lueftinger/miniconda3/envs/py3env/bin/python3
+#!/usr/bin/env python
+
+###n## !/home/user/lueftinger/miniconda3/envs/py3env/bin/python3
 
 import django
 import sys
@@ -402,7 +403,7 @@ for result in conditions:
         
         modelresult = result_model(verdict=boolean_verdict,
                                    accuracy=float(result[3].split()[0]),
-                                   md5sum="${mdsum_file.getBaseName()}",
+                                   bin=parentbin,
                                    model=this_model
                                    )
         modelresult.save()
