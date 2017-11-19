@@ -70,18 +70,19 @@ class enog(models.Model):
 
     enog_name = models.TextField(primary_key=True)
     enog_descr = models.TextField()
+    enog_category = models.TextField()
 
     def __str__(self):
-        return "ID: {eid}\tDescription: {ed}".format(eid=self.enog_name,
-                                                     ed=self.enog_descr)
+        return "ID: {eid}\tDescription: {ed}\tCategor(y/ies): {ca}".format(eid=self.enog_name,
+                                                     ed=self.enog_descr, ca=self.enog_category)
 
 
 class model(models.Model):
 
     class Meta:
-        unique_together = ('model_name', 'version_nr')
+        unique_together = ('model_name', 'version_nr') # composite primary key
         indexes = [
-            models.Index(fields=['model_name', 'version_nr'])
+            models.Index(fields=['model_name', 'is_newest'])
        ]
 
     model_name = models.TextField()
@@ -109,7 +110,7 @@ class model_enog_ranks(models.Model):
     internal_rank = models.FloatField()
 
     def __str__(self):
-        return "Enog ID: {eid}\tModel ID: {mid}\tRank {ir}\t(Model trained on {mtd}".format(eid=self.enog_id,
+        return "Enog ID: {eid}\tModel ID: {mid}\tRank {ir}\t(Model trained on {mtd})".format(eid=self.enog_id,
                                                                                            mid=self.model.model_name,
                                                                                            ir=str(self.internal_rank),
                                                                                            mtd=str(self.model.model_train_date))

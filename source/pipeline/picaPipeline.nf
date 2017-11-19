@@ -217,7 +217,9 @@ process write_bin_to_db { //TODO: implement checking if bin already exists
 
     script:
 """
-#!/home/user/lueftinger/miniconda3/envs/py3env/bin/python3
+#!/usr/bin/env python
+
+###n## !/home/user/lueftinger/miniconda3/envs/py3env/bin/python3
 
 import django
 import sys
@@ -230,7 +232,7 @@ django.setup()
 from phenotypePredictionApp.models import *
 
 try:
-    parentjob = job.objects.get(job_id="${jobname}")
+    parentjob = job.objects.get(job_name="${jobname}")
 except ObjectDoesNotExist:
     sys.exit("Job not found.")
 
@@ -240,12 +242,12 @@ with open("${complecontaitem}", "r") as ccfile:
 
 # write bin to database
 try:
-    newbin = bin(bin_id="${binname}",
+    newbin = bin(bin_name="${binname}",
                  file_name="${binname}.fasta",
                  comple=cc[0],
                  conta=cc[1],
                  md5sum="${mdsum}",
-                 job_id="${jobname}")
+                 job_name="${jobname}")
     
     newbin.save()
 except IntegrityError:
@@ -258,8 +260,8 @@ with open("${hmmeritem}", "r") as enogresfile:
             enogfield = line.split()[1]
             print("Attempting to add enog {en} from bin {bn} to database.".format(en=enogfield,
                                                                                   bn="${binname}"))
-            newenog = result_enog(bin_id="${binname}",
-                                  enog_id=enogfield)
+            newenog = result_enog(bin_name="${binname}",
+                                  enog_name=enogfield)
             newenog.save()
         except IntegrityError:
             print("Skipping due to IntegrityError.")
@@ -373,7 +375,7 @@ from phenotypePredictionApp.models import job, bin, model, result_model
 
 # get job from db
 try:
-    parentjob = job.objects.get(job_id="${jobname}")
+    parentjob = job.objects.get(job_name="${jobname}")
 except ObjectDoesNotExist:
     sys.exit("Job not found.")
 
@@ -392,10 +394,16 @@ for result in conditions:
     try:
         get_bool = {"YES": True, "NO": False, "N/A": None}
         boolean_verdict = get_bool[result[1]]
+        #get model from db
+        try:
+            this_model=model.objects.get(model_name=result[0], is_newest=True)
+        except ObjectDoesNotExist:
+            sys.exit("Current Model for this result not found.")
+        
         modelresult = result_model(verdict=boolean_verdict,
                                    accuracy=float(result[3].split()[0]),
-                                   bin_id="${mdsum_file.getBaseName()}",
-                                   model_id=result[0]+"_1"
+                                   md5sum="${mdsum_file.getBaseName()}",
+                                   model=this_model
                                    )
         modelresult.save()
     except (IntegrityError, ) as e:

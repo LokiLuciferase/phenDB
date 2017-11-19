@@ -6,56 +6,76 @@ os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
 django.setup()
 from phenotypePredictionApp.models import *
 import sys
+from django.core.exceptions import ObjectDoesNotExist
 
+
+#PICAMODELFOLDER="/Users/peterpeneder/Desktop/models/models2"
 PICAMODELFOLDER="/scratch/swe_ws17/data/models"
 all_picamodels=os.listdir(PICAMODELFOLDER)
-
 for picamodel in all_picamodels:
+
     #TODO: change model_train_date?
-    sys.stdout.write("Adding model {pm}.\n".format(pm=picamodel))
-    if model.objects.filter(model_id=picamodel).exists():
-        sys.stdout.write("Skipping model {m}.\n".format(m=picamodel))
+    if model.objects.filter(model_name=picamodel).exists():
+        sys.stdout.write("Updating model {m}.\n".format(m=picamodel))
         sys.stdout.flush()
-        # db.connections.close_all()
-        continue
 
         # caclulate the new version nr from the highest version nr of already existing entries for the model
-        # new_version_nr = 1 + max(existing_model.version_nr for existing_model in model.objects.filter(model_id=picamodel))
+        new_version_nr = 1 + max(existing_model.version_nr for existing_model in model.objects.filter(model_name=picamodel))
         # set the previously most current version to non-newest
-        # model.objects.filter(model_id=picamodel, is_newest=True).update(is_newest=False)
+        model.objects.filter(model_name=picamodel, is_newest=True).update(is_newest=False)
+
     else:
+        sys.stdout.write("#########\nAdding new model {pm}.\n########\n".format(pm=picamodel))
+        sys.stdout.flush()
         new_version_nr=1
-    newmodel = model(model_id=picamodel, model_desc="",
-                     is_newest=True,
-                     version_nr=new_version_nr,
-                     mname_vnr="{mn}_{vn}".format(mn=picamodel,
-                                                  vn=str(new_version_nr)),
+
+    try: #check if there is a .description file, if there is, read the description
+        with open(PICAMODELFOLDER + "/" + picamodel + "/" + picamodel + ".description", "r") as descfile:
+            desc=""
+            for line in descfile:
+                desc+=" "+line.rstrip()
+    except FileNotFoundError:
+        desc=""
+
+
+    newmodel = model(model_name=picamodel, model_desc=desc, is_newest=True, version_nr=new_version_nr,
                      model_train_date=timezone.now())
     newmodel.save()
 
     #TODO: parallelize this?
     with open(PICAMODELFOLDER+"/"+picamodel+"/"+picamodel+".rank","r") as rankfile:
-        counter=0
-        for line in rankfile:
+        for line in rankfile.readlines()[1:]:
+            #try:
+            line=line.split()
             try:
-                if counter!=0:
-                    line=line.split()
-                    sys.stdout.write("Adding Enog {el}.\n".format(el=line[0]))
-                    sys.stdout.flush()
-                    new_enog = enog(enog_id=line[0], enog_descr="")
-                    new_enog_rank = model_enog_ranks(model=newmodel, enog=new_enog, internal_rank=line[1])
-                    new_enog_rank.save()
-                    new_enog.save()
-                    counter+=1
-            except:
-                sys.stdout.write("Skipping.\n")
-                pass
+                new_enog_rank = model_enog_ranks(model=newmodel, enog=enog.objects.get(enog_name=line[0]),
+                                                 internal_rank=line[1])
+                new_enog_rank.save()
+                sys.stdout.write("Added Enog+rank {el}.\r".format(el=line[0]))
+                sys.stdout.flush()
+            except ObjectDoesNotExist:
+                with open(PICAMODELFOLDER + "/" + picamodel + "/" + picamodel + ".rank.groups", "r") as groupfile:
+                    for groupline in groupfile:
+                        if line[0] == groupline.split("\t")[0]:
+                            groupline=groupline.split("\t")[1]
+                            groupline=groupline.split("/")
+                            for entry in groupline:
+                                entry=entry.rstrip()
+                                try:
+                                    new_enog_rank = model_enog_ranks(model=newmodel,
+                                                                     enog=enog.objects.get(enog_name=entry),
+                                                                     internal_rank=line[1])
+                                    new_enog_rank.save()
+                                    sys.stdout.write("Added Enog(s)+rank(s) contained in "
+                                                     " {gr}.\r".format(gr=line[0]))
+                                    sys.stdout.flush()
+                                except ObjectDoesNotExist:
+                                    print("\n cant find this ENOG:\n",entry)
+                            print()
+
+
+                                    #except:
+             #   sys.stdout.write("Skipping.\n")
+              #  pass
 
 print(model.objects.all())
-#print(enog.objects.all())
-#print(model_enog_ranks.objects.all())
-
-#model.objects.all().delete()
-
-# newmodel = model(model_id=picamodel, model_desc="", version_nr=3, model_train_date=timezone.now())
-# newmodel.save()
