@@ -2,7 +2,7 @@ from django.db import models
 import uuid
 from django.contrib.contenttypes.models import ContentType
 
-def upload_function(instance, filename):
+def upload_function_upload(instance, filename):
     print('upload called')
     subfolder = instance.key
     filename = instance.filename
@@ -15,14 +15,20 @@ def upload_function(instance, filename):
 class UploadedFile(models.Model):
     key = models.TextField(default=uuid.uuid4())
     filename = models.TextField()
-    fileInput = models.FileField(upload_to = upload_function)
+    fileInput = models.FileField(upload_to = upload_function_upload)
     def get_absolute_url(self):
         return "results/%s/" % self.key
 
 
+def upload_function_results(instance, filename):
+    #TODO: + tar.gz
+    print(filename)
+    filename = instance.actualID + '.tar.gz'
+    return 'resultFiles/' + filename
+
 class ResultFile(models.Model):
-    actualID = models.TextField
-    document = models.FileField(upload_to=('resultFiles/' + str(actualID) + '/'))
+    actualID = models.TextField()
+    document = models.FileField(upload_to=upload_function_results)
 
 
 class job(models.Model):

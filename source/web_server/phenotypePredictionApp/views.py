@@ -5,7 +5,7 @@ from .forms import FileForm
 from django.shortcuts import redirect
 import uuid
 from businessLogic.startProcess import startProcess
-from phenotypePredictionApp.models import UploadedFile
+from phenotypePredictionApp.models import UploadedFile, ResultFile
 from pprint import pprint
 
 # Create your views here.
@@ -50,6 +50,9 @@ def sendinput(request):
         modelInstance = form.save(commit=False)
         modelInstance.save()
         startProcess(key)
+
+    #TESTING -> DO NOT USE
+    #res = ResultFile.objects.create(actualID=key, document=fileobj['fileInput'])
 
     resultObj = UploadedFile.objects.get(key=key)
     return redirect(resultObj)
