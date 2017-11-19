@@ -8,8 +8,7 @@ from phenotypePredictionApp.models import *
 import sys
 from django.core.exceptions import ObjectDoesNotExist
 
-def check_groupfile(rank_groups_file, enogname):
-    with open(rank_groups_file, "r") as groupfile:
+def check_groupfile(enogname):
         for groupline in groupfile:
             if line[0] == groupline.split("\t")[0]:
                 groupline = groupline.split("\t")[1]
@@ -75,25 +74,26 @@ for picamodel in all_picamodels:
     #TODO: parallelize this?
     #read the .rank file of the model and extract enogs and their ranks
     with open(PICAMODELFOLDER+"/"+picamodel+"/"+picamodel+".rank","r") as rankfile:
-        for line in rankfile.readlines()[1:]:
-            #try:
-            line=line.split()
-            try:
-                new_enog_rank = model_enog_ranks(model=newmodel, enog=enog.objects.get(enog_name=line[0]),
-                                                 internal_rank=line[1])
-                new_enog_rank.save()
-                sys.stdout.write("Added Enog+rank {el}.\r".format(el=line[0]))
-                sys.stdout.flush()
-            except ObjectDoesNotExist:
-                #if the enog does not exist in the annotationsdfile, it might be a "feature group"
-                # check this by looking up in the .rank.groups file. If it is the case, add all enogs in the
-                # feature group with the rank of the feature group to the db
-                check_groupfile(PICAMODELFOLDER + "/" + picamodel + "/" + picamodel + ".rank.groups", line[0])
+        with open(rank_groups_file, "r") as groupfile:
+            for line in rankfile.readlines()[1:]:
+                #try:
+                line=line.split()
+                try:
+                    new_enog_rank = model_enog_ranks(model=newmodel, enog=enog.objects.get(enog_name=line[0]),
+                                                     internal_rank=line[1])
+                    new_enog_rank.save()
+                    sys.stdout.write("Added Enog+rank {el}.\r".format(el=line[0]))
+                    sys.stdout.flush()
+                except ObjectDoesNotExist:
+                    #if the enog does not exist in the annotationsdfile, it might be a "feature group"
+                    # check this by looking up in the .rank.groups file. If it is the case, add all enogs in the
+                    # feature group with the rank of the feature group to the db
+                    check_groupfile(line[0])
 
-# todo: exception for when its not a feature group
+    # todo: exception for when its not a feature group
 
-                                    #except:
-             #   sys.stdout.write("Skipping.\n")
-              #  pass
+                                        #except:
+                 #   sys.stdout.write("Skipping.\n")
+                  #  pass
 
 print(model.objects.all())

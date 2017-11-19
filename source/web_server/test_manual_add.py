@@ -9,7 +9,7 @@
 import os
 import django
 from django.utils import timezone
-
+#
 os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
 django.setup()
 
