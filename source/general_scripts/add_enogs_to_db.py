@@ -29,7 +29,7 @@ with gzip.open(annot,mode="rt") as f:
         new_enog.save()
         counter+=1
         sys.stdout.write('\r')
-        sys.stdout.write("There is a total of ~14500 Enogs (eggnog4.5). Adding enog nr. ")
+        sys.stdout.write("There is a total of ~144500 Enogs (eggnog4.5). Adding enog nr. ")
         sys.stdout.write(str(counter))
         sys.stdout.flush()
 

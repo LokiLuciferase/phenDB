@@ -217,9 +217,7 @@ process write_bin_to_db { //TODO: implement checking if bin already exists
 
     script:
 """
-#!/usr/bin/env python
-
-###n## !/home/user/lueftinger/miniconda3/envs/py3env/bin/python3
+#!/home/user/lueftinger/miniconda3/envs/py3env/bin/python3
 
 import django
 import sys
@@ -339,16 +337,37 @@ process pica {
 // merge all results into a file called $id.results and move each file to results folder.
 picaout.into{pica_db_write; pica_out_write}
 
-pica_out_write.collectFile() { item ->
+outfilechannel = pica_out_write.collectFile() { item ->
     [ "${item[0]}.results", "${item[2]} ${item[3]} ${item[4]}" ]  // use given bin name as filename
-}.subscribe { it.copyTo(outdir) }  //TODO: pack this to tar.gz
+}
 
+process tar_results {
+
+    tag { jobname }
+
+    stageInMode 'copy'  //actually copy in the results so we not only tar symlinks
+
+    input:
+    val(allfiles) from outfilechannel.collect()
+
+    output:
+    file("${jobname}.tar.gz") into tgz_out
+
+    script:
+    """
+    mkdir ${jobname}
+    mv ./*.results ${jobname}
+    tar -cvf ${jobname}.tar.gz ./${jobname}
+    """
+}
+
+tgz_out.into { tgz_write_out; tgz_to_db }
+tgz_write_out.subscribe { it.copyTo(outdir) }
 
 db_written = pica_db_write.collectFile() { item ->
     [ "${item[1]}.results", "${item[2]} ${item[3]} ${item[4]}" ]  // use md5sum as filename
 }
 
-//TODO: change model addition process! right now all results are added to version 1!!
 process write_pica_result_to_db { //TODO: change python executable when migrating to vm!
 
     errorStrategy 'ignore'
@@ -410,6 +429,39 @@ for result in conditions:
         sys.exit(e)
 """
 }
+
+process write_tgz_to_db {
+
+    input:
+    file(tgz) from tgz_to_db
+
+    script:
+"""
+#!/home/user/lueftinger/miniconda3/envs/py3env/bin/python3
+
+import django
+import sys
+import os
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import IntegrityError
+os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"    
+
+django.setup()
+from phenotypePredictionApp.models import ResultFile
+
+try:
+    new_tgz = ResultFile(actualID=${jobname},
+                         document=${tgz}
+                         )
+except IntegrityError:
+    sys.exit("Exited with integrity error upon adding results to database.")
+"""
+}
+
+
+
+
+
 
 workflow.onComplete {
     println "picaPipeline completed at: $workflow.complete"

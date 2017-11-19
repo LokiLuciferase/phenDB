@@ -1,4 +1,4 @@
-Delete everything except "__init.py" in source/web-server/phenotypePredictionApp/migrations
+Delete everything except "__init__.py" in source/web-server/phenotypePredictionApp/migrations
 Delete source/web-server/phenotypePredictionApp/phenDB.sqlite3
 
 1. Run "python3.6 source/web-server/manage.py makemigrations"

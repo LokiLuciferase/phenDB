@@ -44,21 +44,21 @@ for picamodel in all_picamodels:
 
     #TODO: parallelize this?
     with open(PICAMODELFOLDER+"/"+picamodel+"/"+picamodel+".rank","r") as rankfile:
-        for line in rankfile.readlines()[1:]:
-            #try:
-            line=line.split()
-            try:
-                new_enog_rank = model_enog_ranks(model=newmodel, enog=enog.objects.get(enog_name=line[0]),
-                                                 internal_rank=line[1])
-                new_enog_rank.save()
-                sys.stdout.write("Added Enog+rank {el}.\r".format(el=line[0]))
-                sys.stdout.flush()
-            except ObjectDoesNotExist:
-                with open(PICAMODELFOLDER + "/" + picamodel + "/" + picamodel + ".rank.groups", "r") as groupfile:
-                    for groupline in groupfile:
+        with open(PICAMODELFOLDER + "/" + picamodel + "/" + picamodel + ".rank.groups", "r") as groupfile:
+            grouplist = groupfile.readlines()
+            for line in rankfile.readlines()[1:]:
+                #try:
+                line=line.split()
+                try:
+                    new_enog_rank = model_enog_ranks(model=newmodel, enog=enog.objects.get(enog_name=line[0]),
+                                                     internal_rank=line[1])
+                    new_enog_rank.save()
+                    sys.stdout.write("Added Enog+rank {el}.\r".format(el=line[0]))
+                    sys.stdout.flush()
+                except ObjectDoesNotExist:
+                    for groupline in grouplist:
                         if line[0] == groupline.split("\t")[0]:
-                            groupline=groupline.split("\t")[1]
-                            groupline=groupline.split("/")
+                            groupline=groupline.split("\t")[1].split("/")
                             for entry in groupline:
                                 entry=entry.rstrip()
                                 try:

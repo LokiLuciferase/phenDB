@@ -22,7 +22,7 @@ class UploadedFile(models.Model):
 
 class ResultFile(models.Model):
     actualID = models.TextField
-    document = models.FileField(upload_to=('resultFiles/' + str(actualID) + '/'))
+    document = models.FileField(upload_to=('resultFiles/' + str(actualID) + 'tar.gz'))
 
 
 class job(models.Model):
