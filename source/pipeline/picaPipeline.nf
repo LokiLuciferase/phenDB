@@ -136,7 +136,6 @@ process prodigal {
 
     tag { binname }
 
-    module "prodigal"
     memory = "2 GB"
 
     input:
@@ -159,7 +158,6 @@ process hmmer {
     tag { binname }
 
     maxForks 1  //do not parallelize!
-    module "hmmer"
 
     input:
     set val(binname), val(mdsum), file(item) from prodigalout
@@ -186,9 +184,6 @@ process hmmer {
 process compleconta {
 
     tag { binname }
-
-    module "muscle"
-    module "compleconta/0.1"
 
     input:
     set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem) from hmmerout
@@ -217,7 +212,7 @@ process write_bin_to_db { //TODO: implement checking if bin already exists
 
     script:
 """
-#!/home/user/lueftinger/miniconda3/envs/py3env/bin/python3
+#!/usr/bin/env python3
 
 import django
 import sys
@@ -298,7 +293,6 @@ process pica {
 
     tag { "${binname}_${model.getBaseName()}" }
 
-    module 'pica'
     memory = '500 MB'
     errorStrategy 'ignore'  //model files not yet complete, TODO: remove this!!!!
 
@@ -380,7 +374,7 @@ process write_pica_result_to_db { //TODO: change python executable when migratin
 
     script:
 """
-#!/home/user/lueftinger/miniconda3/envs/py3env/bin/python3
+#!/usr/bin/env python3
 
 import django
 import sys
@@ -437,7 +431,7 @@ process write_tgz_to_db {
 
     script:
 """
-#!/home/user/lueftinger/miniconda3/envs/py3env/bin/python3
+#!/usr/bin/env python3
 
 import django
 import sys

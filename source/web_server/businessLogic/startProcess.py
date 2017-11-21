@@ -14,10 +14,9 @@ def startProcess(keyname):
     absPath = os.getcwd()
     infolder = absPath + "/" + relFilePath
     print(infolder)
-    '''
-    runscript_path = "/scratch/swe_ws17/phenDB_lueftinger/source/pipeline/run_picaPipeline.sh"
-    infolder = "/scratch/swe_ws17/data/singletest"
-    above_workfolder = "/scratch/swe_ws17/phenDB_lueftinger/test_runs/results"
+
+    runscript_path = "/apps/phenDB/source/pipeline/run_picaPipeline.sh"
+    above_workfolder = "/home/phen_work/results"
     pica_cutoff = "0.5"
 
     subprocess.run([runscript_path,
@@ -27,4 +26,3 @@ def startProcess(keyname):
 
     # TODO: file watcher for progress information + saving in database of certain files
     # TODO: threaded pipeline call?
-    '''
