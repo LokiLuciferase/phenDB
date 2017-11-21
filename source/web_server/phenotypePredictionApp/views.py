@@ -33,7 +33,7 @@ def sendinput(request):
     for filename, file in request.FILES.items():
         name = request.FILES[filename].name
     postobj['filename'] = name
-    postobj['upload_path'] = fileobj['upload_path']
+    postobj['upload_path'] = fileobj['fileInput']
 
     print(postobj['filename'])
     print(postobj['job_name'])
@@ -49,6 +49,12 @@ def sendinput(request):
         print("is valid")
         modelInstance = form.save(commit=False)
         modelInstance.save()
+
+        newjob = job(job_name=job_name,
+                     filename=postobj['filename'],
+                     )
+        newjob.save()
+
         startProcess(job_name)
 
     resultObj = job.objects.get(job_name=job_name)
