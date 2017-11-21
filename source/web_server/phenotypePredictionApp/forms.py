@@ -1,15 +1,15 @@
 from django import forms
-from .models import UploadedFile
+from .models import job
 
 
 class FileForm(forms.ModelForm):
     class Meta:
-        model = UploadedFile
-        fields = ['filename', 'key', 'fileInput']
+        model = job
+        fields = ['filename', 'job_name', 'upload_path']
     def __init__(self, *args, **kwargs):
         super(FileForm, self).__init__(*args, **kwargs)
-        self.fields['key'].initial = self.data['key']
+        self.fields['job_name'].initial = self.data['job_name']
         self.fields['filename'].initial = self.data['filename']
-        self.fields['fileInput'].initial = self.data['fileInput']
+        self.fields['upload_path'].initial = self.data['upload_path']
         for key, value in self.data.items():
             print(str(key) + ' '  + str(value))

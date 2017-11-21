@@ -27,16 +27,16 @@ def sendinput(request):
     postobj = request.POST.copy()
     fileobj = request.FILES.copy()
     key = str(uuid.uuid4())
-    postobj['key'] = key
+    postobj['job_name'] = key
 
     #works only if just one file is uploaded
     for filename, file in request.FILES.items():
         name = request.FILES[filename].name
     postobj['filename'] = name
-    postobj['fileInput'] = fileobj['fileInput']
+    postobj['upload_path'] = fileobj['upload_path']
 
     print(postobj['filename'])
-    print(postobj['key'])
+    print(postobj['job_name'])
 
 
     form = FileForm(postobj, fileobj)
