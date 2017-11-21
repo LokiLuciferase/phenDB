@@ -6,6 +6,7 @@ def upload_function(instance, filename):
     print('upload called')
     subfolder = instance.job_name
     filename = instance.filename
+
     return "documents/" + subfolder + "/" + filename
 
 # LL: the following two tables should be removed after functionality of web interface has been ported
