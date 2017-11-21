@@ -54,6 +54,8 @@ def sendinput(request):
                      filename=postobj['filename'],
                      )
         newjob.save()
+    else:
+        print("Form is not valid!")
 
         startProcess(job_name)
 
