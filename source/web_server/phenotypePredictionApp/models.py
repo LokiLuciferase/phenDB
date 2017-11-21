@@ -21,7 +21,7 @@ class UploadedFile(models.Model):
 
 
 class ResultFile(models.Model):
-    actualID = models.TextField
+    actualID = models.TextField()
     document = models.FileField(upload_to=('resultFiles/' + str(actualID) + 'tar.gz'))
 
 

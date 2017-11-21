@@ -338,7 +338,8 @@ picaout.into{pica_db_write; pica_out_write}
 
 outfilechannel = pica_out_write.collectFile() { item ->
     [ "${item[0]}.results", "${item[2]} ${item[3]} ${item[4]}" ]  // use given bin name as filename
-}
+}.collect()
+
 
 process tar_results {
 
@@ -347,7 +348,7 @@ process tar_results {
     stageInMode 'copy'  //actually copy in the results so we not only tar symlinks
 
     input:
-    val(allfiles) from outfilechannel.collect()
+    file(allfiles) from outfilechannel
 
     output:
     file("${jobname}.tar.gz") into tgz_out
@@ -355,7 +356,7 @@ process tar_results {
     script:
     """
     mkdir ${jobname}
-    mv ./*.results ${jobname}
+    mv *.results ${jobname}
     tar -cvf ${jobname}.tar.gz ./${jobname}
     """
 }
@@ -379,9 +380,7 @@ process write_pica_result_to_db { //TODO: change python executable when migratin
 
     script:
 """
-#!/usr/bin/env python
-
-###n## !/home/user/lueftinger/miniconda3/envs/py3env/bin/python3
+#!/home/user/lueftinger/miniconda3/envs/py3env/bin/python3
 
 import django
 import sys
@@ -451,18 +450,13 @@ django.setup()
 from phenotypePredictionApp.models import ResultFile
 
 try:
-    new_tgz = ResultFile(actualID=${jobname},
-                         document=${tgz}
+    new_tgz = ResultFile(actualID="${jobname}",
+                         document="${tgz}"
                          )
 except IntegrityError:
     sys.exit("Exited with integrity error upon adding results to database.")
 """
 }
-
-
-
-
-
 
 workflow.onComplete {
     println "picaPipeline completed at: $workflow.complete"

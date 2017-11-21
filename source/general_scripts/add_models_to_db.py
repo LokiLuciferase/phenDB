@@ -80,17 +80,12 @@ for picamodel in all_picamodels:
                                                      " {gr}.\r".format(gr=line[0]))
                                     sys.stdout.flush()
                                 except ObjectDoesNotExist:
-                                    print("\n cant find this ENOG:\n", entry)
-                        # if enog was a feature group contained in the rank.groups file
-                        print()
-                    # if enog was something else
-                    print("\n cant find this ENOG or featuregroup:\n", line[0])
+                                    print("\n cant find this ENOG:\n",entry)
+                            print()
 
 
-                    # todo: exception for when its not a feature group
-
-                                        #except:
-                 #   sys.stdout.write("Skipping.\n")
-                  #  pass
+                                    #except:
+             #   sys.stdout.write("Skipping.\n")
+              #  pass
 
 print(model.objects.all())
