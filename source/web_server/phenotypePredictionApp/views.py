@@ -5,7 +5,7 @@ from .forms import FileForm
 from django.shortcuts import redirect
 import uuid
 from businessLogic.startProcess import startProcess
-from phenotypePredictionApp.models import job
+from phenotypePredictionApp.models import UploadedFile
 from pprint import pprint
 
 # Create your views here.
@@ -26,17 +26,17 @@ def sendinput(request):
                'showResult' : 'block'}
     postobj = request.POST.copy()
     fileobj = request.FILES.copy()
-    job_name = str(uuid.uuid4())
-    postobj['job_name'] = job_name
+    key = str(uuid.uuid4())
+    postobj['key'] = key
 
     #works only if just one file is uploaded
     for filename, file in request.FILES.items():
         name = request.FILES[filename].name
     postobj['filename'] = name
-    postobj['upload_path'] = fileobj['fileInput']
+    postobj['fileInput'] = fileobj['fileInput']
 
     print(postobj['filename'])
-    print(postobj['job_name'])
+    print(postobj['key'])
 
 
     form = FileForm(postobj, fileobj)
@@ -49,17 +49,9 @@ def sendinput(request):
         print("is valid")
         modelInstance = form.save(commit=False)
         modelInstance.save()
+        startProcess(key)
 
-        newjob = job(job_name=job_name,
-                     filename=postobj['filename'],
-                     )
-        newjob.save()
-    else:
-        print("Form is not valid!")
-
-        startProcess(job_name)
-
-    resultObj = job.objects.get(job_name=job_name)
+    resultObj = UploadedFile.objects.get(key=key)
     return redirect(resultObj)
 
 def getResults(request):

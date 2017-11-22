@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import subprocess
 import os.path
-from phenotypePredictionApp.models import job
+from phenotypePredictionApp.models import UploadedFile
 
 
 def startProcess(keyname):
@@ -10,9 +10,9 @@ def startProcess(keyname):
     # absPath = PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
     ## start pipeline runscript with path to input folder and output superdirectory
     print('startProcess called')
-    relFolderPath = os.path.dirname(job.objects.get(job_name=keyname).upload_path.url)
+    relFilePath = os.path.dirname(UploadedFile.objects.get(key=keyname).fileInput.url)
     absPath = os.getcwd()
-    infolder = absPath + "/" + relFolderPath
+    infolder = absPath + "/" + relFilePath
     print(infolder)
 
     runscript_path = "/apps/phenDB/source/pipeline/run_picaPipeline.sh"

@@ -4,21 +4,20 @@ from django.contrib.contenttypes.models import ContentType
 
 def upload_function(instance, filename):
     print('upload called')
-    subfolder = instance.job_name
+    subfolder = instance.key
     filename = instance.filename
-
     return "documents/" + subfolder + "/" + filename
 
 # LL: the following two tables should be removed after functionality of web interface has been ported
 # to accomodate the database strcture defined further down
 
 
-# class UploadedFile(models.Model):
-#     key = models.TextField(default=uuid.uuid4())
-#     filename = models.TextField()
-#     fileInput = models.FileField(upload_to = upload_function)
-#     def get_absolute_url(self):
-#         return "results/%s/" % self.key
+class UploadedFile(models.Model):
+    key = models.TextField(default=uuid.uuid4())
+    filename = models.TextField()
+    fileInput = models.FileField(upload_to = upload_function)
+    def get_absolute_url(self):
+        return "results/%s/" % self.key
 
 
 class ResultFile(models.Model):
@@ -34,14 +33,12 @@ class job(models.Model):
         ]
 
     job_name = models.TextField(default=uuid.uuid4(), primary_key=True)
-    user_ip = models.TextField(default="None")
-    user_email = models.TextField(default="None")
+    user_ip = models.TextField()
+    user_email = models.TextField()
     job_date = models.DateTimeField(auto_now=True)
-    filename = models.TextField()
-    upload_path = models.FileField(upload_to=upload_function)
-    job_status = models.TextField(default="None")
-    def get_absolute_url(self):
-        return "results/%s/" % self.job_name
+    folder_path = models.TextField()
+    output_tgz = models.FileField(upload_to=upload_function)
+    job_status = models.TextField()
 
     def __str__(self):
         return "User IP: {ip}\nRecieved: {jd}".format(ip=self.user_ip, jd=self.job_date)
