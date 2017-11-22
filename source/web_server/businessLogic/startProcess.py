@@ -11,6 +11,9 @@ def startProcess(keyname):
     infolder = absPath + "/" + relFilePath
     print(infolder)
 
+    #PF: fake script to test webserver
+    
+
     #uncomment when using on the virtual machine
     '''
     runscript_path = "/scratch/swe_ws17/phenDB_lueftinger/source/pipeline/run_picaPipeline.sh"

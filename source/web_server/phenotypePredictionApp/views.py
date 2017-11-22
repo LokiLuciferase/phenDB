@@ -1,9 +1,11 @@
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
+from django.urls import reverse
 from .forms import FileForm
 from django.shortcuts import redirect
 import uuid
+from django.core.urlresolvers import resolve
 from businessLogic.startProcess import startProcess
 from phenotypePredictionApp.models import UploadedFile, ResultFile
 from pprint import pprint
@@ -60,8 +62,23 @@ def sendinput(request):
 def getResults(request):
     print("works")
     template = loader.get_template('phenotypePredictionApp/index.xhtml')
-    context = {'result' : 'No result yet',
-               'showResult' : 'none',
+    context = {'result' : 'download/',
+               'showResult' : 'block',
                'showProgressBar' : 'block',
                'refresh' : True}
     return HttpResponse(template.render(context, request))
+
+def fileDownload(request):
+    print("fileDownload called")
+
+
+    reqPath = request.path
+    print(reqPath)
+    if(reqPath[-1] == '/'):
+        reqPath = reqPath[:-1]
+    key = reqPath.rsplit('/')[-2]
+    print(key)
+    resFile = ResultFile.objects.get(actualID = key)
+    response = HttpResponse(resFile.document, content_type='application/tar+gzip')
+    response['Content-Disposition'] = 'attachment; filename="phendb_results.tar.gz"'
+    return response
