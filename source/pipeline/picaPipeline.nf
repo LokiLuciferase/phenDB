@@ -225,7 +225,7 @@ django.setup()
 from phenotypePredictionApp.models import *
 
 try:
-    parentjob = job.objects.get(job_name="${jobname}")
+    parentjob = UploadedFile.objects.get(key="${jobname}")
 except ObjectDoesNotExist:
     sys.exit("Job not found.")
 
@@ -239,7 +239,7 @@ try:
                  comple=cc[0],
                  conta=cc[1],
                  md5sum="${mdsum}",
-                 job=job.objects.get(job_name="${jobname}"))
+                 job=UploadedFile.objects.get(key="${jobname}"))
     
     newbin.save()
 except IntegrityError:
@@ -384,11 +384,11 @@ from django.db import IntegrityError
 os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
 
 django.setup()
-from phenotypePredictionApp.models import job, bin, model, result_model
+from phenotypePredictionApp.models import UploadedFile, bin, model, result_model
 
 # get job from db
 try:
-    parentjob = job.objects.get(job_name="${jobname}")
+    parentjob = UploadedFile.objects.get(key="${jobname}")
 except ObjectDoesNotExist:
     sys.exit("Job not found.")
 

@@ -40,7 +40,6 @@ class UploadedFile(models.Model):
         return "results/%s/" % self.key
 
 
-
 class bin(models.Model):
 
     class Meta:
