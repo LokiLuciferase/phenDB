@@ -7,7 +7,7 @@ if [ $# -eq 3 ]; then
     ABOVE_WORKFOLDER=$2
     CUTOFF=$3
 else
-    INFOLDER="/home/phen_work/test_data"
+    INFOLDER="/home/phen_work/singletest"
     ABOVE_WORKFOLDER="/home/phen_work/results/"  # for testing, replace this with your testing folder!
     CUTOFF="0.5"
 fi
