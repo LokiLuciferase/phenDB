@@ -1,14 +1,32 @@
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
+from django.urls import reverse
 from .forms import FileForm
 from django.shortcuts import redirect
 import uuid
-from businessLogic.startProcess import startProcess
+from django.core.urlresolvers import resolve
+from businessLogic.startProcess import startProcessThread
 from phenotypePredictionApp.models import UploadedFile
 from pprint import pprint
 
-# Create your views here.
+#------------------functions---------------------------------------------
+#useful functions, NO views
+
+def getKeyFromUrl(request):
+    reqPath = request.path
+    print(reqPath)
+    if(reqPath[-1] == '/'):
+        reqPath = reqPath[:-1]
+    urlparts = reqPath.rsplit('/')
+    for part in urlparts:
+        if len(part) == 36:
+            return part
+    return None
+
+
+
+#-------------------Views-------------------------------------------------
 
 def index(request):
     print("index called")
@@ -49,7 +67,11 @@ def sendinput(request):
         print("is valid")
         modelInstance = form.save(commit=False)
         modelInstance.save()
-        startProcess(key)
+        thread = startProcessThread(key)
+        thread.start()
+
+    #TESTING -> DO NOT USE
+    #res = ResultFile.objects.create(actualID=key, document=fileobj['fileInput'])
 
     resultObj = UploadedFile.objects.get(key=key)
     return redirect(resultObj)
@@ -57,8 +79,25 @@ def sendinput(request):
 def getResults(request):
     print("works")
     template = loader.get_template('phenotypePredictionApp/index.xhtml')
-    context = {'result' : 'No result yet',
-               'showResult' : 'none',
+    key = getKeyFromUrl(request)
+    obj = UploadedFile.objects.get(key=key)
+    if obj.job_status == '100':
+        showResult = 'block'
+        refresh = 'false'
+    else:
+        showResult = 'none'
+        refresh = 'true'
+    context = {'result' : 'download/',
+               'showResult' : showResult,
                'showProgressBar' : 'block',
-               'refresh' : True}
+               'progress' : obj.job_status,
+               'refresh' : refresh}
     return HttpResponse(template.render(context, request))
+
+def fileDownload(request):
+    print("fileDownload called")
+    key = getKeyFromUrl(request)
+    resFile = UploadedFile.objects.get(key = key)
+    response = HttpResponse(resFile.fileOutput, content_type='application/tar+gzip')
+    response['Content-Disposition'] = 'attachment; filename="phendb_results.tar.gz"'
+    return response
