@@ -29,13 +29,12 @@ for annot in ENOG_files:
 #Open the annotations file, every line is an enog. Translate the Lettercode in the annotations-file using the
 #descriptions file and save the enog + description + categories to the db.
     with gzip.open(annot,mode="rt") as f:
-        with open("/mirror/eggnog/eggnog_4.5/COG_functional_categories.txt", 'r') as cat:
-            cat_read_in = cat.readlines()
-            counter=0
-            for line in f:
-                line=line.split("\t")
-                catlist=[]
-                for catline in cat_read_in:
+        counter=0
+        for line in f:
+            line=line.split("\t")
+            catlist=[]
+            with open ("/mirror/eggnog/eggnog_4.5/COG_functional_categories.txt", 'r') as cat:
+                for catline in cat:
                     for my_letter in line[4]:
                         if "["+my_letter+"]" in catline:
                             catlist.append(catline.rstrip())
