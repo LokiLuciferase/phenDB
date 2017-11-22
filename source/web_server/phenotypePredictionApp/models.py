@@ -2,55 +2,39 @@ from django.db import models
 import uuid
 from django.contrib.contenttypes.models import ContentType
 
+
+#------------ functions for file upload -----------------------
 def upload_function_upload(instance, filename):
     print('upload called')
     subfolder = instance.key
     filename = instance.filename
     return "documents/" + subfolder + "/" + filename
 
-# LL: the following two tables should be removed after functionality of web interface has been ported
-# to accomodate the database strcture defined further down
+def upload_function_results(instance, filename):
+    #TODO: + tar.gz
+    print(filename)
+    filename = instance.key + '.tar.gz'
+    return 'resultFiles/' + filename
 
 
+#----------------Models--------------------------------------
+
+#TODO: rename later (in the end)
 class UploadedFile(models.Model):
     key = models.TextField(default=uuid.uuid4())
     filename = models.TextField()
     fileInput = models.FileField(upload_to = upload_function_upload)
-    def get_absolute_url(self):
-        return "results/%s/" % self.key
-
-
-def upload_function_results(instance, filename):
-    #TODO: + tar.gz
-    print(filename)
-    filename = instance.actualID + '.tar.gz'
-    return 'resultFiles/' + filename
-
-class ResultFile(models.Model):
-    actualID = models.TextField()
-    document = models.FileField(upload_to=upload_function_results)
-
-
-class job(models.Model):
-
-    class Meta:
-        indexes = [
-            models.Index(fields=['job_id'])
-        ]
-
-    job_id = models.TextField(default=uuid.uuid4(), primary_key=True)
+    fileOutput = models.FileField(upload_to=upload_function_results)
     user_ip = models.TextField()
     user_email = models.TextField()
     job_date = models.DateTimeField(auto_now=True)
     folder_path = models.TextField()
-    #???
-    output_tgz = models.FileField(upload_to=upload_function_upload)
     job_status = models.TextField()
+    def get_absolute_url(self):
+        return "results/%s/" % self.key
 
-    def __str__(self):
-        return "User IP: {ip}\nRecieved: {jd}".format(ip=self.user_ip, jd=self.job_date)
 
-
+'''
 class bin(models.Model):
 
     class Meta:
@@ -161,3 +145,4 @@ class result_model(models.Model):
                                                                                           acc=str(self.accuracy),
                                                                                           mid=self.model.model_name,
                                                                                           mtd=str(self.model.model_train_date))
+'''
