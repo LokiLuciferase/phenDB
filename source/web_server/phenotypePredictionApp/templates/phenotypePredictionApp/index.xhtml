@@ -23,7 +23,7 @@
     <form enctype="multipart/form-data" action="{% url 'phenotypePredictionApp:sendinput' %}" method="post" style="height:100%;">
         {% csrf_token %}
         <div style="height:50%;">
-            <label for="fileInput">Input (as tar.gz File)</label>
+            <label for="fileInput">Input (as tar.gz or .zip File)</label>
             <input name="fileInput" type="file" />
             <input type="submit" value="Send" />
         </div>
@@ -32,7 +32,7 @@
             <a href="{{ result }}"> Download your results </a>
         </div>
         <div id="progressbar" style="display:{{ showProgressBar }}">
-            PROGRESS: {{ progress }}
+            PROGRESS: {{ progress }}% complete.
         </div>
     </form>
 

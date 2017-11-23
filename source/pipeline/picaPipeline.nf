@@ -8,6 +8,7 @@ file(outdir).mkdir()
 models = file(params.modelfolder).listFiles()
 input_files = Channel.fromPath("${params.inputfolder}/*.fasta")
 input_gzipfiles = Channel.fromPath("${params.inputfolder}/*.tar.gz")
+input_barezipfiles = Channel.fromPath("${params.inputfolder}/*.zip")
 all_input_files = Channel.fromPath("${params.inputfolder}/*")
 hmmdb = file(params.hmmdb)
 
@@ -55,26 +56,47 @@ process tgz {
     """
 }
 
-// combine raw fasta files and those extracted from tar.gz files
-all_fasta_input_files = input_files.mix(tgz_unraveled_fasta.flatten())
-all_fasta_input_files.into{all_fasta_input_files1; all_fasta_input_files2}
-truly_all_input_files = all_input_files.mix(tgz_unraveled_all.flatten()) // route this through file extension checking map
+// unzip .zip files
+process unzip {
+
+    input:
+    file(zipfile) from input_barezipfiles
+
+    output:
+    file("${zipfile.getSimpleName()}/*/*.fasta") into zip_unraveled_fasta
+    file("${zipfile.getSimpleName()}/*/*") into zip_unraveled_all
+
+    script:
+    outfolder = zipfile.getSimpleName()
+    """
+    mkdir ${outfolder} && unzip ${zipfile} -d ${outfolder}
+    """
+}
+
+// combine raw fasta files and those extracted from archive files
+all_fasta_input_files = input_files.mix(tgz_unraveled_fasta.flatten(), zip_unraveled_fasta.flatten())
+truly_all_input_files = all_input_files.mix(tgz_unraveled_all.flatten(), zip_unraveled_all.flatten())
 
 
 // Error handling
 truly_all_input_files.subscribe {
 
     //check if there are any non-fasta files
-    if ((!(it.getName() ==~ /.+\.fasta$/ )) && (!(it.getName() =~ /.+\.tar.gz$/ ))) {
+    if ((!(it.getName() ==~ /.+\.fasta$/ )) && (!(it.getName() =~ /.+\.tar.gz$/ )) && (!(it.getName() =~ /.+\.zip$/ ))){
 
-        //TODO: print to logger
-        println "WARNING: Some of the files you uploaded do not end with '.fasta' or '.tar.gz'- I cannot analyze them"
-        errorfile.append("WARNING: Some of the files you uploaded do not end with '.fasta' or '.tar.gz'- I cannot analyze them \n")
+        endingmess = "WARNING: the file ${it.getName()} does not end in '.fasta', '.zip' or '.tar.gz'.\n" +
+                     "The file was dropped from the analysis.\n\n"
+        log.info(endingmess)
+        errorfile.append(endingmess)
+
     }
     //check if there are any files with non-ascii character names
     if (!( it.getBaseName() ==~ /^\p{ASCII}+$/ )) {
-        //TODO: print to logger
-        println "WARNING: Some of the files you uploaded include non-ASCII characters - Analysis may fail!"
+
+        asciimess = "WARNING: The filename of ${it.getName()} contains non-ASCII characters.\n" +
+                    "The file was dropped from the analysis.\n\n"
+        log.info(asciimess)
+        errorfile.append(asciimess)
     }
 }
 
@@ -83,44 +105,46 @@ process fasta_sanity_check {
     errorStrategy 'ignore'
 
     input:
-    file(item) from all_fasta_input_files1
+    file(item) from all_fasta_input_files
 
     output:
     set val(binname), file("sanitychecked.fasta") into fasta_sanitycheck_out
 
     script:
-    binname = item.getBaseName()
-    """
-    #!/usr/bin/env python
-    from Bio import SeqIO
-    from Bio.Seq import Seq
-    from Bio.Alphabet import IUPAC
-    from Bio import Alphabet
-    import sys, os
+    binname = item.getName()
+"""
+#!/usr/bin/env python
+from Bio import SeqIO
+from Bio.Seq import Seq
+from Bio.Alphabet import IUPAC
+from Bio import Alphabet
+import sys, os
 
-    
-    with open("sanitychecked.fasta","w") as outfile:
-        for read in SeqIO.parse("${item}", "fasta", IUPAC.ambiguous_dna):
-            if not Alphabet._verify_alphabet(read.seq):
-                with open("${errorfile}", "a") as myfile:
-                    myfile.write("There was an unexpected letter in the sequence, aborted further processing. Allowed letters are G,A,T,C,R,Y,W,S,M,K,H,B,V,D,N ")
-                os.remove("sanitychecked.fasta")
-                sys.exit("There was an unexpected letter in the sequence, aborting")
-            SeqIO.write(read, outfile, "fasta")
 
-    """
+with open("sanitychecked.fasta","w") as outfile:
+    for read in SeqIO.parse("${item}", "fasta", IUPAC.ambiguous_dna):
+        if not Alphabet._verify_alphabet(read.seq):
+            with open("${errorfile}", "a") as myfile:
+                myfile.write("WARNING: There was an unexpected DNA letter in the sequence of file ${binname}.\\n")
+                myfile.write("Allowed letters are G,A,T,C,R,Y,W,S,M,K,H,B,V,D,N.\\n")
+                myfile.write("The file was dropped from the analysis.\\n\\n")
+            os.remove("sanitychecked.fasta")
+            sys.exit("There was an unexpected letter in the sequence, aborting.")
+        SeqIO.write(read, outfile, "fasta")
+"""
 
 }
 
-// Print the number of fasta files to a file for progress display
-all_fasta_input_files2.count().subscribe {fastafilecount.text=it} //LL: beautiful!
+// Print the number of valid fasta files to a file for progress display
+fasta_sanitycheck_out.into { sanity_check_for_continue; sanity_check_for_count }
+sanity_check_for_count.count().subscribe { fastafilecount.text=it }
 
 process md5sum {
 
     tag { binname }
 
     input:
-    set val(binname), file(item) from fasta_sanitycheck_out
+    set val(binname), file(item) from sanity_check_for_continue
 
     output:
     set val(binname), stdout, file(item) into md5_out
@@ -181,13 +205,54 @@ process hmmer {
     """
 }
 
+//increases percentage completed after each hmmer job completion
+process update_job_completeness {
+
+    tag { jobname }
+
+    input:
+    set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem) from hmmerout
+    output:
+    set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem) into job_updated_out
+    script:
+"""
+#!/usr/bin/env python3
+
+import django
+import sys
+import os
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import IntegrityError
+os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"    
+
+django.setup()
+from phenotypePredictionApp.models import *
+
+try:
+    parentjob = UploadedFile.objects.get(key="${jobname}")
+
+    current_status = int(parentjob.job_status) if parentjob.job_status else 0
+    total_valid_count = int('${fastafilecount.text}'.strip())
+    plusone = int((1 / total_valid_count)*100)
+    
+    if (current_status + plusone < 100):
+        current_status += plusone
+        parentjob.job_status = current_status
+        parentjob.save()
+    
+except ObjectDoesNotExist:
+    sys.exit("Job not found.")
+"""
+
+}
+
 // compute contamination and completeness using compleconta
 process compleconta {
 
     tag { binname }
 
     input:
-    set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem) from hmmerout
+    set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem) from job_updated_out
 
     output:
     set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem), file("complecontaitem.txt") into complecontaout
@@ -344,6 +409,7 @@ process tar_results {
 
     input:
     file(allfiles) from outfilechannel
+    file(errorfile)
 
     output:
     file("${jobname}.tar.gz") into tgz_out
@@ -351,6 +417,7 @@ process tar_results {
     script:
     """
     mkdir ${jobname}
+    cp ${errorfile} ${jobname}/invalid_input_files.log
     mv *.results ${jobname}
     tar -cvf ${jobname}.tar.gz ./${jobname}
     rm -rf ${jobname}

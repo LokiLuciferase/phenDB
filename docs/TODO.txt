@@ -2,16 +2,12 @@
 ##feel free to enter TODOs and sign in to stuff you are tackling
 
 Computational framework:
--logging all errors and what exactly happened for each bin ( )
 -Singularity or Docker container for perfect encapsulation and reproducibility ( )
-- update the vm pipeline to include
 - Model "NOB" is broken: NOB.accuracy is totally different format than other accuracy files.
 
 
 Web server:
--change default values for NOT NULL ( )
 -user interface ( ) (FP)
--change access logic upon file upload to fit the database created by LL ( )
 -think about malicious access prevention
 -benchmark pipeline on VM using different node settings
 
@@ -19,13 +15,9 @@ Database ( ) (LL):
 -modell version cont comp fnr fpr für alle kombinationen (fette table)
 -better names for "model" model
 -make new database for enog x enog function to conserve space!
--save name of uploaded tar.gz file in UploadedFile (for user convenience)
 
 Other stuff:
--Django am server oder VM
--gleich alles in DB schreiben (LL: bin dabei)
 - model: appear, disappear, change. Upon update: overwrite and check dates against dates in databases
-- enogs: Ask if always BactNogs are used. Ask which NOGs are nessery, load all nessesary logs (PP)
 -if there is a new enog version nr: wipe out the database. need a description of that.
 
 Output:
