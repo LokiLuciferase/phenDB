@@ -5,6 +5,8 @@ Computational framework:
 -logging all errors and what exactly happened for each bin ( )
 -Singularity or Docker container for perfect encapsulation and reproducibility ( )
 - update the vm pipeline to include
+- Model "NOB" is broken: NOB.accuracy is totally different format than other accuracy files.
+
 
 Web server:
 -change default values for NOT NULL ( )

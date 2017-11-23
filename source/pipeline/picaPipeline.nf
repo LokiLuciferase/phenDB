@@ -49,8 +49,9 @@ process tgz {
     file("${tarfile.getSimpleName()}/*") into tgz_unraveled_all
 
     script:
+    outfolder = tarfile.getSimpleName()
     """
-    tar -xf $tarfile
+    mkdir ${outfolder} && tar -xf $tarfile -C ${outfolder} --strip-components 1
     """
 }
 
