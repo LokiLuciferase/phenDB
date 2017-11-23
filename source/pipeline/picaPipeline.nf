@@ -352,11 +352,12 @@ process tar_results {
     mkdir ${jobname}
     mv *.results ${jobname}
     tar -cvf ${jobname}.tar.gz ./${jobname}
+    rm -rf ${jobname}
     """
 }
 
 tgz_out.into { tgz_write_out; tgz_to_db }
-tgz_write_out.subscribe { it.copyTo(outdir) }
+//tgz_write_out.subscribe { it.copyTo(outdir) }
 
 db_written = pica_db_write.collectFile() { item ->
     [ "${item[1]}.results", "${item[2]} ${item[3]} ${item[4]}" ]  // use md5sum as filename
@@ -414,7 +415,7 @@ for result in conditions:
             sys.exit("Current Model for this result not found.")
         
         modelresult = result_model(verdict=boolean_verdict,
-                                   accuracy=float(result[3].split()[0]),
+                                   accuracy=float(result[2]),
                                    bin=parentbin,
                                    model=this_model
                                    )
@@ -438,15 +439,18 @@ import sys
 import os
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError
-os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"    
+from django.core.files import File
+os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
 
 django.setup()
-from phenotypePredictionApp.models import ResultFile
+from phenotypePredictionApp.models import UploadedFile
 
 try:
-    new_tgz = ResultFile(actualID="${jobname}",
-                         document="${tgz}"
-                         )
+    obj = UploadedFile.objects.filter(key='${jobname}')
+    file = open('${tgz}', 'rb')
+    djangoFile = File(file)
+    obj[0].fileOutput.save('${jobname}.tar.gz', djangoFile, save="True")
+    obj.update(job_status = '100')
 except IntegrityError:
     sys.exit("Exited with integrity error upon adding results to database.")
 """

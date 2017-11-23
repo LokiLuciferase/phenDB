@@ -36,5 +36,3 @@ nohup nextflow $PIPELINEFILE --accuracy_cutoff $CUTOFF --inputfolder $INFOLDER \
 until [ -s $FASTAFILECOUNTFOLDER ]; do
     sleep 1
 done
-
-tail -f $LOGLOC

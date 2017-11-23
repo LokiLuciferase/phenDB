@@ -7,20 +7,7 @@ from phenotypePredictionApp.models import *
 import gzip
 import sys
 
-
-# to add ALL ENOGs:
-# ENOG_files=os.listdir("/mirror/eggnog/eggnog_4.5/data/")
-# ENOG_files.remove("viruses")
-# ENOG_files = ['/mirror/eggnog/eggnog_4.5/data/{0}/{0}.annotations.tsv.gz'.format(element) for element in ENOG_files]
-# vir_files=os.listdir("/mirror/eggnog/eggnog_4.5/data/viruses")
-# vir_files= ['/mirror/eggnog/eggnog_4.5/data/viruses/{0}/{0}.annotations.tsv.gz'.format(element) for element in ENOG_files]
-# ENOG_files+=vir_files
-
-#for local testing:
-#annot="/Users/peterpeneder/Documents/UNI-BIOINFO/Softwareentwicklung/NOG.annotations.tsv.gz"
-#annot.remove("viruses")
-#annot+=
-
+# this does not work in VM! no eggnog mirror in vm!
 ENOG_files = ["/mirror/eggnog/eggnog_4.5/data/bacNOG/bacNOG.annotations.tsv.gz",
               "/mirror/eggnog/eggnog_4.5/data/bactNOG/bactNOG.annotations.tsv.gz" ]
 

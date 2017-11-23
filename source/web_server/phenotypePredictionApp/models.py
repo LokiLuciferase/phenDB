@@ -10,11 +10,12 @@ def upload_function_upload(instance, filename):
     filename = instance.filename
     return "documents/" + subfolder + "/" + filename
 
-def upload_function_results(instance, filename):
+def upload_function_results(instance, givenname):
     #TODO: + tar.gz
-    print(filename)
-    filename = instance.key + '.tar.gz'
-    return 'resultFiles/' + filename
+    print(givenname)
+    subfolder = instance.key
+    filename = "resultFiles/" + subfolder + "_results/" + givenname
+    return filename
 
 
 #----------------Models--------------------------------------
@@ -140,7 +141,7 @@ class result_model(models.Model):
 
     bin = models.ForeignKey(bin)
     model = models.ForeignKey(model)
-    verdict = models.BooleanField()
+    verdict = models.NullBooleanField()
     accuracy = models.FloatField()
 
     def __str__(self):
