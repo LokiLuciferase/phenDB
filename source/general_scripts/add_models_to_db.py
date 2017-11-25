@@ -8,6 +8,30 @@ from phenotypePredictionApp.models import *
 import sys
 from django.core.exceptions import ObjectDoesNotExist
 
+def check_groupfile(enogname):
+        for groupline in groupfile:
+            if line[0] == groupline.split("\t")[0]:
+                groupline = groupline.split("\t")[1]
+                groupline = groupline.split("/")
+                for entry in groupline:
+                    entry = entry.rstrip()
+                    try:
+                        new_enog_rank = model_enog_ranks(model=newmodel,
+                                                         enog=enog.objects.get(enog_name=entry),
+                                                         internal_rank=line[1])
+                        new_enog_rank.save()
+                        sys.stdout.write("Added Enog(s)+rank(s) contained in "
+                                         " {gr}.\r".format(gr=line[0]))
+                        sys.stdout.flush()
+                    except ObjectDoesNotExist:
+                        print("\n cant find this ENOG:\n", entry)
+                # if enog was a feature group contained in the rank.groups file
+                print()
+                return True
+        # if enog was something else
+        print("\n cant find this ENOG or featuregroup:\n", enogname)
+        return False
+
 
 #PICAMODELFOLDER="/Users/peterpeneder/Desktop/models/models2"
 PICAMODELFOLDER="/scratch/swe_ws17/data/models"
@@ -50,8 +74,7 @@ for picamodel in all_picamodels:
     #TODO: parallelize this?
     #read the .rank file of the model and extract enogs and their ranks
     with open(PICAMODELFOLDER+"/"+picamodel+"/"+picamodel+".rank","r") as rankfile:
-        with open(PICAMODELFOLDER + "/" + picamodel + "/" + picamodel + ".rank.groups", "r") as groupfile:
-            grouplist = groupfile.readlines()
+        with open(rank_groups_file, "r") as groupfile:
             for line in rankfile.readlines()[1:]:
                 #try:
                 line=line.split()
@@ -65,27 +88,12 @@ for picamodel in all_picamodels:
                     #if the enog does not exist in the annotationsdfile, it might be a "feature group"
                     # check this by looking up in the .rank.groups file. If it is the case, add all enogs in the
                     # feature group with the rank of the feature group to the db
+                    check_groupfile(line[0])
 
-                    for groupline in grouplist:
-                        if line[0] == groupline.split("\t")[0]:
-                            groupline=groupline.split("\t")[1].split("/")
-                            for entry in groupline:
-                                entry = entry.rstrip()
-                                try:
-                                    new_enog_rank = model_enog_ranks(model=newmodel,
-                                                                     enog=enog.objects.get(enog_name=entry),
-                                                                     internal_rank=line[1])
-                                    new_enog_rank.save()
-                                    sys.stdout.write("Added Enog(s)+rank(s) contained in "
-                                                     " {gr}.\r".format(gr=line[0]))
-                                    sys.stdout.flush()
-                                except ObjectDoesNotExist:
-                                    print("\n cant find this ENOG:\n",entry)
-                            print()
+    # todo: exception for when its not a feature group
 
-
-                                    #except:
-             #   sys.stdout.write("Skipping.\n")
-              #  pass
+                                        #except:
+                 #   sys.stdout.write("Skipping.\n")
+                  #  pass
 
 print(model.objects.all())
