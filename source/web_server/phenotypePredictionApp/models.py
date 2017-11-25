@@ -97,7 +97,7 @@ class model(models.Model):
 
 
 class model_enog_ranks(models.Model):
-
+#todo: change PK to model and enog alone
     class Meta:
         unique_together = ('model', 'enog', 'internal_rank')  # composite primary key
         indexes = [
