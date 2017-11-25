@@ -28,7 +28,6 @@ def check_groupfile(enogname, enogrank):
                                                      enog=enog.objects.get(enog_name=entry),
                                                      internal_rank=enogrank/nr_of_enogs_in_fg)
                     enog_rank_list_featurgroup.append(new_enog_rank)
-                    print(new_enog_rank)
                     # sys.stdout.write("Added Enog(s)+rank(s) contained in "
                     #                  " {gr}.\r".format(gr=enogname))
                     # sys.stdout.flush()
@@ -52,7 +51,6 @@ def rankfile_to_list():
             new_enog_rank = model_enog_ranks(model=newmodel, enog=enog.objects.get(enog_name=line[0]),
                                              internal_rank=float(line[1]))
             enog_rank_list.append(new_enog_rank)
-            print(new_enog_rank)
             # sys.stdout.write("Added Enog+rank {el}.\r".format(el=line[0]))
             # sys.stdout.flush()
             sys.stdout.write("Added Enog Nr. {nr}     of {totnr}.\r".format(nr=counter, totnr=num_lines_ranksfile))
@@ -62,7 +60,6 @@ def rankfile_to_list():
             # if the enog does not exist in the annotationsdfile, it might be a "feature group"
             # check this by looking up in the .rank.groups file. If it is the case, add all enogs in the
             # feature group with the rank of the feature group to the db
-            print("FG!!!!!!!!!!!!!!!!!!!!!!")
             add_this=check_groupfile(line[0], float(line[1]))
             if add_this:
                 enog_rank_list+=add_this
@@ -113,7 +110,7 @@ for picamodel in all_picamodels:
         with open(PICAMODELFOLDER+"/"+picamodel+"/"+picamodel+".rank.groups", "r") as groupfile:
             print("Creating list of enogs...")
             enog_rank_list_filled=rankfile_to_list()
-            print(" \n Saving to database... ")
+            print(" Saving to database... ")
             model_enog_ranks.objects.bulk_create(enog_rank_list_filled)
 
 print(model.objects.all())
