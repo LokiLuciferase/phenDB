@@ -12,19 +12,26 @@ class startProcessThread(threading.Thread):
 
     def run(self):
         print('startProcess called')
-        web_server_folder = "/apps/phenDB/source/web_server"
+        #web_server_folder = "/apps/phenDB/source/web_server"
+        web_server_folder = "/home/phen_work/PhenDB_PP_devel/phenDB//source/web_server"
         relFilePath = os.path.dirname(UploadedFile.objects.get(key=self.keyname).fileInput.url)
         infolder = os.path.join(str(web_server_folder), str(relFilePath)[1:])
         print("infolder:", infolder)
 
-        runscript_path = "/apps/phenDB/source/pipeline/run_picaPipeline.sh"
-        pipeline_path = "/apps/phenDB/source/pipeline/picaPipeline.nf"
-        above_workfolder = "/apps/phenDB/source/web_server/results/resultFiles"
+        # runscript_path = "/apps/phenDB/source/pipeline/run_picaPipeline.sh"
+        # pipeline_path = "/apps/phenDB/source/pipeline/picaPipeline.nf"
+        # above_workfolder = "/apps/phenDB/source/web_server/results/resultFiles"
+        runscript_path = "/home/phen_work/PhenDB_PP_devel/phenDB//source/pipeline/run_picaPipeline.sh"
+        pipeline_path = "/home/phen_work/PhenDB_PP_devel/phenDB//source/pipeline/picaPipeline.nf"
+        above_workfolder = "/home/phen_work/PhenDB_PP_devel/phenDB//source/web_server/results/resultFiles"
+
+        
         pica_cutoff = "0.5"
         node_offs = ""
 
         os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
-        os.environ["PYTHONPATH"] = "/apps/phenDB/source/web_server:$PYTHONPATH"
+        #os.environ["PYTHONPATH"] = "/apps/phenDB/source/web_server:$PYTHONPATH"
+        os.environ["PYTHONPATH"] = "/home/phen_work/PhenDB_PP_devel/phenDB//source/web_server:$PYTHONPATH"
 
         # create workfolder
         outfolder = os.path.join(above_workfolder, "{jn}_results".format(jn=self.keyname))
