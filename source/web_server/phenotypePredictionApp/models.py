@@ -5,33 +5,42 @@ from django.contrib.contenttypes.models import ContentType
 
 #------------ functions for file upload -----------------------
 def upload_function_upload(instance, filename):
+    print('upload called')
     subfolder = instance.key
     filename = instance.filename
     return "documents/" + subfolder + "/" + filename
 
-def upload_function_results(instance, filename):
-    filename = instance.key + '.tar.gz'
-    return 'resultFiles/' + filename
+def upload_function_results(instance, givenname):
+    #TODO: + tar.gz
+    print(givenname)
+    subfolder = instance.key
+    filename = "resultFiles/" + subfolder + "_results/" + givenname
+    return filename
 
 
 #----------------Models--------------------------------------
 
 #TODO: rename later (in the end)
 class UploadedFile(models.Model):
-    key = models.TextField(default=uuid.uuid4())
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['key'])
+        ]
+
+    key = models.TextField(default=uuid.uuid4(), primary_key=True)
     filename = models.TextField()
-    fileInput = models.FileField(upload_to = upload_function_upload)
+    fileInput = models.FileField(upload_to=upload_function_upload)
     fileOutput = models.FileField(upload_to=upload_function_results)
     user_ip = models.TextField()
     user_email = models.TextField()
     job_date = models.DateTimeField(auto_now=True)
     folder_path = models.TextField()
-    job_status = models.TextField(default = '0')
+    job_status = models.TextField()
     def get_absolute_url(self):
         return "results/%s/" % self.key
 
 
-'''
 class bin(models.Model):
 
     class Meta:
@@ -39,17 +48,15 @@ class bin(models.Model):
             models.Index(fields=['md5sum'])
         ]
 
-    bin_id = models.TextField()
-    file_name = models.TextField()
-    job = models.ForeignKey(job)
-    genome_path = models.TextField()
+    bin_name = models.TextField()
+    job = models.ForeignKey(UploadedFile, on_delete=models.CASCADE)
     md5sum = models.TextField(primary_key=True)
     errors = models.TextField()
     comple = models.FloatField()
     conta = models.FloatField()
 
     def __str__(self):
-        return "File name: {fn}\nErrors: {err}".format(fn=self.file_name,
+        return "File name: {fn}\nErrors: {err}".format(fn=self.bin_name,
                                                        err=self.errors if self.errors else "")
 
 
@@ -57,27 +64,28 @@ class enog(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['enog_id'])
+            models.Index(fields=['enog_name'])
         ]
 
-    enog_id = models.TextField(primary_key=True)
+    enog_name = models.TextField(primary_key=True)
     enog_descr = models.TextField()
+    enog_category = models.TextField()
 
     def __str__(self):
-        return "ID: {eid}\tDescription: {ed}".format(eid=self.enog_id,
-                                                     ed=self.enog_descr)
+        return "ID: {eid}\tDescription: {ed}\tCategor(y/ies): {ca}".format(eid=self.enog_name,
+                                                     ed=self.enog_descr, ca=self.enog_category)
 
 
 class model(models.Model):
 
-    #class Meta:
-     #   indexes = [
-      #      models.Index(fields=['model_name'])
-       # ]
+    class Meta:
+        unique_together = ('model_name', 'version_nr') # composite primary key
+        indexes = [
+            models.Index(fields=['model_name', 'is_newest'])
+       ]
 
     model_name = models.TextField()
     version_nr = models.IntegerField()
-    mname_vnr = models.TextField(primary_key=True)
     is_newest = models.BooleanField()
     model_desc = models.TextField()
     model_train_date = models.DateField(auto_now=True)
@@ -89,7 +97,7 @@ class model(models.Model):
 
 
 class model_enog_ranks(models.Model):
-
+#todo: change PK to model and enog alone
     class Meta:
         unique_together = ('model', 'enog', 'internal_rank')  # composite primary key
         indexes = [
@@ -101,7 +109,7 @@ class model_enog_ranks(models.Model):
     internal_rank = models.FloatField()
 
     def __str__(self):
-        return "Enog ID: {eid}\tModel ID: {mid}\tRank {ir}\t(Model trained on {mtd}".format(eid=self.enog_id,
+        return "Enog ID: {eid}\tModel ID: {mid}\tRank {ir}\t(Model trained on {mtd})".format(eid=self.enog_id,
                                                                                            mid=self.model.model_name,
                                                                                            ir=str(self.internal_rank),
                                                                                            mtd=str(self.model.model_train_date))
@@ -133,13 +141,12 @@ class result_model(models.Model):
 
     bin = models.ForeignKey(bin)
     model = models.ForeignKey(model)
-    verdict = models.BooleanField()
+    verdict = models.NullBooleanField()
     accuracy = models.FloatField()
 
     def __str__(self):
-        return "Bin {mds}: {v} ({acc} accuracy) for model {mid} trained on {mtd}.".format(mds=self.bin.bin_id,
+        return "Bin {mds}: {v} ({acc} accuracy) for model {mid} trained on {mtd}.".format(mds=self.bin.bin_name,
                                                                                           v=str(self.verdict),
                                                                                           acc=str(self.accuracy),
                                                                                           mid=self.model.model_name,
                                                                                           mtd=str(self.model.model_train_date))
-'''

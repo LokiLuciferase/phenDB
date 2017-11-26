@@ -8,6 +8,7 @@ file(outdir).mkdir()
 models = file(params.modelfolder).listFiles()
 input_files = Channel.fromPath("${params.inputfolder}/*.fasta")
 input_gzipfiles = Channel.fromPath("${params.inputfolder}/*.tar.gz")
+input_barezipfiles = Channel.fromPath("${params.inputfolder}/*.zip")
 all_input_files = Channel.fromPath("${params.inputfolder}/*")
 hmmdb = file(params.hmmdb)
 
@@ -49,31 +50,53 @@ process tgz {
     file("${tarfile.getSimpleName()}/*") into tgz_unraveled_all
 
     script:
+    outfolder = tarfile.getSimpleName()
     """
-    tar -xf $tarfile
+    mkdir ${outfolder} && tar -xf $tarfile -C ${outfolder} --strip-components 1
     """
 }
 
-// combine raw fasta files and those extracted from tar.gz files
-all_fasta_input_files = input_files.mix(tgz_unraveled_fasta.flatten())
-all_fasta_input_files.into{all_fasta_input_files1; all_fasta_input_files2}
-truly_all_input_files = all_input_files.mix(tgz_unraveled_all.flatten()) // route this through file extension checking map
+// unzip .zip files
+process unzip {
+
+    input:
+    file(zipfile) from input_barezipfiles
+
+    output:
+    file("${zipfile.getSimpleName()}/*/*.fasta") into zip_unraveled_fasta
+    file("${zipfile.getSimpleName()}/*/*") into zip_unraveled_all
+
+    script:
+    outfolder = zipfile.getSimpleName()
+    """
+    mkdir ${outfolder} && unzip ${zipfile} -d ${outfolder}
+    """
+}
+
+// combine raw fasta files and those extracted from archive files
+all_fasta_input_files = input_files.mix(tgz_unraveled_fasta.flatten(), zip_unraveled_fasta.flatten())
+truly_all_input_files = all_input_files.mix(tgz_unraveled_all.flatten(), zip_unraveled_all.flatten())
 
 
 // Error handling
 truly_all_input_files.subscribe {
 
     //check if there are any non-fasta files
-    if ((!(it.getName() ==~ /.+\.fasta$/ )) && (!(it.getName() =~ /.+\.tar.gz$/ ))) {
+    if ((!(it.getName() ==~ /.+\.fasta$/ )) && (!(it.getName() =~ /.+\.tar.gz$/ )) && (!(it.getName() =~ /.+\.zip$/ ))){
 
-        //TODO: print to logger
-        println "WARNING: Some of the files you uploaded do not end with '.fasta' or '.tar.gz'- I cannot analyze them"
-        errorfile.append("WARNING: Some of the files you uploaded do not end with '.fasta' or '.tar.gz'- I cannot analyze them \n")
+        endingmess = "WARNING: the file ${it.getName()} does not end in '.fasta', '.zip' or '.tar.gz'.\n" +
+                     "The file was dropped from the analysis.\n\n"
+        log.info(endingmess)
+        errorfile.append(endingmess)
+
     }
     //check if there are any files with non-ascii character names
     if (!( it.getBaseName() ==~ /^\p{ASCII}+$/ )) {
-        //TODO: print to logger
-        println "WARNING: Some of the files you uploaded include non-ASCII characters - Analysis may fail!"
+
+        asciimess = "WARNING: The filename of ${it.getName()} contains non-ASCII characters.\n" +
+                    "The file was dropped from the analysis.\n\n"
+        log.info(asciimess)
+        errorfile.append(asciimess)
     }
 }
 
@@ -82,44 +105,46 @@ process fasta_sanity_check {
     errorStrategy 'ignore'
 
     input:
-    file(item) from all_fasta_input_files1
+    file(item) from all_fasta_input_files
 
     output:
     set val(binname), file("sanitychecked.fasta") into fasta_sanitycheck_out
 
     script:
-    binname = item.getBaseName()
-    """
-    #!/usr/bin/env python
-    from Bio import SeqIO
-    from Bio.Seq import Seq
-    from Bio.Alphabet import IUPAC
-    from Bio import Alphabet
-    import sys, os
+    binname = item.getName()
+"""
+#!/usr/bin/env python
+from Bio import SeqIO
+from Bio.Seq import Seq
+from Bio.Alphabet import IUPAC
+from Bio import Alphabet
+import sys, os
 
-    
-    with open("sanitychecked.fasta","w") as outfile:
-        for read in SeqIO.parse("${item}", "fasta", IUPAC.ambiguous_dna):
-            if not Alphabet._verify_alphabet(read.seq):
-                with open("${errorfile}", "a") as myfile:
-                    myfile.write("There was an unexpected letter in the sequence, aborted further processing. Allowed letters are G,A,T,C,R,Y,W,S,M,K,H,B,V,D,N ")
-                os.remove("sanitychecked.fasta")
-                sys.exit("There was an unexpected letter in the sequence, aborting")
-            SeqIO.write(read, outfile, "fasta")
 
-    """
+with open("sanitychecked.fasta","w") as outfile:
+    for read in SeqIO.parse("${item}", "fasta", IUPAC.ambiguous_dna):
+        if not Alphabet._verify_alphabet(read.seq):
+            with open("${errorfile}", "a") as myfile:
+                myfile.write("WARNING: There was an unexpected DNA letter in the sequence of file ${binname}.\\n")
+                myfile.write("Allowed letters are G,A,T,C,R,Y,W,S,M,K,H,B,V,D,N.\\n")
+                myfile.write("The file was dropped from the analysis.\\n\\n")
+            os.remove("sanitychecked.fasta")
+            sys.exit("There was an unexpected letter in the sequence, aborting.")
+        SeqIO.write(read, outfile, "fasta")
+"""
 
 }
 
-// Print the number of fasta files to a file for progress display
-all_fasta_input_files2.count().subscribe {fastafilecount.text=it} //LL: beautiful!
+// Print the number of valid fasta files to a file for progress display
+fasta_sanitycheck_out.into { sanity_check_for_continue; sanity_check_for_count }
+sanity_check_for_count.count().subscribe { fastafilecount.text=it }
 
 process md5sum {
 
     tag { binname }
 
     input:
-    set val(binname), file(item) from fasta_sanitycheck_out
+    set val(binname), file(item) from sanity_check_for_continue
 
     output:
     set val(binname), stdout, file(item) into md5_out
@@ -136,7 +161,6 @@ process prodigal {
 
     tag { binname }
 
-    module "prodigal"
     memory = "2 GB"
 
     input:
@@ -159,7 +183,6 @@ process hmmer {
     tag { binname }
 
     maxForks 1  //do not parallelize!
-    module "hmmer"
 
     input:
     set val(binname), val(mdsum), file(item) from prodigalout
@@ -182,16 +205,54 @@ process hmmer {
     """
 }
 
+//increases percentage completed after each hmmer job completion
+process update_job_completeness {
+
+    tag { jobname }
+
+    input:
+    set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem) from hmmerout
+    output:
+    set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem) into job_updated_out
+    script:
+"""
+#!/usr/bin/env python3
+
+import django
+import sys
+import os
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import IntegrityError
+os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"    
+
+django.setup()
+from phenotypePredictionApp.models import *
+
+try:
+    parentjob = UploadedFile.objects.get(key="${jobname}")
+
+    current_status = int(parentjob.job_status) if parentjob.job_status else 0
+    total_valid_count = int('${fastafilecount.text}'.strip())
+    plusone = int((1 / total_valid_count)*100)
+    
+    if (current_status + plusone < 100):
+        current_status += plusone
+        parentjob.job_status = current_status
+        parentjob.save()
+    
+except ObjectDoesNotExist:
+    sys.exit("Job not found.")
+"""
+
+}
+
 // compute contamination and completeness using compleconta
 process compleconta {
 
     tag { binname }
 
-    module "muscle"
-    module "compleconta/0.1"
-
     input:
-    set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem) from hmmerout
+    set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem) from job_updated_out
 
     output:
     set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem), file("complecontaitem.txt") into complecontaout
@@ -210,14 +271,14 @@ process write_bin_to_db { //TODO: implement checking if bin already exists
 
     tag { binname }
 
-    errorStrategy 'ignore'
+    //errorStrategy 'ignore'
 
     input:
     set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem), file(complecontaitem) from bin_to_db
 
     script:
 """
-#!/home/user/lueftinger/miniconda3/envs/py3env/bin/python3
+#!/usr/bin/env python3
 
 import django
 import sys
@@ -230,7 +291,7 @@ django.setup()
 from phenotypePredictionApp.models import *
 
 try:
-    parentjob = job.objects.get(job_id="${jobname}")
+    parentjob = UploadedFile.objects.get(key="${jobname}")
 except ObjectDoesNotExist:
     sys.exit("Job not found.")
 
@@ -240,12 +301,11 @@ with open("${complecontaitem}", "r") as ccfile:
 
 # write bin to database
 try:
-    newbin = bin(bin_id="${binname}",
-                 file_name="${binname}.fasta",
+    newbin = bin(bin_name="${binname}",
                  comple=cc[0],
                  conta=cc[1],
                  md5sum="${mdsum}",
-                 job_id="${jobname}")
+                 job=UploadedFile.objects.get(key="${jobname}"))
     
     newbin.save()
 except IntegrityError:
@@ -258,8 +318,8 @@ with open("${hmmeritem}", "r") as enogresfile:
             enogfield = line.split()[1]
             print("Attempting to add enog {en} from bin {bn} to database.".format(en=enogfield,
                                                                                   bn="${binname}"))
-            newenog = result_enog(bin_id="${binname}",
-                                  enog_id=enogfield)
+            newenog = result_enog(bin=bin.objects.get(bin_name="${binname}"),
+                                  enog=enog.objects.get(enog_name=enogfield))
             newenog.save()
         except IntegrityError:
             print("Skipping due to IntegrityError.")
@@ -299,7 +359,6 @@ process pica {
 
     tag { "${binname}_${model.getBaseName()}" }
 
-    module 'pica'
     memory = '500 MB'
     errorStrategy 'ignore'  //model files not yet complete, TODO: remove this!!!!
 
@@ -328,7 +387,7 @@ process pica {
     """
     echo -ne "${binname}\t" > tempfile.tmp
     cut -f2 $hmmeritem | tr "\n" "\t" >> tempfile.tmp
-    echo "N/A\tNA" > picaout.result
+    echo "N/A\tN/A" > picaout.result
     echo -n \$(cat picaout.result | tail -n1 | cut -f2,3 | tr "\t" " ")
     """
     }
@@ -337,19 +396,44 @@ process pica {
 // merge all results into a file called $id.results and move each file to results folder.
 picaout.into{pica_db_write; pica_out_write}
 
-pica_out_write.collectFile() { item ->
+outfilechannel = pica_out_write.collectFile() { item ->
     [ "${item[0]}.results", "${item[2]} ${item[3]} ${item[4]}" ]  // use given bin name as filename
-}.subscribe { it.copyTo(outdir) }  //TODO: pack this to tar.gz
+}.collect()
 
+
+process tar_results {
+
+    tag { jobname }
+
+    stageInMode 'copy'  //actually copy in the results so we not only tar symlinks
+
+    input:
+    file(allfiles) from outfilechannel
+    file(errorfile)
+
+    output:
+    file("${jobname}.tar.gz") into tgz_out
+
+    script:
+    """
+    mkdir ${jobname}
+    cp ${errorfile} ${jobname}/invalid_input_files.log
+    mv *.results ${jobname}
+    tar -cvf ${jobname}.tar.gz ./${jobname}
+    rm -rf ${jobname}
+    """
+}
+
+tgz_out.into { tgz_write_out; tgz_to_db }
+//tgz_write_out.subscribe { it.copyTo(outdir) }
 
 db_written = pica_db_write.collectFile() { item ->
     [ "${item[1]}.results", "${item[2]} ${item[3]} ${item[4]}" ]  // use md5sum as filename
 }
 
-//TODO: change model addition process! right now all results are added to version 1!!
 process write_pica_result_to_db { //TODO: change python executable when migrating to vm!
 
-    errorStrategy 'ignore'
+    //errorStrategy 'ignore'
 
     input:
     file(mdsum_file) from db_written
@@ -359,7 +443,7 @@ process write_pica_result_to_db { //TODO: change python executable when migratin
 
     script:
 """
-#!/home/user/lueftinger/miniconda3/envs/py3env/bin/python3
+#!/usr/bin/env python3
 
 import django
 import sys
@@ -369,11 +453,11 @@ from django.db import IntegrityError
 os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
 
 django.setup()
-from phenotypePredictionApp.models import job, bin, model, result_model
+from phenotypePredictionApp.models import UploadedFile, bin, model, result_model
 
 # get job from db
 try:
-    parentjob = job.objects.get(job_id="${jobname}")
+    parentjob = UploadedFile.objects.get(key="${jobname}")
 except ObjectDoesNotExist:
     sys.exit("Job not found.")
 
@@ -392,14 +476,51 @@ for result in conditions:
     try:
         get_bool = {"YES": True, "NO": False, "N/A": None}
         boolean_verdict = get_bool[result[1]]
+        #get model from db
+        try:
+            this_model=model.objects.get(model_name=result[0], is_newest=True)
+        except ObjectDoesNotExist:
+            sys.exit("Current Model for this result not found.")
+        
         modelresult = result_model(verdict=boolean_verdict,
-                                   accuracy=float(result[3].split()[0]),
-                                   bin_id="${mdsum_file.getBaseName()}",
-                                   model_id=result[0]+"_1"
+                                   accuracy=float(result[2]),
+                                   bin=parentbin,
+                                   model=this_model
                                    )
         modelresult.save()
     except (IntegrityError, ) as e:
         sys.exit(e)
+"""
+}
+
+process write_tgz_to_db {
+
+    input:
+    file(tgz) from tgz_to_db
+
+    script:
+"""
+#!/usr/bin/env python3
+
+import django
+import sys
+import os
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import IntegrityError
+from django.core.files import File
+os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
+
+django.setup()
+from phenotypePredictionApp.models import UploadedFile
+
+try:
+    obj = UploadedFile.objects.filter(key='${jobname}')
+    file = open('${tgz}', 'rb')
+    djangoFile = File(file)
+    obj[0].fileOutput.save('${jobname}.tar.gz', djangoFile, save="True")
+    obj.update(job_status = '100')
+except IntegrityError:
+    sys.exit("Exited with integrity error upon adding results to database.")
 """
 }
 
