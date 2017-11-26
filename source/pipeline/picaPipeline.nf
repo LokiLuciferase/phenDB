@@ -308,19 +308,23 @@ except IntegrityError:
 with open("${hmmeritem}", "r") as enogresfile:
     enoglist=[]
     for line in enogresfile:
+        enogfield = line.split()[1]
+        enoglist.append(enogfield)
+    enoglist=list(set(enoglist))
+    enogobjectlist=[]
+    for enog_elem in enoglist:    
         try:
-            enogfield = line.split()[1]
-            print("Attempting to add enog {en} from bin {bn} to database.".format(en=enogfield,
+            print("Attempting to add enog {en} from bin {bn} to database.".format(en=enog_elem,
                                                                                   bn="${binname}"))
             newenog = result_enog(bin=bin.objects.get(bin_name="${binname}"),
-                                  enog=enog.objects.get(enog_name=enogfield))
-            enoglist.append(newenog)
+                                  enog=enog.objects.get(enog_name=enog_elem))
+            enogobjectlist.append(newenog)
         except IntegrityError:
             print("Skipping due to IntegrityError.")
             continue     
             
     # hmmer outputs some ENOGS multiple times --> add them only once
-    result_enog.objects.bulk_create(list(set(enoglist)))          
+    result_enog.objects.bulk_create(enogobjectlist)          
 
 """
 }
