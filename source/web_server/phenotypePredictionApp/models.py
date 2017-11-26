@@ -11,7 +11,6 @@ def upload_function_upload(instance, filename):
     return "documents/" + subfolder + "/" + filename
 
 def upload_function_results(instance, givenname):
-    #TODO: + tar.gz
     print(givenname)
     subfolder = instance.key
     filename = "resultFiles/" + subfolder + "_results/" + givenname
@@ -36,6 +35,7 @@ class UploadedFile(models.Model):
     user_email = models.TextField()
     job_date = models.DateTimeField(auto_now=True)
     folder_path = models.TextField()
+    errors = models.NullBooleanField()
     job_status = models.TextField()
     def get_absolute_url(self):
         return "results/%s/" % self.key
@@ -51,13 +51,11 @@ class bin(models.Model):
     bin_name = models.TextField()
     job = models.ForeignKey(UploadedFile, on_delete=models.CASCADE)
     md5sum = models.TextField(primary_key=True)
-    errors = models.TextField()
     comple = models.FloatField()
     conta = models.FloatField()
 
     def __str__(self):
-        return "File name: {fn}\nErrors: {err}".format(fn=self.bin_name,
-                                                       err=self.errors if self.errors else "")
+        return "File name: {fn}".format(fn=self.bin_name)
 
 
 class enog(models.Model):

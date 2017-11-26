@@ -1,9 +1,8 @@
 #!/usr/bin/env nextflow
 // define static variables
 
-file(params.workdir).mkdir()
 jobname = file(params.inputfolder).getBaseName()
-outdir = "$params.workdir/${jobname}_results/"
+outdir = file(params.outdir)
 file(outdir).mkdir()
 models = file(params.modelfolder).listFiles()
 input_files = Channel.fromPath("${params.inputfolder}/*.fasta")
@@ -26,10 +25,6 @@ log.info"""
 
     ##################################################################################
     """.stripIndent()
-
-// initialize progressbar file
-progressbar_hmmer = file("$outdir/logs/progress.log")
-progressbar_hmmer.text = ""
 
 // initialize filecount file
 fastafilecount= file("$outdir/logs/fastafilecount.log")
@@ -100,7 +95,7 @@ truly_all_input_files.subscribe {
     }
 }
 
-// Passes every fasta file through Biopythons SeqIO to check for corrupted files    TODO: test this
+// Passes every fasta file through Biopythons SeqIO to check for corrupted files
 process fasta_sanity_check {
     errorStrategy 'ignore'
 
@@ -176,8 +171,6 @@ process prodigal {
 }
 
 // call hmmer daemon for every sample in series
-// very un-nextflow, but necessary: after each completed round, the ID is written to global file progressbar_hmmer
-// ((number of lines in file/number of samples)*100)) == overall progress of hmmer
 process hmmer {
 
     tag { binname }
@@ -201,7 +194,6 @@ process hmmer {
     echo \$HMM_DAEMONCLIENTS
     
     hmmc.py -i ${item} -d $hmmdb -s \$HMM_DAEMONCLIENTS -n 100 -q 5 -m 1 -o hmmer.out
-    echo ${binname} >> ${progressbar_hmmer}
     """
 }
 
@@ -272,6 +264,8 @@ process write_bin_to_db { //TODO: implement checking if bin already exists
     tag { binname }
 
     //errorStrategy 'ignore'
+    maxForks 1 //TODO: do not parallelize this - at least not in sqlite
+               // TODO: this appears to be a huge bottleneck, let's optimize this
 
     input:
     set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem), file(complecontaitem) from bin_to_db
@@ -360,7 +354,6 @@ process pica {
     tag { "${binname}_${model.getBaseName()}" }
 
     memory = '500 MB'
-    errorStrategy 'ignore'  //model files not yet complete, TODO: remove this!!!!
 
     input:
     set val(binname), val(mdsum), val(model), file(hmmeritem), file(prodigalitem), file(complecontaitem), val(accuracy) from accuracyout
@@ -412,7 +405,7 @@ process tar_results {
     file(errorfile)
 
     output:
-    file("${jobname}.tar.gz") into tgz_out
+    file("${jobname}.tar.gz") into tgz_to_db
 
     script:
     """
@@ -424,14 +417,11 @@ process tar_results {
     """
 }
 
-tgz_out.into { tgz_write_out; tgz_to_db }
-//tgz_write_out.subscribe { it.copyTo(outdir) }
-
 db_written = pica_db_write.collectFile() { item ->
     [ "${item[1]}.results", "${item[2]} ${item[3]} ${item[4]}" ]  // use md5sum as filename
 }
 
-process write_pica_result_to_db { //TODO: change python executable when migrating to vm!
+process write_pica_result_to_db {
 
     //errorStrategy 'ignore'
 
@@ -499,6 +489,7 @@ process write_tgz_to_db {
     file(tgz) from tgz_to_db
 
     script:
+    errors_occurred = errorfile.isEmpty() ? "False" : "True"
 """
 #!/usr/bin/env python3
 
@@ -515,6 +506,7 @@ from phenotypePredictionApp.models import UploadedFile
 
 try:
     obj = UploadedFile.objects.filter(key='${jobname}')
+    obj.update(errors = ${errors_occurred})
     file = open('${tgz}', 'rb')
     djangoFile = File(file)
     obj[0].fileOutput.save('${jobname}.tar.gz', djangoFile, save="True")
@@ -527,4 +519,11 @@ except IntegrityError:
 workflow.onComplete {
     println "picaPipeline completed at: $workflow.complete"
     println "Execution status: ${ workflow.success ? 'OK' : 'failed' }"
+}
+
+workflow.onError {
+    println "Pipeline has failed fatally with the error message: \n\n$workflow.errorMessage\n\n"
+    println "Writing error report to directory ${outdir}/logs/errorlogs..."
+    fatal_error_file = file("${outdir}/logs/errorReport.log")
+    fatal_error_file.text = workflow.errorReport
 }

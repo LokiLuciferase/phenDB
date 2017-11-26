@@ -4,7 +4,7 @@
 Computational framework:
 -Singularity or Docker container for perfect encapsulation and reproducibility ( )
 - Model "NOB" is broken: NOB.accuracy is totally different format than other accuracy files.
-
+- optimize write_bin_to_db
 
 Web server:
 -user interface ( ) (FP)

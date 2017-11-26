@@ -69,9 +69,7 @@ def sendinput(request):
         modelInstance.save()
         thread = startProcessThread(key)
         thread.start()
-
-    #TESTING -> DO NOT USE
-    #res = ResultFile.objects.create(actualID=key, document=fileobj['fileInput'])
+        print("thread started")
 
     resultObj = UploadedFile.objects.get(key=key)
     return redirect(resultObj)
