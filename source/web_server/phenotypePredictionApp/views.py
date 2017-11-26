@@ -15,7 +15,6 @@ from pprint import pprint
 
 def getKeyFromUrl(request):
     reqPath = request.path
-    print(reqPath)
     if(reqPath[-1] == '/'):
         reqPath = reqPath[:-1]
     urlparts = reqPath.rsplit('/')
@@ -29,19 +28,15 @@ def getKeyFromUrl(request):
 #-------------------Views-------------------------------------------------
 
 def index(request):
-    print("index called")
     template = loader.get_template('phenotypePredictionApp/index.xhtml')
     context = {'result' : 'No result yet',
                'showResult' : 'none',
-               'showProgressBar' : 'none',
-               'refresh' : False}
+               'showInputForm': 'block',
+               'showProgressBar' : False,
+               'refresh' : False,}
     return HttpResponse(template.render(context, request))
 
 def sendinput(request):
-    print("sendinput called")
-    template = loader.get_template('phenotypePredictionApp/index.xhtml')
-    context = {'result' : 'There are your results',
-               'showResult' : 'block'}
     postobj = request.POST.copy()
     fileobj = request.FILES.copy()
     key = str(uuid.uuid4())
@@ -52,48 +47,41 @@ def sendinput(request):
         name = request.FILES[filename].name
     postobj['filename'] = name
     postobj['fileInput'] = fileobj['fileInput']
-
-    print(postobj['filename'])
-    print(postobj['key'])
-
-
     form = FileForm(postobj, fileobj)
-
-    print(form.data)
-    print('\n')
-    print(fileobj)
-
     if(form.is_valid()):
         print("is valid")
         modelInstance = form.save(commit=False)
         modelInstance.save()
         thread = startProcessThread(key)
         thread.start()
-        print("thread started")
-
     resultObj = UploadedFile.objects.get(key=key)
     return redirect(resultObj)
 
 def getResults(request):
-    print("works")
     template = loader.get_template('phenotypePredictionApp/index.xhtml')
     key = getKeyFromUrl(request)
     obj = UploadedFile.objects.get(key=key)
     if obj.job_status == '100':
         showResult = 'block'
-        refresh = 'false'
+        showProgressBar = False
+        refresh = False
     else:
         showResult = 'none'
-        refresh = 'true'
+        showProgressBar = True
+        refresh = True
+    print('status ' + obj.job_status)
+    #TODO: !!!! ERROR MESSAGE NOT WORKING !!!
     context = {'result' : 'download/',
                'showResult' : showResult,
-               'showProgressBar' : 'block',
+               'showProgressBar' : showProgressBar,
                'progress' : obj.job_status,
-               'refresh' : refresh}
+               'refresh' : refresh,
+               'showInputForm': 'none',
+               'showErrorMessage': True,
+               'error_message' : 'Test'}
     return HttpResponse(template.render(context, request))
 
 def fileDownload(request):
-    print("fileDownload called")
     key = getKeyFromUrl(request)
     resFile = UploadedFile.objects.get(key = key)
     response = HttpResponse(resFile.fileOutput, content_type='application/tar+gzip')
