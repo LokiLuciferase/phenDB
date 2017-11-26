@@ -264,7 +264,6 @@ process write_bin_to_db { //TODO: implement checking if bin already exists
     tag { binname }
 
     //errorStrategy 'ignore'
-    maxForks 1 //TODO: do not parallelize this - at least not in sqlite
                // TODO: this appears to be a huge bottleneck, let's optimize this
 
     input:
