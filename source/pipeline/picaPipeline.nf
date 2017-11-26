@@ -318,8 +318,9 @@ with open("${hmmeritem}", "r") as enogresfile:
         except IntegrityError:
             print("Skipping due to IntegrityError.")
             continue     
-    print(enoglist)
-    result_enog.objects.bulk_create(enoglist)          
+            
+    # hmmer outputs some ENOGS multiple times --> add them only once
+    result_enog.objects.bulk_create(list(set(enoglist)))          
 
 """
 }
