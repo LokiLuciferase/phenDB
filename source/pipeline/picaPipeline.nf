@@ -142,13 +142,15 @@ process md5sum {
     set val(binname), file(item) from sanity_check_for_continue
 
     output:
-    set val(binname), stdout, file(item) into md5_out
+    set val(binname), stdout, file(item) into md5_out_1
 
     script:
     """
     echo -n \$(md5sum ${item} | cut -f1 -d" ")
     """
 }
+
+
 
 // call prodigal for every sample in parallel
 // output each result as a set of the sample id and the path to the prodigal outfile
@@ -318,6 +320,7 @@ with open("${hmmeritem}", "r") as enogresfile:
         except IntegrityError:
             print("Skipping due to IntegrityError.")
             continue     
+    print(enoglist)
     result_enog.objects.bulk_create(enoglist)          
 
 """

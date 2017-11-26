@@ -58,6 +58,23 @@ class bin(models.Model):
         return "File name: {fn}".format(fn=self.bin_name)
 
 
+class bins_in_UploadedFile(models.model):
+
+    class Meta:
+        unique_together = ('bin', 'Uploaded_File') # composite primary key
+        indexes = [
+            models.Index(fields=['bin', 'Uploaded_File'])
+       ]
+
+    #todo: add version nr. of Models
+
+    bin = models.ForeignKey(bin)
+    UploadedFile=models.ForeignKey(UploadedFile)
+
+    def __str__(self):
+        return "Bin: {bin} in Job {job}".format(bin=self.bin, job=self.UploadedFile)
+
+
 class enog(models.Model):
 
     class Meta:
