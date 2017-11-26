@@ -306,6 +306,7 @@ except IntegrityError:
     
 #write hmmer output to result_enog table
 with open("${hmmeritem}", "r") as enogresfile:
+    enoglist=[]
     for line in enogresfile:
         try:
             enogfield = line.split()[1]
@@ -313,10 +314,11 @@ with open("${hmmeritem}", "r") as enogresfile:
                                                                                   bn="${binname}"))
             newenog = result_enog(bin=bin.objects.get(bin_name="${binname}"),
                                   enog=enog.objects.get(enog_name=enogfield))
-            newenog.save()
+            enoglist.append(newenog)
         except IntegrityError:
             print("Skipping due to IntegrityError.")
-            continue               
+            continue     
+    result_enog.objects.bulk_create(enoglist)          
 
 """
 }
@@ -461,6 +463,7 @@ with open("${mdsum_file}", "r") as picaresults:
     for line in picaresults:
         conditions.append(line.split())
 
+modelresultlist=[]
 for result in conditions:
     try:
         get_bool = {"YES": True, "NO": False, "N/A": None}
@@ -476,9 +479,10 @@ for result in conditions:
                                    bin=parentbin,
                                    model=this_model
                                    )
-        modelresult.save()
+        modelresultlist.append(modelresult)
     except (IntegrityError, ) as e:
         sys.exit(e)
+result_model.objects.bulk_create(modelresultlist)
 """
 }
 

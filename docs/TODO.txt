@@ -15,6 +15,7 @@ Database ( ) (LL):
 -modell version cont comp fnr fpr für alle kombinationen (fette table)
 -better names for "model" model
 -make new database for enog x enog function to conserve space!
+- check if bin exists before calculation, new model sceme for bin (PP)
 
 Other stuff:
 - model: appear, disappear, change. Upon update: overwrite and check dates against dates in databases
