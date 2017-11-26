@@ -5,14 +5,11 @@ from django.contrib.contenttypes.models import ContentType
 
 #------------ functions for file upload -----------------------
 def upload_function_upload(instance, filename):
-    print('upload called')
     subfolder = instance.key
     filename = instance.filename
     return "documents/" + subfolder + "/" + filename
 
 def upload_function_results(instance, filename):
-    #TODO: + tar.gz
-    print(filename)
     filename = instance.key + '.tar.gz'
     return 'resultFiles/' + filename
 
@@ -29,7 +26,7 @@ class UploadedFile(models.Model):
     user_email = models.TextField()
     job_date = models.DateTimeField(auto_now=True)
     folder_path = models.TextField()
-    job_status = models.TextField()
+    job_status = models.TextField(default = '0')
     def get_absolute_url(self):
         return "results/%s/" % self.key
 
