@@ -318,6 +318,7 @@ with open("${hmmeritem}", "r") as enogresfile:
         except IntegrityError:
             print("Skipping due to IntegrityError.")
             continue     
+    print(enoglist)
     result_enog.objects.bulk_create(enoglist)          
 
 """
