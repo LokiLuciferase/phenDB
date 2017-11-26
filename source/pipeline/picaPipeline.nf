@@ -258,13 +258,10 @@ process compleconta {
 complecontaout.into{complecontaout_continue; bin_to_db}
 
 // write the bin properties to database
-//TODO: disable passing of errors when adding result_enog rows after we have added all enogs to database
-process write_bin_to_db { //TODO: implement checking if bin already exists
+// TODO: this appears to be a huge bottleneck, let's optimize this
+process write_bin_to_db {
 
     tag { binname }
-
-    //errorStrategy 'ignore'
-               // TODO: this appears to be a huge bottleneck, let's optimize this
 
     input:
     set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem), file(complecontaitem) from bin_to_db
@@ -522,7 +519,7 @@ workflow.onComplete {
 
 workflow.onError {
     println "Pipeline has failed fatally with the error message: \n\n$workflow.errorMessage\n\n"
-    println "Writing error report to directory ${outdir}/logs/errorlogs..."
+    println "Writing error report to directory ${outdir}/logs..."
     fatal_error_file = file("${outdir}/logs/errorReport.log")
     fatal_error_file.text = workflow.errorReport
 }
