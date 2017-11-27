@@ -142,15 +142,13 @@ process md5sum {
     set val(binname), file(item) from sanity_check_for_continue
 
     output:
-    set val(binname), stdout, file(item) into md5_out_1
+    set val(binname), stdout, file(item) into md5_out
 
     script:
     """
     echo -n \$(md5sum ${item} | cut -f1 -d" ")
     """
 }
-
-
 
 // call prodigal for every sample in parallel
 // output each result as a set of the sample id and the path to the prodigal outfile
@@ -310,19 +308,27 @@ except IntegrityError:
 with open("${hmmeritem}", "r") as enogresfile:
     enoglist=[]
     for line in enogresfile:
+        enogfield = line.split()[1]
+        enoglist.append(enogfield)
+    enoglist=list(set(enoglist))
+    enogobjectlist=[]
+    for enog_elem in enoglist:    
         try:
-            enogfield = line.split()[1]
-            print("Attempting to add enog {en} from bin {bn} to database.".format(en=enogfield,
+            print("Attempting to add enog {en} from bin {bn} to database.".format(en=enog_elem,
                                                                                   bn="${binname}"))
             newenog = result_enog(bin=bin.objects.get(bin_name="${binname}"),
-                                  enog=enog.objects.get(enog_name=enogfield))
-            enoglist.append(newenog)
+                                  enog=enog.objects.get(enog_name=enog_elem))
+            enogobjectlist.append(newenog)
         except IntegrityError:
             print("Skipping due to IntegrityError.")
             continue     
-    print(enoglist)
-    result_enog.objects.bulk_create(enoglist)          
-
+            
+    # hmmer outputs some ENOGS multiple times --> add them only once
+    try:
+        result_enog.objects.bulk_create(enogobjectlist)        
+    except IntegrityError:
+        print("Could not add enogs of bin ${binname} to the db.")  
+    
 """
 }
 
