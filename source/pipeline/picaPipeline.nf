@@ -324,8 +324,11 @@ with open("${hmmeritem}", "r") as enogresfile:
             continue     
             
     # hmmer outputs some ENOGS multiple times --> add them only once
-    result_enog.objects.bulk_create(enogobjectlist)          
-
+    try:
+        result_enog.objects.bulk_create(enogobjectlist)        
+    except IntegrityError:
+        print("Could not add enogs of bin", ${binname}, "to the db.)  
+    
 """
 }
 
