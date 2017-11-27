@@ -327,7 +327,7 @@ with open("${hmmeritem}", "r") as enogresfile:
     try:
         result_enog.objects.bulk_create(enogobjectlist)        
     except IntegrityError:
-        print("Could not add enogs of bin", ${binname}, "to the db.)  
+        print("Could not add enogs of bin ${binname} to the db.")  
     
 """
 }
