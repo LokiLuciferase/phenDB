@@ -4,7 +4,7 @@ import os
 import os.path
 import threading
 
-infolder = "/home/phen_work/test_samplesets"
+infolder = "/home/phen_work/test_samplesets/abc_folder"
 runscript_path = "/apps/phenDB_devel_PP/phenDB/source/pipeline/run_picaPipeline.sh"
 pipeline_path = "/apps/phenDB_devel_PP/phenDB/source/pipeline/picaPipeline.nf"
 above_workfolder = "/apps/phenDB_devel_PP/pipelineresults/resultFiles"
@@ -16,7 +16,7 @@ os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
 os.environ["PYTHONPATH"] = "/apps/phenDB_devel_PP/phenDB/source/web_server:$PYTHONPATH"
 
 # create workfolder
-outfolder = os.path.join(above_workfolder, "{jn}_results".format(jn="abc"))
+outfolder = os.path.join(above_workfolder, "{jn}_results".format(jn="abc2"))
 os.makedirs(outfolder, exist_ok=True)
 
 # create log folder
