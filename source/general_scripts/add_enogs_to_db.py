@@ -11,26 +11,29 @@ import sys
 ENOG_files = ["/mirror/eggnog/eggnog_4.5/data/bacNOG/bacNOG.annotations.tsv.gz",
               "/mirror/eggnog/eggnog_4.5/data/bactNOG/bactNOG.annotations.tsv.gz" ]
 
+enoglist=[]
 for annot in ENOG_files:
     print("Processing ", annot)
 #Open the annotations file, every line is an enog. Translate the Lettercode in the annotations-file using the
 #descriptions file and save the enog + description + categories to the db.
     with gzip.open(annot,mode="rt") as f:
+        # with open ("/mirror/eggnog/eggnog_4.5/COG_functional_categories.txt", 'r') as cat:
         counter=0
         for line in f:
             line=line.split("\t")
-            catlist=[]
-            with open ("/mirror/eggnog/eggnog_4.5/COG_functional_categories.txt", 'r') as cat:
-                for catline in cat:
-                    for my_letter in line[4]:
-                        if "["+my_letter+"]" in catline:
-                            catlist.append(catline.rstrip())
-            catlist = "; ".join(catlist)
-            new_enog = enog(enog_name=line[1], enog_descr=line[5].rstrip(), enog_category=catlist)
-            new_enog.save()
+        #         catlist=[]
+        #         for catline in cat:
+        #             for my_letter in line[4]:
+        #                 if "["+my_letter+"]" in catline:
+        #                     catlist.append(catline.rstrip())
+        #     catlist = "; ".join(catlist)
+        #     enoglist.append(enog(enog_name=line[1], enog_descr=line[5].rstrip(), enog_category=catlist))
+            enoglist.append(enog(enog_name=line[1], enog_descr=line[5].rstrip(), enog_category=line[4].rstrip()))
             counter+=1
             sys.stdout.write('\r')
             sys.stdout.write("Adding enog nr. ")
             sys.stdout.write(str(counter))
             sys.stdout.flush()
 
+print("\n writing enogs to db...")
+enog.objects.bulk_create(enoglist)

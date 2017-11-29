@@ -127,7 +127,28 @@ class model_enog_ranks(models.Model):
                                                                                            mid=self.model.model_name,
                                                                                            ir=str(self.internal_rank),
                                                                                            mtd=str(self.model.model_train_date))
+class model_accuracies(models.Model):
+    class Meta:
+        unique_together = ('model', 'comple', 'conta')  # composite primary key
+        indexes = [
+            models.Index(fields=['model', 'comple', 'conta'])
+        ]
 
+    model = models.ForeignKey(model)
+    comple = models.FloatField()
+    conta = models.FloatField()
+    mean_balanced_accuracy  = models.FloatField()
+    mean_fp_rate  = models.FloatField()
+    mean_fn_rate  = models.FloatField()
+
+
+    def __str__(self):
+        return "Name: {mid}\tVersion Nr: {vnr}\t is_newest= {new} \t Completness: {comple} \t " \
+               "Contamination {conta} \t bal. acc {balac}".format(mid=self.model.model_name, vnr=self.model.version_nr,
+                                                                      new=self.model.is_newest, comple=self.comple,
+                                                                      conta=self.conta,
+                                                                      balac=self.mean_balanced_accuracy
+                                                                              )
 
 class result_enog(models.Model):
 

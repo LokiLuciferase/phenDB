@@ -178,17 +178,12 @@ try:
 except ObjectDoesNotExist:
     sys.exit("Job not found.")
 
-#if bin.filter(md5sum="${mdsum}").exists():
-#    new_bin_UF = bin_in_UploadedFile(bin=bin.filter(md5sum="${mdsum}"), UploadedFile=parentjob)
-#    new_bin_UF.save()
-    
-#else:
+# write impossible Nr. for comple and conta that would cause an error if not overwritten:
 newbin = bin(bin_name="${binname}", md5sum="${mdsum}",
-                UploadedFile=parentjob)
+                UploadedFile=parentjob, comple=2, conta=2)
 newbin.save()
     
-#    new_bin_UF = bin_in_UploadedFile(bin=newbin, UploadedFile=parentjob)
-#    new_bin_UF.save()
+
 
 """
 
@@ -328,9 +323,10 @@ django.setup()
 from phenotypePredictionApp.models import *
 
 try:
-    parentbin = bin.objects.get(md5sum="${md5sum}", UploadedFile=UploadedFile.objects.get(key="${jobname}"))
+    parentbin = bin.objects.get(md5sum="${mdsum}", UploadedFile=UploadedFile.objects.get(key="${jobname}"))
 except ObjectDoesNotExist:
     sys.exit("Bin not found.")
+
 
   
 #write hmmer output to result_enog table
@@ -367,25 +363,75 @@ process accuracy {
     tag { "${binname}_${model.getBaseName()}" }
 
     memory = '10 MB'
-    errorStrategy 'ignore'  //model files not yet complete, TODO: remove this!!!!
+    //errorStrategy 'ignore'  //model files not yet complete, TODO: remove this!!!!
 
     input:
     set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem), file(complecontaitem) from complecontaout_continue
+    //todo: do not rely on folder but on db here
     each model from models
 
     output:
     set val(binname), val(mdsum), val(model), file(hmmeritem), file(prodigalitem), file(complecontaitem), stdout into accuracyout
 
-    when:
-    model.isDirectory()
 
     script:
     RULEBOOK = model.getBaseName()
-    ACCURACYFILE = "$model/${RULEBOOK}.accuracy"
     """
-    python2 $params.balanced_accuracy_path $ACCURACYFILE $complecontaitem
+
+    #!/usr/bin/env python3
+
+
+
+    import django
+    import sys
+    import os
+    from django.core.exceptions import ObjectDoesNotExist
+    from django.db import IntegrityError
+    os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
+    django.setup()
+    from phenotypePredictionApp.models import *
+
+    # get completeness and contamination
+    with open("${complecontaitem}", "r") as ccfile:
+        cc = ccfile.readline().split()
+
+    try:
+        parentbin = bin.objects.get(md5sum="${mdsum}", UploadedFile=UploadedFile.objects.get(key="${jobname}"))
+        parentbin.comple = cc[0]
+        parentbin.conta= cc[1]
+    except ObjectDoesNotExist:
+        sys.exit("Bin not found.")
+    
+    #this is how you would check the balanced accuracy...
+    print(model_accuracies.objects.get(model=model.objects.get(model_name="${model.getBaseName()}", is_newest=True), comple=round(float(parentbin.comple)*0.05)/0.05, conta=round(float(parentbin.conta)*0.05)/0.05).mean_balanced_accuracy)
+
     """
 }
+//process accuracy {
+//
+//    tag { "${binname}_${model.getBaseName()}" }
+//
+//    memory = '10 MB'
+//    errorStrategy 'ignore'  //model files not yet complete, TODO: remove this!!!!
+//
+//    input:
+//    set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem), file(complecontaitem) from complecontaout_continue
+//    each model from models
+//
+//    output:
+//    set val(binname), val(mdsum), val(model), file(hmmeritem), file(prodigalitem), file(complecontaitem), stdout into accuracyout
+//
+//    when:
+//    model.isDirectory()
+//
+//    script:
+//    RULEBOOK = model.getBaseName()
+//    ACCURACYFILE = "$model/${RULEBOOK}.accuracy"
+//    """
+//
+//    python2 $params.balanced_accuracy_path $ACCURACYFILE $complecontaitem
+//    """
+//}
 
 // call pica for every sample for every condition in parallel
 process pica {
@@ -492,7 +538,7 @@ except ObjectDoesNotExist:
 
 # get bin from db
 try:
-    parentbin = bin.objects.get(md5sum="${md5sum}", UploadedFile=parentjob)
+    parentbin = bin.objects.get(md5sum="${mdsum_file.getBaseName()}", UploadedFile=parentjob)
 except ObjectDoesNotExist:
     sys.exit("Bin not found.")
 
