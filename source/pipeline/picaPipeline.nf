@@ -107,6 +107,7 @@ process fasta_sanity_check {
 
     script:
     binname = item.getName()
+// language=Python
 """
 #!/usr/bin/env python
 from Bio import SeqIO
@@ -207,6 +208,7 @@ process update_job_completeness {
     output:
     set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem) into job_updated_out
     script:
+// language=Python
 """
 #!/usr/bin/env python3
 
@@ -267,6 +269,7 @@ process write_bin_to_db {
     set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem), file(complecontaitem) from bin_to_db
 
     script:
+// language=Python
 """
 #!/usr/bin/env python3
 
@@ -428,6 +431,7 @@ process write_pica_result_to_db {
     stdout exo
 
     script:
+// language=Python
 """
 #!/usr/bin/env python3
 
@@ -486,6 +490,7 @@ process write_tgz_to_db {
 
     script:
     errors_occurred = errorfile.isEmpty() ? "False" : "True"
+// language=Python
 """
 #!/usr/bin/env python3
 

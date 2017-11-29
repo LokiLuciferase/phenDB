@@ -77,8 +77,8 @@ def getResults(request):
             error_message = 'phendb service not working'
         else:
             showErrorMessage = obj.errors
-            error_summary = 'Invalid fasta file(s)'
-            error_message = 'Please check the sanity-errors.log file'
+            error_summary = 'Invalid input file(s)'
+            error_message = 'Please check the invalid_input_files.log file'
     else:
         showResult = 'none'
         showProgressBar = True
