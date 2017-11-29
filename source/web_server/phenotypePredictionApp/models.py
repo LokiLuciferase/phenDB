@@ -44,13 +44,14 @@ class UploadedFile(models.Model):
 class bin(models.Model):
 
     class Meta:
+        unique_together = ('md5sum', 'UploadedFile') # composite primary key
         indexes = [
             models.Index(fields=['md5sum'])
         ]
 
     bin_name = models.TextField()
-    job = models.ForeignKey(UploadedFile, on_delete=models.CASCADE)
-    md5sum = models.TextField(primary_key=True)
+    UploadedFile = models.ForeignKey(UploadedFile, on_delete=models.CASCADE)
+    md5sum = models.TextField
     comple = models.FloatField()
     conta = models.FloatField()
 
@@ -58,21 +59,19 @@ class bin(models.Model):
         return "File name: {fn}".format(fn=self.bin_name)
 
 
-class bins_in_UploadedFile(models.model):
-
-    class Meta:
-        unique_together = ('bin', 'Uploaded_File') # composite primary key
-        indexes = [
-            models.Index(fields=['bin', 'Uploaded_File'])
-       ]
-
-    #todo: add version nr. of Models
-
-    bin = models.ForeignKey(bin)
-    UploadedFile=models.ForeignKey(UploadedFile)
-
-    def __str__(self):
-        return "Bin: {bin} in Job {job}".format(bin=self.bin, job=self.UploadedFile)
+# class bin_in_UploadedFile(models.model):
+#
+#     class Meta:
+#         unique_together = ('bin', 'Uploaded_File') # composite primary key
+#         indexes = [
+#             models.Index(fields=['bin', 'Uploaded_File'])
+#        ]
+#
+#     bin = models.ForeignKey(bin)
+#     UploadedFile=models.ForeignKey(UploadedFile)
+#
+#     def __str__(self):
+#         return "Bin: {bin} in Job {job}".format(bin=self.bin, job=self.UploadedFile)
 
 
 class enog(models.Model):
@@ -142,8 +141,8 @@ class result_enog(models.Model):
     bin = models.ForeignKey(bin)
 
     def __str__(self):
-        return "Enog {eid} contained in the bin {mds}".format(eid=self.enog_id,
-                                                              mds=self.bin_id)
+        return "Enog {eid} contained in the bin {mds}" of Job {Jb}.format(eid=self.enog_id,
+                                                              mds=self.bin_id, jb=self.UploadedFile.key)
 
 
 class result_model(models.Model):
