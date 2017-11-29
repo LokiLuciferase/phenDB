@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-cd /apps/phenDB/source/web_server/phenotypePredictionApp
+#cd /apps/phenDB/source/web_server/phenotypePredictionApp
+cd /apps/phenDB_devel_LL/source/web_server/phenotypePredictionApp
 
 # cleans database of sample specific data among test runs while leaving enogs and models untouched
 sqlite3 phenDB.sqlite3 "delete from phenotypePredictionApp_UploadedFile;"

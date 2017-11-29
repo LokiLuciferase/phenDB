@@ -77,13 +77,13 @@ def getResults(request):
             error_message = 'phendb service not working'
         else:
             showErrorMessage = obj.errors
-            error_summary = 'Invalid fasta file(s)'
-            error_message = 'Please check the sanity-errors.log file'
+            error_summary = 'Invalid input file(s)'
+            error_message = 'Please check the invalid_input_files.log file'
     else:
         showResult = 'none'
         showProgressBar = True
         refresh = True
-        showErrorMessage = False;
+        showErrorMessage = False
         error_message = ""
         error_summary = ""
         error_severity = ""
@@ -104,5 +104,5 @@ def fileDownload(request):
     key = getKeyFromUrl(request)
     resFile = UploadedFile.objects.get(key = key)
     response = HttpResponse(resFile.fileOutput, content_type='application/tar+gzip')
-    response['Content-Disposition'] = 'attachment; filename="phendb_results.tar.gz"'
+    response['Content-Disposition'] = 'attachment; filename="{k}.tar.gz"'.format(k=key)
     return response

@@ -107,6 +107,7 @@ process fasta_sanity_check {
 
     script:
     binname = item.getName()
+// language=Python
 """
 #!/usr/bin/env python
 from Bio import SeqIO
@@ -207,6 +208,7 @@ process update_job_completeness {
     output:
     set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem) into job_updated_out
     script:
+// language=Python
 """
 #!/usr/bin/env python3
 
@@ -267,6 +269,7 @@ process write_bin_to_db {
     set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem), file(complecontaitem) from bin_to_db
 
     script:
+// language=Python
 """
 #!/usr/bin/env python3
 
@@ -376,8 +379,8 @@ process pica {
     """
     echo -ne "${binname}\t" > tempfile.tmp
     cut -f2 $hmmeritem | tr "\n" "\t" >> tempfile.tmp
-    echo "N/A\tN/A" > picaout.result
-    echo -n \$(cat picaout.result | tail -n1 | cut -f2,3 | tr "\t" " ")
+    echo "N/A\tNA" > picaout.result
+    echo -n \$(cat picaout.result | tail -n1 | cut -f2,3)
     """
     }
 }
@@ -386,8 +389,104 @@ process pica {
 picaout.into{pica_db_write; pica_out_write}
 
 outfilechannel = pica_out_write.collectFile() { item ->
-    [ "${item[0]}.results", "${item[2]} ${item[3]} ${item[4]}" ]  // use given bin name as filename
+    [ "${item[0]}.results.txt", "${item[2]}\t${item[3]}\t${item[4]}" ]  // use given bin name as filename
 }.collect()
+
+
+// create a matrix file containing all verdicts for each bin and add to output files
+// create a matrix file containing summaries per model
+// here we could for example add a header to each results file
+process make_matrix_and_headers {
+
+    input:
+    file(allfiles) from outfilechannel
+
+    output:
+    file("*") into all_files_for_tar
+
+"""
+#!/usr/bin/env python3
+
+import django
+import datetime
+import os
+os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
+django.setup()
+from phenotypePredictionApp.models import *
+
+cutoff = "${params.accuracy_cutoff}"
+now = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+HEADER = "Model_name\tVerdict\tProbability\tBalanced_accuracy"
+
+modelvec = [x.model_name for x in model.objects.filter()]
+modelvec = sorted(modelvec)
+print(modelvec)
+
+bin_dict = {}
+countdict = {x: {"YES": 0, "NO": 0, "N/A": 0} for x in modelvec}
+print(countdict)
+resultmat = []
+
+for name in os.listdir():
+
+    # extract info for matrix writing
+    with open(os.path.join(os.getcwd(), name), "r") as binfile:
+        binname = name.replace(".results", "")
+        bin_dict[binname] = {}
+        for line in binfile:
+            sline = line.split()
+            modelname, verdict = sline[0], sline[1]
+            bin_dict[binname][modelname] = verdict
+            countdict[modelname][verdict] += 1
+    
+    # sort results file and prepend header
+    with open(os.path.join(os.getcwd(), name), "r+") as sortfile:
+        content = []
+        for line in sortfile:
+            content.append(line.split())
+        sortfile.seek(0, 0)
+        content = sorted(content, key=lambda x: x[0])
+        sortfile.write(HEADER)
+        for tup in content:
+            sortfile.write("\t".join(tup))
+            sortfile.write("\n")
+
+countlist = []
+for cond in ("YES", "NO", "N/A"):
+    condlist = []
+    for key, vals in countdict.items():
+        condlist.append(vals[cond])
+    countlist.append("\t".join([cond] + [str(x) for x in condlist]))
+
+print(modelvec)
+for item in countlist:
+    print(item)
+
+with open("summary_matrix.results.tsv", "w") as outfile:
+    outfile.write("# phenDB\n# Time of run: {da}\n# Accuracy cut-off: {co}\n".format(da=now, co=cutoff))
+    outfile.write("#\nSummary of models:\n")
+    outfile.write("\t".join([" "] + modelvec))
+    outfile.write("\n")
+    for line in countlist:
+        outfile.write(line)
+        outfile.write("\n")
+
+with open("per_bin_matrix.results.tsv", "w") as outfile2:
+    outfile2.write("# phenDB\n# Time of run: {da}\n# Accuracy cut-off: {co}\n".format(da=now, co=cutoff))
+    outfile2.write("\n#Results per bin:\n")
+    outfile2.write("\t".join([" "] + modelvec))
+    outfile2.write("\n")
+    for item in bin_dict.keys():
+        resultlist = []
+        for modelname in modelvec:
+            try:
+                resultlist.append(bin_dict[item][modelname])
+            except KeyError:
+                resultlist.append("NC")
+        outfile2.write("\t".join([item] + resultlist))
+        outfile2.write("\n")
+"""
+}
 
 
 process tar_results {
@@ -397,7 +496,7 @@ process tar_results {
     stageInMode 'copy'  //actually copy in the results so we not only tar symlinks
 
     input:
-    file(allfiles) from outfilechannel
+    file(allfiles) from all_files_for_tar
     file(errorfile)
 
     output:
@@ -407,7 +506,7 @@ process tar_results {
     """
     mkdir ${jobname}
     cp ${errorfile} ${jobname}/invalid_input_files.log
-    mv *.results ${jobname}
+    mv *.results.* ${jobname}
     tar -cvf ${jobname}.tar.gz ./${jobname}
     rm -rf ${jobname}
     """
@@ -428,6 +527,7 @@ process write_pica_result_to_db {
     stdout exo
 
     script:
+// language=Python
 """
 #!/usr/bin/env python3
 
@@ -486,6 +586,7 @@ process write_tgz_to_db {
 
     script:
     errors_occurred = errorfile.isEmpty() ? "False" : "True"
+// language=Python
 """
 #!/usr/bin/env python3
 
