@@ -150,6 +150,50 @@ process md5sum {
     """
 }
 
+process add_bin_to_db {
+
+    input:
+    set val(binname), val(mdsum), file(item) from md5_out
+
+    output:
+    set val(binname), val(mdsum), file(item) into bin_db_out
+
+
+    script:
+"""
+#!/usr/bin/env python3
+
+import django
+import sys
+import os
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import IntegrityError
+os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"    
+
+django.setup()
+from phenotypePredictionApp.models import *
+
+try:
+    parentjob = UploadedFile.objects.get(key="${jobname}")
+except ObjectDoesNotExist:
+    sys.exit("Job not found.")
+
+#if bin.filter(md5sum="${mdsum}").exists():
+#    new_bin_UF = bin_in_UploadedFile(bin=bin.filter(md5sum="${mdsum}"), UploadedFile=parentjob)
+#    new_bin_UF.save()
+    
+#else:
+newbin = bin(bin_name="${binname}", md5sum="${mdsum}",
+                UploadedFile=parentjob)
+newbin.save()
+    
+#    new_bin_UF = bin_in_UploadedFile(bin=newbin, UploadedFile=parentjob)
+#    new_bin_UF.save()
+
+"""
+
+}
+
 // call prodigal for every sample in parallel
 // output each result as a set of the sample id and the path to the prodigal outfile
 process prodigal {
@@ -159,7 +203,7 @@ process prodigal {
     memory = "2 GB"
 
     input:
-    set val(binname), val(mdsum), file(item) from md5_out
+    set val(binname), val(mdsum), file(item) from bin_db_out
 
     output:
     set val(binname), val(mdsum), file("prodigalout.faa") into prodigalout
@@ -259,7 +303,7 @@ complecontaout.into{complecontaout_continue; bin_to_db}
 
 // write the bin properties to database
 //TODO: disable passing of errors when adding result_enog rows after we have added all enogs to database
-process write_bin_to_db { //TODO: implement checking if bin already exists
+process write_hmmer_results_to_db { //TODO: implement checking if bin already exists
 
     tag { binname }
 
@@ -284,46 +328,31 @@ django.setup()
 from phenotypePredictionApp.models import *
 
 try:
-    parentjob = UploadedFile.objects.get(key="${jobname}")
+    parentbin = bin.objects.get(md5sum="${md5sum}", UploadedFile=UploadedFile.objects.get(key="${jobname}"))
 except ObjectDoesNotExist:
-    sys.exit("Job not found.")
+    sys.exit("Bin not found.")
 
-# get completeness and contamination
-with open("${complecontaitem}", "r") as ccfile:
-    cc = ccfile.readline().split()
-
-# write bin to database
-try:
-    newbin = bin(bin_name="${binname}",
-                 comple=cc[0],
-                 conta=cc[1],
-                 md5sum="${mdsum}",
-                 job=UploadedFile.objects.get(key="${jobname}"))
-    
-    newbin.save()
-except IntegrityError:
-    sys.exit("Skipping adding of already known bin")
-    
+  
 #write hmmer output to result_enog table
 with open("${hmmeritem}", "r") as enogresfile:
     enoglist=[]
     for line in enogresfile:
         enogfield = line.split()[1]
         enoglist.append(enogfield)
+    # hmmer outputs some ENOGS multiple times --> add them only once
     enoglist=list(set(enoglist))
     enogobjectlist=[]
     for enog_elem in enoglist:    
         try:
             print("Attempting to add enog {en} from bin {bn} to database.".format(en=enog_elem,
                                                                                   bn="${binname}"))
-            newenog = result_enog(bin=bin.objects.get(bin_name="${binname}"),
-                                  enog=enog.objects.get(enog_name=enog_elem))
+            newenog = result_enog(bin=parentbin, enog=enog.objects.get(enog_name=enog_elem))
             enogobjectlist.append(newenog)
         except IntegrityError:
             print("Skipping due to IntegrityError.")
             continue     
             
-    # hmmer outputs some ENOGS multiple times --> add them only once
+
     try:
         result_enog.objects.bulk_create(enogobjectlist)        
     except IntegrityError:
@@ -463,9 +492,9 @@ except ObjectDoesNotExist:
 
 # get bin from db
 try:
-    parentbin = bin.objects.get(md5sum="${mdsum_file.getBaseName()}")
+    parentbin = bin.objects.get(md5sum="${md5sum}", UploadedFile=parentjob)
 except ObjectDoesNotExist:
-    sys.exit("Bin for this result not found.")
+    sys.exit("Bin not found.")
 
 conditions = []
 with open("${mdsum_file}", "r") as picaresults:
