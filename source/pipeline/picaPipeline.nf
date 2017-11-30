@@ -178,13 +178,15 @@ try:
 except ObjectDoesNotExist:
     sys.exit("Job not found.")
 
-# write impossible Nr. for comple and conta that would cause an error if not overwritten:
-newbin = bin(bin_name="${binname}", md5sum="${mdsum}",
-                UploadedFile=parentjob, comple=2, conta=2)
-newbin.save()
+try:
+    # write impossible Nr. for comple and conta that would cause an error if not overwritten:
+    newbin = bin(bin_name="${binname}", md5sum="${mdsum}",
+                    UploadedFile=parentjob, comple=2, conta=2)
+    newbin.save()
+except IntegrityError:
+    sys.exit("Cannot add bin to db: An identical file from the same job is already in the db. Please remove duplicate files from your input!")
+
     
-
-
 """
 
 }
