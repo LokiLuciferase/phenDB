@@ -390,6 +390,9 @@ process accuracy {
     os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
     django.setup()
     from phenotypePredictionApp.models import *
+    import math
+    def round_nearest(x, a):
+        return round(round(x / a) * a, -int(math.floor(math.log10(a))))
 
     # get completeness and contamination
     with open("${complecontaitem}", "r") as ccfile:
@@ -399,11 +402,17 @@ process accuracy {
         parentbin = bin.objects.get(md5sum="${mdsum}", UploadedFile=UploadedFile.objects.get(key="${jobname}"))
         parentbin.comple = cc[0]
         parentbin.conta= cc[1]
+        parentbin.save()
+
+
+        
     except ObjectDoesNotExist:
         sys.exit("Bin not found.")
     
     #this is how you would check the balanced accuracy...
-    print(model_accuracies.objects.get(model=model.objects.get(model_name="${model.getBaseName()}", is_newest=True), comple=round(float(parentbin.comple)*0.05)/0.05, conta=round(float(parentbin.conta)*0.05)/0.05).mean_balanced_accuracy)
+    print(model_accuracies.objects.get(model=model.objects.get(model_name="${model.getBaseName()}", is_newest=True),
+    comple=round_nearest(float(parentbin.comple),0.05), 
+    conta=round_nearest(float(parentbin.conta),0.05)).mean_balanced_accuracy)
 
     """
 }
