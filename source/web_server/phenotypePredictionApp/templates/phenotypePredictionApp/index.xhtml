@@ -31,14 +31,14 @@
                 {% if showProgressBar %}
                     $('#overlay').puidialog('show');
                     $('#progressbar').puiprogressbar({
-                        value: "{{   progress }}"
+                        value: "{{ progress }}"
                     });
                 {% endif %}
             $('#input_section').puipanel();
             $('#result_section').puipanel();
-            $('#error_message').puigrowl();
+            $('#error_message').puigrowl({sticky:true});
                 {% if showErrorMessage %}
-                    //TODO: error message show
+                    $('#error_message').puigrowl('show', [{severity: '{{ error_severity }}', summary: '{{ error_summary }}', detail: '{{ error_message }}' } ]);
                 {% endif %}
             });
         </script>
@@ -51,13 +51,34 @@
         <div id="title">
             <img id="phendb_logo" src="{% static 'phenotypePredictionApp/phendb_logo.png' %}" ></img>
         </div>
-        <div id="input_section" title="Your Input" style="display : {{ showInputForm }}" >
-            <div id="description">
-                Upload your FASTA-files (as single .fasta-File or compressed in a tar.gz / zip folder).
+        <div class="column" id="input_section" title="Your Input" style="display : {{ showInputForm }}" >
+            <div class="row" id="description">
+                Upload your FASTA-files (as .fasta or compressed in a tar.gz / zip folder).
+                To get a notification when phenDB is finished, submit your e-mail address (optionally).
             </div>
-            <label for="fileInput">Input</label>
-            <input id="fileInput" name="fileInput" type="file" accept=".tar.gz, .zip, .fasta" ></input>
-            <input type="submit" value="Send" ></input>
+            <div class="row">
+                <div class="column" style="flex:50">
+                    <label for="fileInput"><b>Input</b></label>
+                </div>
+                <div class="column" style="flex:50">
+                    <input id="fileInput" name="fileInput" type="file" accept=".tar.gz, .zip, .fasta" required="true" ></input>
+                </div>
+            </div>
+            <div class="row">
+                <div class="column" style="flex:50">
+                    <label for="fileInput"><b>e-Mail (optionally) </b></label>
+                </div>
+                <div class="column" style="flex:50">
+                    <input id="user_mail" name="user_email" type="email"></input>
+                </div>
+            </div>
+            <div class="row">
+                <div class="column" style="flex:100">
+                </div>
+                <div class="column">
+                    <input type="submit" value="Send" ></input>
+                </div>
+            </div>
         </div>
         <div id="result_section" title="Your results" style="display:{{showResult}}">
             RESULTS:

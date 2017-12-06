@@ -31,12 +31,12 @@ class UploadedFile(models.Model):
     filename = models.TextField()
     fileInput = models.FileField(upload_to=upload_function_upload)
     fileOutput = models.FileField(upload_to=upload_function_results)
-    user_ip = models.TextField()
-    user_email = models.TextField()
+    user_ip = models.TextField(null=True, blank=True)
+    user_email = models.TextField(null=True, blank=True)
     job_date = models.DateTimeField(auto_now=True)
     folder_path = models.TextField()
-    errors = models.NullBooleanField()
-    job_status = models.TextField()
+    errors = models.NullBooleanField(null=True, blank=True)
+    job_status = models.TextField(default='0')
     def get_absolute_url(self):
         return "results/%s/" % self.key
 

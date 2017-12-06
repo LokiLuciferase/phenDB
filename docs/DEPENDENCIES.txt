@@ -1,5 +1,6 @@
 python3
 python2, and installed pip (using get-pip.py) and numpy, biopython
+django.ipware (external dependancy -> not included in django)
 nextflow (requires java8), installed as suggested on the nextflow homepage
 django (requires python), installed via pip (pip for python3)
 prodigal (installed from source/github)
@@ -7,3 +8,6 @@ hmmer (installed newest binaries from website)
 PICA (installed from source/github)
 Biopyhton (installed via pip and pip3)
 singularity (installed from source/github)
+httpd-devel (installed via yum)
+mod_wsgi (installed from source/github, configured --with-python=/usr/bin/python3)
+gunicorn (installed via pip3)

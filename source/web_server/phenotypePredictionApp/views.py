@@ -9,6 +9,7 @@ from django.core.urlresolvers import resolve
 from businessLogic.startProcess import startProcessThread
 from phenotypePredictionApp.models import UploadedFile
 from pprint import pprint
+from ipware.ip import get_real_ip
 
 #------------------functions---------------------------------------------
 #useful functions, NO views
@@ -47,9 +48,10 @@ def sendinput(request):
         name = request.FILES[filename].name
     postobj['filename'] = name
     postobj['fileInput'] = fileobj['fileInput']
+    postobj['user_ip'] = get_real_ip(request)
     form = FileForm(postobj, fileobj)
     if(form.is_valid()):
-        print("is valid")
+        print("Is valid")
         modelInstance = form.save(commit=False)
         modelInstance.save()
         thread = startProcessThread(key)
@@ -58,27 +60,44 @@ def sendinput(request):
     return redirect(resultObj)
 
 def getResults(request):
+    #TODO: show error on UI not related to sanity-error
     template = loader.get_template('phenotypePredictionApp/index.xhtml')
     key = getKeyFromUrl(request)
     obj = UploadedFile.objects.get(key=key)
+    #errors: when errors from model UploadedFile set to true -> sanity error, when None -> Error in the pipeline
+    error_severity = 'warn'
     if obj.job_status == '100':
         showResult = 'block'
         showProgressBar = False
         refresh = False
+        if(obj.errors == None):
+            showErrorMessage = True
+            error_severity = 'error'
+            error_summary = 'unknown error'
+            error_message = 'phendb service not working'
+        else:
+            showErrorMessage = obj.errors
+            error_summary = 'Invalid input file(s)'
+            error_message = 'Please check the invalid_input_files.log file'
     else:
         showResult = 'none'
         showProgressBar = True
         refresh = True
+        showErrorMessage = False;
+        error_message = ""
+        error_summary = ""
+        error_severity = ""
     print('status ' + obj.job_status)
-    #TODO: !!!! ERROR MESSAGE NOT WORKING !!!
     context = {'result' : 'download/',
                'showResult' : showResult,
                'showProgressBar' : showProgressBar,
                'progress' : obj.job_status,
                'refresh' : refresh,
                'showInputForm': 'none',
-               'showErrorMessage': True,
-               'error_message' : 'Test'}
+               'showErrorMessage': showErrorMessage,
+               'error_severity' : error_severity,
+               'error_summary' : error_summary,
+               'error_message' : error_message}
     return HttpResponse(template.render(context, request))
 
 def fileDownload(request):

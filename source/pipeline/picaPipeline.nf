@@ -107,6 +107,7 @@ process fasta_sanity_check {
 
     script:
     binname = item.getName()
+// language=Python
 """
 #!/usr/bin/env python
 from Bio import SeqIO
@@ -248,6 +249,7 @@ process update_job_completeness {
     output:
     set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem) into job_updated_out
     script:
+// language=Python
 """
 #!/usr/bin/env python3
 
@@ -311,6 +313,7 @@ process write_hmmer_results_to_db { //TODO: implement checking if bin already ex
     set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem), file(complecontaitem) from bin_to_db
 
     script:
+// language=Python
 """
 #!/usr/bin/env python3
 
@@ -528,6 +531,7 @@ process write_pica_result_to_db {
     stdout exo
 
     script:
+// language=Python
 """
 #!/usr/bin/env python3
 
@@ -588,6 +592,7 @@ process write_tgz_to_db {
 
     script:
     errors_occurred = errorfile.isEmpty() ? "False" : "True"
+// language=Python
 """
 #!/usr/bin/env python3
 
@@ -621,7 +626,7 @@ workflow.onComplete {
 
 workflow.onError {
     println "Pipeline has failed fatally with the error message: \n\n$workflow.errorMessage\n\n"
-    println "Writing error report to directory ${outdir}/logs/errorlogs..."
+    println "Writing error report to directory ${outdir}/logs..."
     fatal_error_file = file("${outdir}/logs/errorReport.log")
     fatal_error_file.text = workflow.errorReport
 }

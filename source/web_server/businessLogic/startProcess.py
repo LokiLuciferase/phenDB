@@ -41,6 +41,9 @@ class startProcessThread(threading.Thread):
         logfolder = os.path.join(outfolder, "logs")
         os.makedirs(logfolder)
 
+        ## call fake script for testing
+        # subprocess.run(["python3", "./fakeScript.py", "--infolder", infolder, "--key", self.keyname])
+
         # call minimal runscript which performs nohup and output rerouting
         subprocess.run([runscript_path,
                         pipeline_path,
