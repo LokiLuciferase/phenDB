@@ -96,7 +96,7 @@ truly_all_input_files.subscribe {
 }
 
 // Passes every fasta file through Biopythons SeqIO to check for corrupted files
-process fasta_sanity_check {
+process fasta_sanity_check { //todo: output also sequences-only for md5sum?
     errorStrategy 'ignore'
 
     input:
@@ -161,6 +161,7 @@ process add_bin_to_db {
 
 
     script:
+// language=Python
 """
 #!/usr/bin/env python3
 
@@ -180,13 +181,16 @@ except ObjectDoesNotExist:
     sys.exit("Job not found.")
 
 try:
+    thisbin=bin.objects.get(md5sum="${mdsum}")
+except ObjectDoesNotExist:
     # write impossible Nr. for comple and conta that would cause an error if not overwritten:
-    newbin = bin(bin_name="${binname}", md5sum="${mdsum}",
+    thisbin = bin(bin_name="${binname}", md5sum="${mdsum}",
                     UploadedFile=parentjob, comple=2, conta=2)
-    newbin.save()
+    thisbin.save()
 except IntegrityError:
     sys.exit("Cannot add bin to db: An identical file from the same job is already in the db. Please remove duplicate files from your input!")
 
+assoc= bins_in_UploadedFile(bin=thisbin, job=parentjob)
     
 """
 
@@ -415,37 +419,13 @@ process accuracy {
         sys.exit("Bin not found.")
     
     #this is how you would check the balanced accuracy...
-    print(model_accuracies.objects.get(model=model.objects.filter(model_name="${model.getBaseName()}").latest(model_train_date),
+    print(model_accuracies.objects.get(model=model.objects.filter(model_name="${model.getBaseName()}").latest('model_train_date'),
     comple=round_nearest(float(parentbin.comple),0.05), 
     conta=round_nearest(float(parentbin.conta),0.05)).mean_balanced_accuracy)
 
     """
 }
-//process accuracy {
-//
-//    tag { "${binname}_${model.getBaseName()}" }
-//
-//    memory = '10 MB'
-//    errorStrategy 'ignore'  //model files not yet complete, TODO: remove this!!!!
-//
-//    input:
-//    set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem), file(complecontaitem) from complecontaout_continue
-//    each model from models
-//
-//    output:
-//    set val(binname), val(mdsum), val(model), file(hmmeritem), file(prodigalitem), file(complecontaitem), stdout into accuracyout
-//
-//    when:
-//    model.isDirectory()
-//
-//    script:
-//    RULEBOOK = model.getBaseName()
-//    ACCURACYFILE = "$model/${RULEBOOK}.accuracy"
-//    """
-//
-//    python2 $params.balanced_accuracy_path $ACCURACYFILE $complecontaitem
-//    """
-//}
+
 
 // call pica for every sample for every condition in parallel
 process pica {
@@ -569,7 +549,7 @@ for result in conditions:
         boolean_verdict = get_bool[result[1]]
         #get model from db
         try:
-            this_model=model.objects.filter(model_name=result[0]).latest(model_train_date)
+            this_model=model.objects.filter(model_name=result[0]).latest('model_train_date')
         except ObjectDoesNotExist:
             sys.exit("Current Model for this result not found.")
         
