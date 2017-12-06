@@ -60,9 +60,9 @@ class bin(models.Model):
 class bins_in_UploadedFile(models.Model):
 
     class Meta:
-        unique_together = ('bin', 'Uploaded_File') # composite primary key
+        unique_together = ('bin', 'UploadedFile') # composite primary key
         indexes = [
-            models.Index(fields=['bin', 'Uploaded_File'])
+            models.Index(fields=['bin', 'UploadedFile'])
        ]
 
     bin = models.ForeignKey(bin)

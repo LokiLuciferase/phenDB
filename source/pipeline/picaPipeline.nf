@@ -190,7 +190,7 @@ except ObjectDoesNotExist:
 except IntegrityError:
     sys.exit("Cannot add bin to db: An identical file from the same job is already in the db. Please remove duplicate files from your input!")
 
-assoc= bins_in_UploadedFile(bin=thisbin, job=parentjob)
+assoc= bins_in_UploadedFile(bin=thisbin, UploadedFile=parentjob)
     
 """
 
