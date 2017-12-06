@@ -57,7 +57,7 @@ class bin(models.Model):
         return "File name: {fn}".format(fn=self.bin_name)
 
 
-class bins_in_UploadedFile(models.model):
+class bins_in_UploadedFile(models.Model):
 
     class Meta:
         unique_together = ('bin', 'Uploaded_File') # composite primary key
