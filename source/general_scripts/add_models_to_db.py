@@ -2,6 +2,7 @@
 import os
 import django
 from django.utils import timezone
+import timeit
 os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
 django.setup()
 from phenotypePredictionApp.models import *
@@ -15,55 +16,59 @@ def file_len(fname):
             pass
     return i + 1
 
-def check_groupfile(enogname, enogrank):
-    enog_rank_list_featurgroup=[]
-    for groupline in groupfile:
-        if enogname == groupline.split("\t")[0]:
-            groupline = groupline.split("\t")[1]
-            groupline = groupline.split("/")
-            nr_of_enogs_in_fg= len(groupline)
-            for entry in groupline:
-                entry = entry.rstrip()
-                try:
-                    new_enog_rank = model_enog_ranks(model=newmodel,
-                                                     enog=enog.objects.get(enog_name=entry),
-                                                     internal_rank=enogrank/nr_of_enogs_in_fg)
-                    enog_rank_list_featurgroup.append(new_enog_rank)
-                    # sys.stdout.write("Added Enog(s)+rank(s) contained in "
-                    #                  " {gr}.\r".format(gr=enogname))
-                    # sys.stdout.flush()
-                except ObjectDoesNotExist:
-                    print("\n cant find this ENOG:\n", entry)
-            # if enog was a feature group contained in the rank.groups file
-            #print()
-            return enog_rank_list_featurgroup
-    # if enog was something else
-    print("\n cant find this ENOG or featuregroup:\n", enogname)
-    return []
+def rankfile_to_list(rankfile, groupfile):
 
-def rankfile_to_list():
     # make a list of enog_ranks which should be added to the db
     enog_rank_list=[]
-    counter=0
-    for line in rankfile.readlines()[1:]:
-        line = line.split()
-        counter+=1
-        try:
-            new_enog_rank = model_enog_ranks(model=newmodel, enog=enog.objects.get(enog_name=line[0]),
-                                             internal_rank=float(line[1]))
-            enog_rank_list.append(new_enog_rank)
-            # sys.stdout.write("Added Enog+rank {el}.\r".format(el=line[0]))
-            # sys.stdout.flush()
-            sys.stdout.write("Added Enog Nr. {nr}     of {totnr}.\r".format(nr=counter, totnr=num_lines_ranksfile))
-            sys.stdout.flush()
 
-        except ObjectDoesNotExist:
-            # if the enog does not exist in the annotationsdfile, it might be a "feature group"
-            # check this by looking up in the .rank.groups file. If it is the case, add all enogs in the
-            # feature group with the rank of the feature group to the db
-            add_this=check_groupfile(line[0], float(line[1]))
-            if add_this:
-                enog_rank_list+=add_this
+    # create a dictionary over all entries in the .ranks.group file, with the featuregroup-name as key and as list of
+    #corresponding enogs as value
+    featuregroup_dict={}
+    for groupline in groupfile:
+        groupname, enogs_in_group = groupline.rstrip().split("\t")
+        enogs_in_group = enogs_in_group.split("/")
+        featuregroup_dict[groupname]=enogs_in_group
+
+    # store a dictionary of all enogs that are currently in the db
+    db_enogs=enog.objects.in_bulk()
+    if db_enogs:
+        #skip first line
+        counter=0
+        for line in rankfile:
+            counter+=1
+            if counter==1:
+                continue
+
+            enog_name, rank, verdict= line.split()
+
+            try:
+            # check if the enog is contained in the database, if yes, add the enog_ranks object to the enog_rank_list try:
+                new_enog_rank = model_enog_ranks(model=newmodel, enog=db_enogs[enog_name],
+                                             internal_rank=float(rank))
+                enog_rank_list.append(new_enog_rank)
+                sys.stdout.write("Added Enog Nr. {nr}     of {totnr}.\r".format(nr=counter, totnr=num_lines_ranksfile))
+                sys.stdout.flush()
+
+            # If the "enog" is not contained in the db, it might actually be a "feature group"
+            # check this by looking up in the feature_group dict. If it is the case, add all enogs in the
+            # feature group to the db, each with a rank of "rank of fg"/"number of enogs in fg"
+            except KeyError:
+                try:
+                    nr_of_enogs_in_fg = len(featuregroup_dict[enog_name])
+                    for fg_enog in featuregroup_dict[enog_name]:
+                        try:
+                            new_enog_rank = model_enog_ranks(model=newmodel,
+                                                             enog=db_enogs[fg_enog],
+                                                             internal_rank=float(rank) / nr_of_enogs_in_fg)
+                            enog_rank_list.append(new_enog_rank)
+                        except KeyError:
+                            sys.exit("\n ERROR: The .rank.groups file of the model contained {fg_enog} which could not "
+                                     "be found in the database. ABORTING. \n".format(fg_enog=fg_enog))
+
+                except KeyError:
+                    sys.exit("\n ERROR. The .rank file of the model contained {enog_name} which could be found neither "
+                             "in the database nor in the .rank.groups file. ABORTING. \n".format(enog_name=enog_name))
+
 
     return enog_rank_list
 
@@ -75,18 +80,18 @@ for picamodel in all_picamodels:
     #check if there alreads is a model with the same name in the db, if yes, add new entry with higher version
     #nr and set all others to non-active
     if model.objects.filter(model_name=picamodel).exists():
-        sys.stdout.write("Updating model {m}.\n".format(m=picamodel))
+        sys.stdout.write("#########\nUpdating model {m}:\n\n".format(m=picamodel))
         sys.stdout.flush()
 
         # caclulate the new version nr from the highest version nr of already existing entries for the model
-        new_version_nr = 1 + max(existing_model.version_nr for existing_model in model.objects.filter(model_name=picamodel))
+       # new_version_nr = 1 + max(existing_model.version_nr for existing_model in model.objects.filter(model_name=picamodel))
         # set the previously most current version to non-newest
-        model.objects.filter(model_name=picamodel, is_newest=True).update(is_newest=False)
+        #model.objects.filter(model_name=picamodel, is_newest=True).update(is_newest=False)
 
     else:
-        sys.stdout.write("#########\nAdding new model {pm}.\n########\n".format(pm=picamodel))
+        sys.stdout.write("#########\nAdding new model {pm}:\n\n".format(pm=picamodel))
         sys.stdout.flush()
-        new_version_nr=1
+       # new_version_nr=1
 
     try: #check if there is a .description file, if there is, read the description
         with open(PICAMODELFOLDER + "/" + picamodel + "/" + picamodel + ".description", "r") as descfile:
@@ -96,23 +101,33 @@ for picamodel in all_picamodels:
     except FileNotFoundError:
         desc=""
 
+    try: #check if there is a .description file, if there is, read the description
+        with open(PICAMODELFOLDER + "/" + picamodel + "/" + picamodel + ".type", "r") as descfile:
+            for line in descfile:
+                type=line.rstrip()
+    except FileNotFoundError:
+        type="NA"
+
+
     # add the model to the database
-    newmodel = model(model_name=picamodel, model_desc=desc, is_newest=True, version_nr=new_version_nr,
+    newmodel = model(model_name=picamodel, model_desc=desc, type=type,
                      model_train_date=timezone.now())
     newmodel.save()
 
 
     # add the ranks of the models to the database
-    #TODO: parallelize this?
     #read the .rank file of the model and extract enogs and their ranks
     num_lines_ranksfile=file_len(PICAMODELFOLDER+"/"+picamodel+"/"+picamodel+".rank")
-    commented for faster testing. todo: remove commenting
     with open(PICAMODELFOLDER+"/"+picamodel+"/"+picamodel+".rank","r") as rankfile:
         with open(PICAMODELFOLDER+"/"+picamodel+"/"+picamodel+".rank.groups", "r") as groupfile:
             print("Creating list of enogs...")
-            enog_rank_list_filled=rankfile_to_list()
-            print(" Saving to database... ")
-            model_enog_ranks.objects.bulk_create(enog_rank_list_filled)
+            enog_rank_list_filled=rankfile_to_list(rankfile, groupfile)
+            print(" \n Saving to database... ")
+            try:
+                model_enog_ranks.objects.bulk_create(enog_rank_list_filled)
+            except: #specifc error here?
+                sys.exit("\n There was a problem when writing enog_ranks-objects to the db")
+
 
 
     print("Processing the model's accuracy file...")

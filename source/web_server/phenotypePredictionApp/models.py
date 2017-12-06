@@ -83,37 +83,36 @@ class enog(models.Model):
 
     enog_name = models.TextField(primary_key=True)
     enog_descr = models.TextField()
-    enog_category = models.TextField()
 
     def __str__(self):
         return "ID: {eid}\tDescription: {ed}\tCategor(y/ies): {ca}".format(eid=self.enog_name,
-                                                     ed=self.enog_descr, ca=self.enog_category)
+                                                     ed=self.enog_descr)
 
 
 class model(models.Model):
 
     class Meta:
-        unique_together = ('model_name', 'version_nr') # composite primary key
+        unique_together = ('model_name', 'model_train_date') # composite primary key
         indexes = [
-            models.Index(fields=['model_name', 'is_newest'])
+            models.Index(fields=['model_name', 'model_train_date'])
        ]
 
     model_name = models.TextField()
-    version_nr = models.IntegerField()
-    is_newest = models.BooleanField()
+    #version_nr = models.IntegerField()
+    type = models.CharField(max_length=2)
     model_desc = models.TextField()
     model_train_date = models.DateField(auto_now=True)
 
     def __str__(self):
-        return "Name: {mid}\tVersion Nr: {vnr}\t Description: {md}\tDate of Training: {mtd} \t is_newest= {new}".format(mid=self.model_name,
-                                                                                md=self.model_desc,
-                                                                                mtd=str(self.model_train_date), vnr=self.version_nr, new=self.is_newest)
+        return "Name: {mid}\t Description: {md}\tDate of Training: {mtd} \t " \
+               "Type= {type}".format(mid=self.model_name,md=self.model_desc, mtd=str(self.model_train_date),
+                                         type=self.type)
 
 
 class model_enog_ranks(models.Model):
 #todo: change PK to model and enog alone
     class Meta:
-        unique_together = ('model', 'enog', 'internal_rank')  # composite primary key
+        unique_together = ('model', 'enog')  # composite primary key
         indexes = [
             models.Index(fields=['model', 'enog'])
         ]
@@ -143,9 +142,9 @@ class model_accuracies(models.Model):
 
 
     def __str__(self):
-        return "Name: {mid}\tVersion Nr: {vnr}\t is_newest= {new} \t Completness: {comple} \t " \
-               "Contamination {conta} \t bal. acc {balac}".format(mid=self.model.model_name, vnr=self.model.version_nr,
-                                                                      new=self.model.is_newest, comple=self.comple,
+        return "Name: {mid}\t type= {type} \t Completness: {comple} \t " \
+               "Contamination {conta} \t bal. acc {balac}".format(mid=self.model.model_name,
+                                                                      type=self.model.type, comple=self.comple,
                                                                       conta=self.conta,
                                                                       balac=self.mean_balanced_accuracy
                                                                               )
@@ -177,7 +176,7 @@ class result_model(models.Model):
     bin = models.ForeignKey(bin)
     model = models.ForeignKey(model)
     verdict = models.NullBooleanField()
-    accuracy = models.FloatField()
+    accuracy = models.FloatField() #change this to predicion probability
 
     def __str__(self):
         return "Bin {mds}: {v} ({acc} accuracy) for model {mid} trained on {mtd}.".format(mds=self.bin.bin_name,

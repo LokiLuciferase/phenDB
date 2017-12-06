@@ -412,7 +412,7 @@ process accuracy {
         sys.exit("Bin not found.")
     
     #this is how you would check the balanced accuracy...
-    print(model_accuracies.objects.get(model=model.objects.get(model_name="${model.getBaseName()}", is_newest=True),
+    print(model_accuracies.objects.get(model=model.objects.filter(model_name="${model.getBaseName()}").latest(model_train_date),
     comple=round_nearest(float(parentbin.comple),0.05), 
     conta=round_nearest(float(parentbin.conta),0.05)).mean_balanced_accuracy)
 
@@ -565,7 +565,7 @@ for result in conditions:
         boolean_verdict = get_bool[result[1]]
         #get model from db
         try:
-            this_model=model.objects.get(model_name=result[0], is_newest=True)
+            this_model=model.objects.filter(model_name=result[0]).latest(model_train_date)
         except ObjectDoesNotExist:
             sys.exit("Current Model for this result not found.")
         
