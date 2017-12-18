@@ -157,7 +157,7 @@ process add_bin_to_db {
     set val(binname), val(mdsum), file(item) from md5_out
 
     output:
-    set val(binname), val(mdsum), file(item) into bin_db_out
+    set val(binname), val(mdsum), file(item), file("calculate_this_bin.txt") into bin_db_out
 
 
     script:
@@ -180,21 +180,26 @@ try:
 except ObjectDoesNotExist:
     sys.exit("Job not found.")
 
-try:
-    thisbin=bin.objects.get(md5sum="${mdsum}")
-except ObjectDoesNotExist:
-    # write impossible Nr. for comple and conta that would cause an error if not overwritten:
-    thisbin = bin(bin_name="${binname}", md5sum="${mdsum}",
-                    UploadedFile=parentjob, comple=2, conta=2)
-    thisbin.save()
-except IntegrityError:
-    sys.exit("Cannot add bin to db: An identical file from the same job is already in the db. Please remove duplicate files from your input!")
+with open("calculate_this_bin.txt", "w") as calc_or_not:    
+    try:
+        thisbin=bin.objects.get(md5sum="${mdsum}")
+        calc_or_not.write("NO")
+    except ObjectDoesNotExist:
+        # write impossible Nr. for comple and conta that would cause an error if not overwritten:
+        thisbin = bin(bin_name="${binname}", md5sum="${mdsum}", comple=2, conta=2)
+        thisbin.save()
+        calc_or_not.write("YES")
+
+    except IntegrityError:
+        sys.exit("Cannot add bin to db: An identical file from the same job is already in the db. Please remove duplicate files from your input!")
 
 assoc= bins_in_UploadedFile(bin=thisbin, UploadedFile=parentjob)
-    
+assoc.save()    
 """
 
 }
+
+// Splits the further checks if the bin has a
 
 // call prodigal for every sample in parallel
 // output each result as a set of the sample id and the path to the prodigal outfile
@@ -205,12 +210,13 @@ process prodigal {
     memory = "2 GB"
 
     input:
-    set val(binname), val(mdsum), file(item) from bin_db_out
+    set val(binname), val(mdsum), file(item), file(calc_or_not) from bin_db_out
 
     output:
     set val(binname), val(mdsum), file("prodigalout.faa") into prodigalout
 
     script:
+
     """
     prodigal -i ${item} -a prodigalout.faa > /dev/null
     """
@@ -304,7 +310,6 @@ process compleconta {
 
 complecontaout.into{complecontaout_continue; bin_to_db}
 
-// write the bin properties to database
 //TODO: disable passing of errors when adding result_enog rows after we have added all enogs to database
 process write_hmmer_results_to_db { //TODO: implement checking if bin already exists
 
@@ -332,7 +337,7 @@ django.setup()
 from phenotypePredictionApp.models import *
 
 try:
-    parentbin = bin.objects.get(md5sum="${mdsum}", UploadedFile=UploadedFile.objects.get(key="${jobname}"))
+    parentbin = bin.objects.get(md5sum="${mdsum}")
 except ObjectDoesNotExist:
     sys.exit("Bin not found.")
 
@@ -408,7 +413,7 @@ process accuracy {
         cc = ccfile.readline().split()
 
     try:
-        parentbin = bin.objects.get(md5sum="${mdsum}", UploadedFile=UploadedFile.objects.get(key="${jobname}"))
+        parentbin = bin.objects.get(md5sum="${mdsum}")
         parentbin.comple = cc[0]
         parentbin.conta= cc[1]
         parentbin.save()
@@ -525,15 +530,9 @@ os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
 django.setup()
 from phenotypePredictionApp.models import UploadedFile, bin, model, result_model
 
-# get job from db
-try:
-    parentjob = UploadedFile.objects.get(key="${jobname}")
-except ObjectDoesNotExist:
-    sys.exit("Job not found.")
-
 # get bin from db
 try:
-    parentbin = bin.objects.get(md5sum="${mdsum_file.getBaseName()}", UploadedFile=parentjob)
+    parentbin = bin.objects.get(md5sum="${mdsum_file.getBaseName()}")
 except ObjectDoesNotExist:
     sys.exit("Bin not found.")
 
