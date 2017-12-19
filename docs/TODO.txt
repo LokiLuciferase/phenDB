@@ -1,4 +1,4 @@
-###Global todo file for this project
+###Global to-do file for this project
 ##feel free to enter TODOs and sign in to stuff you are tackling
 
 Computational framework:
@@ -14,7 +14,6 @@ Web server:
 Database ( ) (LL):
 -modell version cont comp fnr fpr für alle kombinationen (fette table)
 -better names for "model" model
--make new database for enog x enog function to conserve space!
 
 Other stuff:
 - model: appear, disappear, change. Upon update: overwrite and check dates against dates in databases

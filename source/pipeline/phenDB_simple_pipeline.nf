@@ -1,17 +1,42 @@
 #!/usr/bin/env nextflow
-// define static variables
+
+def help() {
+    println """Required arguments:
+    
+               --inputfolder FOLDER    [The folder containing the fasta or tar.gz files to be processed]
+               --outdir FOLDER        [The directory where the output folder should be generated]
+               --accuracy_cutoff FLOAT [The level of computed accuracy below which pica results are not shown]
+              
+              Optional arguments (important: single dash):
+              
+               -profile [local, cluster] [Run the pipeline on local machine or on Slurm]
+               -with-trace               [Create profile of nextflow run]
+              
+              Typical usage:
+              nohup ./phenDB.nf --inputfolder <DIR> --workdir <DIR> --accuracy_cutoff <0-1> -profile local &> phenDB_output.log &
+              
+            """.stripIndent()
+}
+
+
+if ((!(params.inputfolder)) || (!(file(params.inputfolder).exists()))){
+    help()
+    exit 1, "Please specify an input folder containing the files to be processed."
+}
 
 jobname = file(params.inputfolder).getBaseName()
 outdir = file(params.outdir)
-file(outdir).mkdir()
+file(outdir).mkdirs()
 models = file(params.modelfolder).listFiles()
+modelnames = Channel.fromPath("${params.modelfolder}/*", type: 'dir')
 input_files = Channel.fromPath("${params.inputfolder}/*.fasta")
 input_gzipfiles = Channel.fromPath("${params.inputfolder}/*.tar.gz")
 input_barezipfiles = Channel.fromPath("${params.inputfolder}/*.zip")
 all_input_files = Channel.fromPath("${params.inputfolder}/*")
 hmmdb = file(params.hmmdb)
+file("$outdir/logs").mkdirs()
 
-log.info"""
+log.info """
     ##################################################################################
     
     PhenDB Pipeline started.
@@ -20,7 +45,7 @@ log.info"""
     Output directory: $outdir
     Job name: $jobname
     
-    Disabled compute nodes (for hmmer computation) (--omit_nodes): ${(params.omit_nodes == "") ? "None" : params.omit_nodes }
+    Disabled compute nodes (for hmmer computation) (--omit_nodes): $params.omit_nodes
     Accuracy cutoff for displaying PICA results (--accuracy_cutoff): $params.accuracy_cutoff
 
     ##################################################################################
@@ -98,9 +123,7 @@ truly_all_input_files.subscribe {
 
 // Passes every fasta file through Biopythons SeqIO to check for corrupted files
 process fasta_sanity_check {
-
     errorStrategy 'ignore'
-    maxForks 20
 
     input:
     file(item) from all_fasta_input_files
@@ -159,8 +182,8 @@ process md5sum {
 process prodigal {
 
     tag { binname }
-    maxForks 20
 
+    module "prodigal"
     memory = "2 GB"
 
     input:
@@ -181,6 +204,7 @@ process hmmer {
     tag { binname }
 
     maxForks 1  //do not parallelize!
+    module "hmmer"
 
     input:
     set val(binname), val(mdsum), file(item) from prodigalout
@@ -202,55 +226,15 @@ process hmmer {
     """
 }
 
-//increases percentage completed after each hmmer job completion
-process update_job_completeness {
-
-    tag { jobname }
-
-    input:
-    set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem) from hmmerout
-    output:
-    set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem) into job_updated_out
-    script:
-// language=Python
-"""
-#!/usr/bin/env python3
-
-import django
-import sys
-import os
-from django.core.exceptions import ObjectDoesNotExist
-from django.db import IntegrityError
-os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"    
-
-django.setup()
-from phenotypePredictionApp.models import *
-
-try:
-    parentjob = UploadedFile.objects.get(key="${jobname}")
-
-    current_status = int(parentjob.job_status) if parentjob.job_status else 0
-    total_valid_count = int('${fastafilecount.text}'.strip())
-    plusone = int((1 / total_valid_count)*100)
-    
-    if (current_status + plusone < 100):
-        current_status += plusone
-        parentjob.job_status = current_status
-        parentjob.save()
-    
-except ObjectDoesNotExist:
-    sys.exit("Job not found.")
-"""
-
-}
-
 // compute contamination and completeness using compleconta
 process compleconta {
 
     tag { binname }
+    module "muscle"
+    module "compleconta/0.1"
 
     input:
-    set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem) from job_updated_out
+    set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem) from hmmerout
 
     output:
     set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem), file("complecontaitem.txt") into complecontaout
@@ -262,68 +246,6 @@ process compleconta {
 
 
 complecontaout.into{complecontaout_continue; bin_to_db}
-
-// write the bin properties to database
-// TODO: this appears to be a huge bottleneck, let's optimize this
-process write_bin_to_db {
-
-    tag { binname }
-
-    input:
-    set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem), file(complecontaitem) from bin_to_db
-
-    script:
-// language=Python
-"""
-#!/usr/bin/env python3
-
-import django
-import sys
-import os
-from django.core.exceptions import ObjectDoesNotExist
-from django.db import IntegrityError
-os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"    
-
-django.setup()
-from phenotypePredictionApp.models import *
-
-try:
-    parentjob = UploadedFile.objects.get(key="${jobname}")
-except ObjectDoesNotExist:
-    sys.exit("Job not found.")
-
-# get completeness and contamination
-with open("${complecontaitem}", "r") as ccfile:
-    cc = ccfile.readline().split()
-
-# write bin to database
-try:
-    newbin = bin(bin_name="${binname}",
-                 comple=cc[0],
-                 conta=cc[1],
-                 md5sum="${mdsum}",
-                 job=UploadedFile.objects.get(key="${jobname}"))
-    
-    newbin.save()
-except IntegrityError:
-    sys.exit("Skipping adding of already known bin")
-    
-#write hmmer output to result_enog table
-with open("${hmmeritem}", "r") as enogresfile:
-    for line in enogresfile:
-        try:
-            enogfield = line.split()[1]
-            print("Attempting to add enog {en} from bin {bn} to database.".format(en=enogfield,
-                                                                                  bn="${binname}"))
-            newenog = result_enog(bin=bin.objects.get(bin_name="${binname}"),
-                                  enog=enog.objects.get(enog_name=enogfield))
-            newenog.save()
-        except IntegrityError:
-            print("Skipping due to IntegrityError.")
-            continue               
-
-"""
-}
 
 // compute accuracy from compleconta output and model intrinsics (once for each model).
 process accuracy {
@@ -341,7 +263,7 @@ process accuracy {
     set val(binname), val(mdsum), val(model), file(hmmeritem), file(prodigalitem), file(complecontaitem), stdout into accuracyout
 
     when:
-    model.isDirectory()
+    model.isDirectory() && (model.getBaseName() != "NOB")  // NOB accuracy file not valid atm
 
     script:
     RULEBOOK = model.getBaseName()
@@ -356,6 +278,7 @@ process pica {
 
     tag { "${binname}_${model.getBaseName()}" }
 
+    module 'pica'
     memory = '500 MB'
 
     input:
@@ -400,12 +323,14 @@ outfilechannel = pica_out_write.collectFile() { item ->
 // create a matrix file containing all verdicts for each bin and add to output files
 // create a matrix file containing summaries per model
 // here we could for example add a header to each results file
+
 process make_matrix_and_headers {
 
     stageInMode 'copy'
 
     input:
     file(allfiles) from outfilechannel
+    val(m) from modelnames.toSortedList()
 
     output:
     file("*.{txt,tsv}") into all_files_for_tar
@@ -413,27 +338,26 @@ process make_matrix_and_headers {
 """
 #!/usr/bin/env python3
 
-import django
 import datetime
 import os
 import glob
 
-os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
-django.setup()
-from phenotypePredictionApp.models import *
-
+modelstring = "${m.join(" ")}"
 cutoff = "${params.accuracy_cutoff}"
 now = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
 HEADER = "Model_name\\tVerdict\\tProbability\\tBalanced_accuracy\\n"
 
-modelvec = [x.model_name for x in model.objects.filter().latest('model_train_date')]
+modelvec = modelstring.split(" ")
+modelvec = [os.path.basename(x) for x in modelvec]
 modelvec = sorted(modelvec)
+print(modelvec)
 
 bin_dict = {}
 countdict = {x: {"YES": 0, "NO": 0, "N/A": 0} for x in modelvec}
+print(countdict)
 resultmat = []
 
-for name in glob.glob("./*.results"):
+for name in glob.glob("*.results"):
 
     # extract info for matrix writing
     with open(os.path.join(os.getcwd(), name), "r") as binfile:
@@ -490,7 +414,6 @@ with open("per_bin_matrix.results.tsv", "w") as outfile2:
 """
 }
 
-
 process tar_results {
 
     tag { jobname }
@@ -515,106 +438,7 @@ process tar_results {
     """
 }
 
-db_written = pica_db_write.collectFile() { item ->
-    [ "${item[1]}.results", "${item[2]} ${item[3]} ${item[4]}" ]  // use md5sum as filename
-}
-
-process write_pica_result_to_db {
-
-    //errorStrategy 'ignore'
-
-    input:
-    file(mdsum_file) from db_written
-
-    output:
-    stdout exo
-
-    script:
-// language=Python
-"""
-#!/usr/bin/env python3
-
-import django
-import sys
-import os
-from django.core.exceptions import ObjectDoesNotExist
-from django.db import IntegrityError
-os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
-
-django.setup()
-from phenotypePredictionApp.models import UploadedFile, bin, model, result_model
-
-# get job from db
-try:
-    parentjob = UploadedFile.objects.get(key="${jobname}")
-except ObjectDoesNotExist:
-    sys.exit("Job not found.")
-
-# get bin from db
-try:
-    parentbin = bin.objects.get(md5sum="${mdsum_file.getBaseName()}")
-except ObjectDoesNotExist:
-    sys.exit("Bin for this result not found.")
-
-conditions = []
-with open("${mdsum_file}", "r") as picaresults:
-    for line in picaresults:
-        conditions.append(line.split())
-
-for result in conditions:
-    try:
-        get_bool = {"YES": True, "NO": False, "N/A": None}
-        boolean_verdict = get_bool[result[1]]
-        #get model from db
-        try:
-            this_model=model.objects.get(model_name=result[0], is_newest=True)
-        except ObjectDoesNotExist:
-            sys.exit("Current Model for this result not found.")
-        
-        modelresult = result_model(verdict=boolean_verdict,
-                                   accuracy=float(result[2]),
-                                   bin=parentbin,
-                                   model=this_model
-                                   )
-        modelresult.save()
-    except (IntegrityError, ) as e:
-        sys.exit(e)
-"""
-}
-
-process write_tgz_to_db {
-
-    input:
-    file(tgz) from tgz_to_db
-
-    script:
-    errors_occurred = errorfile.isEmpty() ? "False" : "True"
-// language=Python
-"""
-#!/usr/bin/env python3
-
-import django
-import sys
-import os
-from django.core.exceptions import ObjectDoesNotExist
-from django.db import IntegrityError
-from django.core.files import File
-os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
-
-django.setup()
-from phenotypePredictionApp.models import UploadedFile
-
-try:
-    obj = UploadedFile.objects.filter(key='${jobname}')
-    obj.update(errors = ${errors_occurred})
-    file = open('${tgz}', 'rb')
-    djangoFile = File(file)
-    obj[0].fileOutput.save('${jobname}.tar.gz', djangoFile, save="True")
-    obj.update(job_status = '100')
-except IntegrityError:
-    sys.exit("Exited with integrity error upon adding results to database.")
-"""
-}
+tgz_to_db.subscribe{ it.copyTo(outdir) }
 
 workflow.onComplete {
     println "picaPipeline completed at: $workflow.complete"
