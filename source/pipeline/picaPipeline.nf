@@ -210,8 +210,10 @@ process update_job_completeness {
 
     input:
     set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem) from hmmerout
+
     output:
     set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem) into job_updated_out
+
     script:
 // language=Python
 """
@@ -427,7 +429,7 @@ cutoff = "${params.accuracy_cutoff}"
 now = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
 HEADER = "Model_name\\tVerdict\\tProbability\\tBalanced_accuracy\\n"
 
-modelvec = [x.model_name for x in model.objects.filter().latest('model_train_date')]
+modelvec = list(set([x.model_name for x in model.objects.filter()]))
 modelvec = sorted(modelvec)
 
 bin_dict = {}
