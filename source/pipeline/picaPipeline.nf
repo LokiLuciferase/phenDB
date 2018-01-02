@@ -5,6 +5,7 @@ jobname = file(params.inputfolder).getBaseName()
 outdir = file(params.outdir)
 file(outdir).mkdir()
 models = file(params.modelfolder).listFiles()
+// make this independent of ending!! try to unpack, then directly check contents
 input_files = Channel.fromPath("${params.inputfolder}/*.fasta")
 input_gzipfiles = Channel.fromPath("${params.inputfolder}/*.tar.gz")
 input_barezipfiles = Channel.fromPath("${params.inputfolder}/*.zip")
@@ -433,7 +434,7 @@ bin_dict = {}
 countdict = {x: {"YES": 0, "NO": 0, "N/A": 0} for x in modelvec}
 resultmat = []
 
-for name in glob.glob("./*.results"):
+for name in glob.glob("*.results"):
 
     # extract info for matrix writing
     with open(os.path.join(os.getcwd(), name), "r") as binfile:
