@@ -16,7 +16,7 @@ def file_len(fname):
             pass
     return i + 1
 
-def rankfile_to_list(rankfile, groupfile):
+def rankfile_to_list(rankfile, groupfile, db_enogs):
 
     # make a list of enog_ranks which should be added to the db
     enog_rank_list=[]
@@ -29,8 +29,7 @@ def rankfile_to_list(rankfile, groupfile):
         enogs_in_group = enogs_in_group.split("/")
         featuregroup_dict[groupname]=enogs_in_group
 
-    # store a dictionary of all enogs that are currently in the db
-    db_enogs=enog.objects.in_bulk()
+    # if statement forces the objects to be loaded from the database (?)
     if db_enogs:
         #skip first line
         counter=0
@@ -74,6 +73,10 @@ def rankfile_to_list(rankfile, groupfile):
 
 PICAMODELFOLDER="/scratch/swe_ws17/data/models"
 all_picamodels=os.listdir(PICAMODELFOLDER)
+
+# store a dictionary of all enogs that are currently in the db
+db_enogs = enog.objects.in_bulk()
+
 for picamodel in all_picamodels:
 
     #TODO: change model_train_date?
@@ -101,9 +104,9 @@ for picamodel in all_picamodels:
     except FileNotFoundError:
         desc=""
 
-    try: #check if there is a .description file, if there is, read the description
-        with open(PICAMODELFOLDER + "/" + picamodel + "/" + picamodel + ".type", "r") as descfile:
-            for line in descfile:
+    try: #check if there is a .type file, if there is, read the description
+        with open(PICAMODELFOLDER + "/" + picamodel + "/" + picamodel + ".type", "r") as typefile:
+            for line in typefile:
                 type=line.rstrip()
     except FileNotFoundError:
         type="NA"
@@ -114,14 +117,13 @@ for picamodel in all_picamodels:
                      model_train_date=timezone.now())
     newmodel.save()
 
-
     # add the ranks of the models to the database
     #read the .rank file of the model and extract enogs and their ranks
     num_lines_ranksfile=file_len(PICAMODELFOLDER+"/"+picamodel+"/"+picamodel+".rank")
     with open(PICAMODELFOLDER+"/"+picamodel+"/"+picamodel+".rank","r") as rankfile:
         with open(PICAMODELFOLDER+"/"+picamodel+"/"+picamodel+".rank.groups", "r") as groupfile:
             print("Creating list of enogs...")
-            enog_rank_list_filled=rankfile_to_list(rankfile, groupfile)
+            enog_rank_list_filled=rankfile_to_list(rankfile, groupfile, db_enogs)
             print(" \n Saving to database... ")
             try:
                 model_enog_ranks.objects.bulk_create(enog_rank_list_filled)

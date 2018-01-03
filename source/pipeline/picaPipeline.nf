@@ -157,7 +157,7 @@ process add_bin_to_db {
     set val(binname), val(mdsum), file(item) from md5_out
 
     output:
-    set val(binname), val(mdsum), file(item), file("calculate_this_bin.txt") into bin_db_out
+    set val(binname), val(mdsum), file(item), stdout into bin_db_out
 
 
     script:
@@ -180,18 +180,17 @@ try:
 except ObjectDoesNotExist:
     sys.exit("Job not found.")
 
-with open("calculate_this_bin.txt", "w") as calc_or_not:    
-    try:
-        thisbin=bin.objects.get(md5sum="${mdsum}")
-        calc_or_not.write("NO")
-    except ObjectDoesNotExist:
-        # write impossible Nr. for comple and conta that would cause an error if not overwritten:
-        thisbin = bin(bin_name="${binname}", md5sum="${mdsum}", comple=2, conta=2)
-        thisbin.save()
-        calc_or_not.write("YES")
+try:
+    thisbin=bin.objects.get(md5sum="${mdsum}")
+    print("NO", end='')
+except ObjectDoesNotExist:
+    # write impossible Nr. for comple and conta that would cause an error if not overwritten:
+    thisbin = bin(bin_name="${binname}", md5sum="${mdsum}", comple=2, conta=2)
+    thisbin.save()
+    print("YES", end='')
 
-    except IntegrityError:
-        sys.exit("Cannot add bin to db: An identical file from the same job is already in the db. Please remove duplicate files from your input!")
+except IntegrityError:
+    sys.exit("Cannot add bin to db: An identical file from the same job is already in the db. Please remove duplicate files from your input!")
 
 assoc= bins_in_UploadedFile(bin=thisbin, UploadedFile=parentjob)
 assoc.save()    
@@ -199,7 +198,13 @@ assoc.save()
 
 }
 
-// Splits the further checks if the bin has a
+// Splits the further checks depending on if the bin is already in the db
+
+
+
+
+bin_db_out.into{bin_is_in_db;bin_is_not_in_db}
+
 
 // call prodigal for every sample in parallel
 // output each result as a set of the sample id and the path to the prodigal outfile
@@ -207,18 +212,150 @@ process prodigal {
 
     tag { binname }
 
+    echo true
+
     memory = "2 GB"
 
     input:
-    set val(binname), val(mdsum), file(item), file(calc_or_not) from bin_db_out
+    set val(binname), val(mdsum), file(item), val(calc_bin_or_not) from bin_is_not_in_db
 
     output:
     set val(binname), val(mdsum), file("prodigalout.faa") into prodigalout
+
+    when:
+    calc_bin_or_not.equals("YES")
 
     script:
 
     """
     prodigal -i ${item} -a prodigalout.faa > /dev/null
+    """
+}
+
+process determine_required_models {
+
+    input:
+    set val(binname), val(mdsum), file(item), val(calc_bin_or_not) from bin_is_in_db
+    each model from models
+
+    output:
+    set val(binname), val(mdsum), val(model), stdout into determined_models_requirements
+
+    when:
+    calc_bin_or_not == "NO"
+
+    script:
+    // language=Python
+    """
+    #!/usr/bin/env python3
+    
+    import django
+    import sys
+    import os
+    from django.core.exceptions import ObjectDoesNotExist
+    from django.db import IntegrityError
+    os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"    
+    
+    django.setup()
+    from phenotypePredictionApp.models import *
+    
+  
+
+    try: #if this succeeds, then there is a result for this bin saved for the newest model version
+        result_model.objects.get(model=model.objects.filter(model_name="${model.getBaseName()}").latest('model_train_date'), bin=bin.objects.get(md5sum="${mdsum}"))
+        print("NO", end='')    
+    except:
+        print("YES", end='')
+
+    """
+}
+
+determined_models_requirements.into{calc_model; dont_calc_model}
+
+
+process new_model_to_targz1 {
+
+    input:
+    set val(binname), val(mdsum), val(model), val(calc_model_or_not) from dont_calc_model
+
+    output:
+    set val(binname), val(mdsum), val(RULEBOOK), val(accuracy), file("verdict_and_accuracy.txt") into new_model_to_targz1_out
+    // print YES or NO
+    when:
+    calc_model_or_not == "NO"
+
+    script:
+    RULEBOOK=model.getBaseName()
+    // language=Python
+    """
+    #!/usr/bin/env python3
+    
+    import django
+    import sys
+    import os
+    from django.core.exceptions import ObjectDoesNotExist
+    from django.db import IntegrityError
+    os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"    
+    
+    django.setup()
+    from phenotypePredictionApp.models import *
+    
+    with open("verdict_and_accuracy.txt", "w") as v_a:    
+
+    #check the database for the entries and print them to file
+
+    """
+}
+
+process new_model_to_targz2 {
+
+    input:
+    set val(binname), val(mdsum), val(RULEBOOK), val(accuracy), file(verdict_and_accuracy) from new_model_to_targz1_out
+    output:
+    set val(binname), val(mdsum), val(RULEBOOK), val(verdict), val(accuracy) into picaout_from_new_model // TODO: pica_out_write should be reached but pica_db_write not
+
+    script:
+    //TODO: read verdict and accuracy from the file
+    verdict=""
+    accuracy=0
+
+}
+
+process old_model_to_accuracy {
+
+    input:
+    set val(binname), val(mdsum), val(model), val(calc_model_or_not) from calc_model
+
+    output:
+    set val(binname), val(mdsum), val(model), file("reconstructed_hmmer_file.txt"), file("reconstructed_compleconta_file.txt") into accuracy_in_from_old_model
+
+    when:
+    calc_model_or_not == "YES"
+
+    script:
+    // language=Python
+    """
+    #!/usr/bin/env python3
+    
+    import django
+    import sys
+    import os
+    from django.core.exceptions import ObjectDoesNotExist
+    from django.db import IntegrityError
+    os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"    
+    
+    django.setup()
+    from phenotypePredictionApp.models import *
+    
+    with open("reconstructed_hmmer_file.txt", "w") as hmmer:
+        # TODO: construct hmmer file
+    
+    with open("reconstructed_compleconta_file.txt", "w") as hmmer:
+        # TODO: construct compleconta file
+        
+
+
+
     """
 }
 
@@ -300,7 +437,7 @@ process compleconta {
     set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem) from job_updated_out
 
     output:
-    set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem), file("complecontaitem.txt") into complecontaout
+    set val(binname), val(mdsum), file(hmmeritem), file("complecontaitem.txt") into complecontaout
 
     """
     compleconta.py $prodigalitem $hmmeritem | tail -1 > complecontaitem.txt
@@ -371,25 +508,42 @@ with open("${hmmeritem}", "r") as enogresfile:
 """
 }
 
+process call_accuracy_for_all_models {
+
+    tag { "${binname}_${model.getBaseName()}" }
+
+    memory = '10 MB'
+
+    input:
+    set val(binname), val(mdsum), file(hmmeritem), file(complecontaitem) from complecontaout_continue
+    //todo: do not rely on folder but on db here
+    each model from models
+
+    output:
+    set val(binname), val(mdsum), val(model), file(hmmeritem), file(complecontaitem) into accuracy_in
+
+
+    script:
+    """
+    """
+   // RULEBOOK = model.getBaseName()
+}
+
 // compute accuracy from compleconta output and model intrinsics (once for each model).
 process accuracy {
 
     tag { "${binname}_${model.getBaseName()}" }
 
     memory = '10 MB'
-    //errorStrategy 'ignore'  //model files not yet complete, TODO: remove this!!!!
 
     input:
-    set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem), file(complecontaitem) from complecontaout_continue
-    //todo: do not rely on folder but on db here
-    each model from models
+    set val(binname), val(mdsum), val(model), file(hmmeritem), file(complecontaitem) from accuracy_in.mix(accuracy_in_from_old_model)
 
     output:
-    set val(binname), val(mdsum), val(model), file(hmmeritem), file(prodigalitem), file(complecontaitem), stdout into accuracyout
+    set val(binname), val(mdsum), val(model), file(hmmeritem), stdout into accuracyout
 
 
     script:
-    RULEBOOK = model.getBaseName()
     """
 
     #!/usr/bin/env python3
@@ -440,7 +594,7 @@ process pica {
     memory = '500 MB'
 
     input:
-    set val(binname), val(mdsum), val(model), file(hmmeritem), file(prodigalitem), file(complecontaitem), val(accuracy) from accuracyout
+    set val(binname), val(mdsum), val(model), file(hmmeritem), val(accuracy) from accuracyout
 
     output:
     set val(binname), val(mdsum), val(RULEBOOK), stdout, val(accuracy) into picaout  //print decision on stdout, and put stdout into return set
@@ -473,7 +627,7 @@ process pica {
 // merge all results into a file called $id.results and move each file to results folder.
 picaout.into{pica_db_write; pica_out_write}
 
-outfilechannel = pica_out_write.collectFile() { item ->
+outfilechannel = pica_out_write.mix(picaout_from_new_model).collectFile() { item ->
     [ "${item[0]}.results", "${item[2]} ${item[3]} ${item[4]}" ]  // use given bin name as filename
 }.collect()
 
