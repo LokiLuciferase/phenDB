@@ -50,8 +50,12 @@ process tgz {
     script:
     outfolder = tarfile.getSimpleName()
     """
-    tar -xf $tarfile
-    mv ./*/ $outfolder 
+    tar -xf $tarfile 
+    rm -f $tarfile
+    
+    if [[ \$(ls) != "$outfolder" ]]; then
+        mv ./*/ $outfolder
+    fi
     """
 }
 
