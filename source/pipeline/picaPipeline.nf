@@ -41,7 +41,7 @@ process tgz {
     file(tarfile) from input_gzipfiles
 
     output:
-    file("${tarfile.getSimpleName()}/*.fasta") into tgz_unraveled_fasta
+    //file("${tarfile.getSimpleName()}/*.fasta") into tgz_unraveled_fasta
     file("${tarfile.getSimpleName()}/*") into tgz_unraveled_all
 
     script:
@@ -58,8 +58,9 @@ process unzip {
     file(zipfile) from input_barezipfiles
 
     output:
-    file("${zipfile.getSimpleName()}/*/*.fasta") into zip_unraveled_fasta
-    file("${zipfile.getSimpleName()}/*/*") into zip_unraveled_all
+    //file("${zipfile.getSimpleName()}/*/*.fasta") into zip_unraveled_fasta
+    //todo: PP: I changed this from "/*/*" to "/*" - is that ok?
+    file("${zipfile.getSimpleName()}/*") into zip_unraveled_all
 
     script:
     outfolder = zipfile.getSimpleName()
@@ -69,44 +70,57 @@ process unzip {
 }
 
 // combine raw fasta files and those extracted from archive files
-all_fasta_input_files = input_files.mix(tgz_unraveled_fasta.flatten(), zip_unraveled_fasta.flatten())
+//all_fasta_input_files = input_files.mix(tgz_unraveled_fasta.flatten(), zip_unraveled_fasta.flatten())
 truly_all_input_files = all_input_files.mix(tgz_unraveled_all.flatten(), zip_unraveled_all.flatten())
 
 
-// Error handling
-truly_all_input_files.subscribe {
-
-    //check if there are any non-fasta files
-    if ((!(it.getName() ==~ /.+\.fasta$/ )) && (!(it.getName() =~ /.+\.tar.gz$/ )) && (!(it.getName() =~ /.+\.zip$/ ))){
-
-        endingmess = "WARNING: the file ${it.getName()} does not end in '.fasta', '.zip' or '.tar.gz'.\n" +
-                     "The file was dropped from the analysis.\n\n"
-        log.info(endingmess)
-        errorfile.append(endingmess)
-
-    }
-    //check if there are any files with non-ascii character names
-    if (!( it.getBaseName() ==~ /^\p{ASCII}+$/ )) {
-
-        asciimess = "WARNING: The filename of ${it.getName()} contains non-ASCII characters.\n" +
-                    "The file was dropped from the analysis.\n\n"
-        log.info(asciimess)
-        errorfile.append(asciimess)
-    }
-}
+//// Error handling
+//truly_all_input_files.subscribe {
+//
+//    //check if there are any non-fasta files
+//    if ((!(it.getName() ==~ /.+\.fasta$/ )) && (!(it.getName() =~ /.+\.tar.gz$/ )) && (!(it.getName() =~ /.+\.zip$/ ))){
+//
+//        endingmess = "WARNING: the file ${it.getName()} does not end in '.fasta', '.zip' or '.tar.gz'.\n" +
+//                     "The file was dropped from the analysis.\n\n"
+//        log.info(endingmess)
+//        errorfile.append(endingmess)
+//
+//    }
+//    //check if there are any files with non-ascii character names
+//    if (!( it.getBaseName() ==~ /^\p{ASCII}+$/ )) {
+//
+//        asciimess = "WARNING: The filename of ${it.getName()} contains non-ASCII characters.\n" +
+//                    "The file was dropped from the analysis.\n\n"
+//        log.info(asciimess)
+//        errorfile.append(asciimess)
+//    }
+//}
 
 // Passes every fasta file through Biopythons SeqIO to check for corrupted files
-process fasta_sanity_check { //todo: output also sequences-only for md5sum?
+process fasta_sanity_check {
+//todo: output also sequences-only for md5sum?
+    //todo: at the moment, the zip file itself is also processed here. ok for now but not pretty
+    //todo: maybe recursively uncompress everything we can find and put it into one folder beforehand?
     errorStrategy 'ignore'
+    tag { binname }
 
     input:
-    file(item) from all_fasta_input_files
+    file(item) from truly_all_input_files
 
     output:
     set val(binname), file("sanitychecked.fasta") into fasta_sanitycheck_out
 
     script:
     binname = item.getName()
+    if (!( item.getBaseName() ==~ /^\p{ASCII}+$/ )) {
+
+    asciimess = "WARNING: The filename of ${item.getName()} contains non-ASCII characters.\n" +
+                "The file was dropped from the analysis.\n\n"
+    log.info(asciimess)
+    errorfile.append(asciimess)
+        return //todo: this seems to raise error code 127, which does not make sense. However, it seems to serve the purpose for now
+        log.info("you should not see this")
+    }
 // language=Python
 """
 #!/usr/bin/env python
@@ -115,10 +129,42 @@ from Bio.Seq import Seq
 from Bio.Alphabet import IUPAC
 from Bio import Alphabet
 import sys, os
+import tarfile
 
+inputfasta=""
+if ("${item}".endswith("tar.gz")):
+    os.makedirs("extr")
+    tar = tarfile.open("${item}", "r:gz")
+    for tarinfo in tar:
+        #must not be another directory but a regular file
+        if tarinfo.isreg():
+            tar.extractall(path="extr")
+            tar.close()
+            inputfasta="extr/"+str(os.listdir("extr")[0])
+            
+        else: 
+            raise 
 
+elif ("${item}".endswith("tar")):
+    os.makedirs("extr")
+    tar = tarfile.open("${item}", "r:")
+    for tarinfo in tar:
+        if tarinfo.isreg():
+            tar.extractall(path="extr")
+            tar.close()
+            inputfasta="extr/"+str(os.listdir("extr")[0])
+    
+        else: 
+            raise 
+else:
+    inputfasta="${item}"
+
+        
+
+    
+        
 with open("sanitychecked.fasta","w") as outfile:
-    for read in SeqIO.parse("${item}", "fasta", IUPAC.ambiguous_dna):
+    for read in SeqIO.parse(inputfasta, "fasta", IUPAC.ambiguous_dna):
         if not Alphabet._verify_alphabet(read.seq):
             with open("${errorfile}", "a") as myfile:
                 myfile.write("WARNING: There was an unexpected DNA letter in the sequence of file ${binname}.\\n")
@@ -126,7 +172,14 @@ with open("sanitychecked.fasta","w") as outfile:
                 myfile.write("The file was dropped from the analysis.\\n\\n")
             os.remove("sanitychecked.fasta")
             sys.exit("There was an unexpected letter in the sequence, aborting.")
+            
         SeqIO.write(read, outfile, "fasta")
+if os.stat("sanitychecked.fasta").st_size == 0:
+    with open("${errorfile}", "a") as myfile:
+        myfile.write("WARNING: The file ${binname} is empty or not a fasta file and was dropped from the analysis.\\n\\n")
+    os.remove("sanitychecked.fasta")
+    sys.exit("The file is empty or not in fasta format, aborting.")
+
 """
 
 }
@@ -157,7 +210,7 @@ process add_bin_to_db {
     set val(binname), val(mdsum), file(item) from md5_out
 
     output:
-    set val(binname), val(mdsum), file(item), stdout into bin_db_out
+    set val(binname), val(mdsum), file(item), stdout into bin_to_db_out
 
 
     script:
@@ -184,35 +237,30 @@ try:
     thisbin=bin.objects.get(md5sum="${mdsum}")
     print("NO", end='')
 except ObjectDoesNotExist:
-    # write impossible Nr. for comple and conta that would cause an error if not overwritten:
+    # write impossible Nr. for comple and conta that would cause an error during get_accuracy if not overwritten:
     thisbin = bin(bin_name="${binname}", md5sum="${mdsum}", comple=2, conta=2)
     thisbin.save()
     print("YES", end='')
 
+try:
+    assoc= bins_in_UploadedFile(bin=thisbin, UploadedFile=parentjob)
+    assoc.save()    
 except IntegrityError:
-    sys.exit("Cannot add bin to db: An identical file from the same job is already in the db. Please remove duplicate files from your input!")
-
-assoc= bins_in_UploadedFile(bin=thisbin, UploadedFile=parentjob)
-assoc.save()    
+    sys.exit("Cannot add bin to db: An identical file (same md5sum) from the same job is already in the db. Please remove duplicate files from your input!")
 """
 
 }
 
-// Splits the further checks depending on if the bin is already in the db
-
-
-
-
-bin_db_out.into{bin_is_in_db;bin_is_not_in_db}
+// Do the further checks depending on if the bin is already in the db
+bin_to_db_out.into{bin_is_in_db;bin_is_not_in_db}
 
 
 // call prodigal for every sample in parallel
 // output each result as a set of the sample id and the path to the prodigal outfile
+// only execute prodigal if the been has not already been in our db
 process prodigal {
 
     tag { binname }
-
-    echo true
 
     memory = "2 GB"
 
@@ -232,14 +280,15 @@ process prodigal {
     """
 }
 
-process determine_required_models {
+// if the bin has already been in our db:
+process determine_models_that_need_recalculation {
 
     input:
     set val(binname), val(mdsum), file(item), val(calc_bin_or_not) from bin_is_in_db
     each model from models
 
     output:
-    set val(binname), val(mdsum), val(model), stdout into determined_models_requirements
+    set val(binname), val(mdsum), val(model), stdout into determined_if_model_recalculation_needed
 
     when:
     calc_bin_or_not == "NO"
@@ -261,7 +310,7 @@ process determine_required_models {
     
   
 
-    try: #if this succeeds, then there is a result for this bin saved for the newest model version
+    try: #if this succeeds, then there is a result for this bin and the newest model version in our db
         result_model.objects.get(model=model.objects.filter(model_name="${model.getBaseName()}").latest('model_train_date'), bin=bin.objects.get(md5sum="${mdsum}"))
         print("NO", end='')    
     except:
@@ -270,9 +319,9 @@ process determine_required_models {
     """
 }
 
-determined_models_requirements.into{calc_model; dont_calc_model}
+determined_if_model_recalculation_needed.into{calc_model; dont_calc_model}
 
-
+// if the results for this bin and model are up-to-date, we only need to include them in the final output file
 process new_model_to_targz1 {
 
     input:
@@ -312,7 +361,7 @@ process new_model_to_targz2 {
     input:
     set val(binname), val(mdsum), val(RULEBOOK), val(accuracy), file(verdict_and_accuracy) from new_model_to_targz1_out
     output:
-    set val(binname), val(mdsum), val(RULEBOOK), val(verdict), val(accuracy) into picaout_from_new_model // TODO: pica_out_write should be reached but pica_db_write not
+    set val(binname), val(mdsum), val(RULEBOOK), val(verdict), val(accuracy) into picaout_from_new_model //
 
     script:
     //TODO: read verdict and accuracy from the file
@@ -321,6 +370,7 @@ process new_model_to_targz2 {
 
 }
 
+// if the results in our db for this bin and model are outdated, a hmmerfile & compleconta file needs to be reconstructed and pica needs to be called
 process old_model_to_accuracy {
 
     input:
@@ -359,7 +409,7 @@ process old_model_to_accuracy {
     """
 }
 
-// call hmmer daemon for every sample in series
+// call hmmer daemon for all bins for which prodigal was run (i.e. bins that have not yet been in the db)
 process hmmer {
 
     tag { binname }
@@ -386,7 +436,8 @@ process hmmer {
     """
 }
 
-//increases percentage completed after each hmmer job completion
+//increase percentage completed after each hmmer job completion
+// TODO: this does not work for jobs with >> 100 bins at the moment (errors in rounding)
 process update_job_completeness {
 
     tag { jobname }
@@ -445,18 +496,16 @@ process compleconta {
 }
 
 
-complecontaout.into{complecontaout_continue; bin_to_db}
+complecontaout.into{complecontaout_for_call_accuracy; complecontaout_for_hmmerresults_to_db}
 
-//TODO: disable passing of errors when adding result_enog rows after we have added all enogs to database
-process write_hmmer_results_to_db { //TODO: implement checking if bin already exists
+process write_hmmer_results_to_db {
 
     tag { binname }
 
-    //errorStrategy 'ignore'
                // TODO: this appears to be a huge bottleneck, let's optimize this
 
     input:
-    set val(binname), val(mdsum), file(hmmeritem), file(complecontaitem) from bin_to_db
+    set val(binname), val(mdsum), file(hmmeritem), file(complecontaitem) from complecontaout_for_hmmerresults_to_db
 
     script:
 // language=Python
@@ -515,7 +564,7 @@ process call_accuracy_for_all_models {
     memory = '10 MB'
 
     input:
-    set val(binname), val(mdsum), file(hmmeritem), file(complecontaitem) from complecontaout_continue
+    set val(binname), val(mdsum), file(hmmeritem), file(complecontaitem) from complecontaout_for_call_accuracy
     //todo: do not rely on folder but on db here
     each model from models
 
