@@ -38,6 +38,8 @@ errorfile.text=""
 // unzip tar.gz files
 process tgz {
 
+    errorStrategy 'ignore'
+
     input:
     file(tarfile) from input_gzipfiles
 
