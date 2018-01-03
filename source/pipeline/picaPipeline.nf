@@ -327,8 +327,8 @@ with open("${hmmeritem}", "r") as enogresfile:
             newenog = result_enog(bin=bin.objects.get(bin_name="${binname}"),
                                   enog=enog.objects.get(enog_name=enogfield))
             newenog.save()
-        except IntegrityError:
-            print("Skipping due to IntegrityError.")
+        except IntegrityError as e:
+            print("Skipping due to IntegrityError: ", e)
             continue               
 
 """
@@ -573,6 +573,7 @@ with open("${mdsum_file}", "r") as picaresults:
 for result in conditions:
     try:
         get_bool = {"YES": True, "NO": False, "N/A": None}
+        add_accuracy = float(result[2]) if type(result[2]) != str else float(0)
         boolean_verdict = get_bool[result[1]]
         #get model from db
         try:
@@ -580,8 +581,9 @@ for result in conditions:
         except ObjectDoesNotExist:
             sys.exit("Current Model for this result not found.")
         
+        
         modelresult = result_model(verdict=boolean_verdict,
-                                   accuracy=float(result[2]),
+                                   accuracy=add_accuracy,
                                    bin=parentbin,
                                    model=this_model
                                    )

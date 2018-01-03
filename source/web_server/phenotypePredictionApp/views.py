@@ -104,5 +104,5 @@ def fileDownload(request):
     key = getKeyFromUrl(request)
     resFile = UploadedFile.objects.get(key = key)
     response = HttpResponse(resFile.fileOutput, content_type='application/tar+gzip')
-    response['Content-Disposition'] = 'attachment; filename="{k}.tar.gz"'.format(k=key)
+    response['Content-Disposition'] = 'attachment; filename="{k}.zip"'.format(k=key)
     return response
