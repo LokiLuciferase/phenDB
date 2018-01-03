@@ -300,7 +300,7 @@ process new_model_to_targz1 {
     django.setup()
     from phenotypePredictionApp.models import *
     
-    with open("verdict_and_accuracy.txt", "w") as v_a:    
+    #with open("verdict_and_accuracy.txt", "w") as v_a:    
 
     #check the database for the entries and print them to file
 
@@ -347,10 +347,10 @@ process old_model_to_accuracy {
     django.setup()
     from phenotypePredictionApp.models import *
     
-    with open("reconstructed_hmmer_file.txt", "w") as hmmer:
+    #with open("reconstructed_hmmer_file.txt", "w") as hmmer:
         # TODO: construct hmmer file
     
-    with open("reconstructed_compleconta_file.txt", "w") as hmmer:
+    #with open("reconstructed_compleconta_file.txt", "w") as hmmer:
         # TODO: construct compleconta file
         
 
