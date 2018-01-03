@@ -160,7 +160,7 @@ process md5sum {
 process prodigal {
 
     tag { binname }
-    maxForks 20
+    maxForks 10
 
     memory = "2 GB"
 
@@ -494,7 +494,7 @@ with open("per_bin_matrix.results.tsv", "w") as outfile2:
 }
 
 
-process tar_results {
+process zip_results {
 
     tag { jobname }
 
@@ -505,7 +505,7 @@ process tar_results {
     file(errorfile)
 
     output:
-    file("${jobname}.tar.gz") into tgz_to_db
+    file("${jobname}.zip") into zip_to_db
 
     script:
     """
@@ -513,7 +513,7 @@ process tar_results {
     cp ${errorfile} ${jobname}/summaries/input_errors.log
     mv *.results.tsv ${jobname}/summaries
     mv *.results.txt ${jobname}
-    tar -cvf ${jobname}.tar.gz ./${jobname}
+    zip -r ${jobname}.zip ./${jobname}
     rm -rf ${jobname}
     """
 }
@@ -585,10 +585,10 @@ for result in conditions:
 """
 }
 
-process write_tgz_to_db {
+process write_zip_to_db {
 
     input:
-    file(tgz) from tgz_to_db
+    file(zip) from zip_to_db
 
     script:
     errors_occurred = errorfile.isEmpty() ? "False" : "True"
@@ -610,9 +610,9 @@ from phenotypePredictionApp.models import UploadedFile
 try:
     obj = UploadedFile.objects.filter(key='${jobname}')
     obj.update(errors = ${errors_occurred})
-    file = open('${tgz}', 'rb')
+    file = open('${zip}', 'rb')
     djangoFile = File(file)
-    obj[0].fileOutput.save('${jobname}.tar.gz', djangoFile, save="True")
+    obj[0].fileOutput.save('${jobname}.zip', djangoFile, save="True")
     obj.update(job_status = '100')
 except IntegrityError:
     sys.exit("Exited with integrity error upon adding results to database.")
