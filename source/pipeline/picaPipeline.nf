@@ -456,7 +456,7 @@ process write_hmmer_results_to_db { //TODO: implement checking if bin already ex
                // TODO: this appears to be a huge bottleneck, let's optimize this
 
     input:
-    set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem), file(complecontaitem) from bin_to_db
+    set val(binname), val(mdsum), file(hmmeritem), file(complecontaitem) from bin_to_db
 
     script:
 // language=Python
