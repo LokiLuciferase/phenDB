@@ -76,6 +76,7 @@ all_picamodels=os.listdir(PICAMODELFOLDER)
 
 # store a dictionary of all enogs that are currently in the db
 db_enogs = enog.objects.in_bulk()
+db_enogs = {v.enog_name: v for k, v in db_enogs.items()}
 
 for picamodel in all_picamodels:
 
