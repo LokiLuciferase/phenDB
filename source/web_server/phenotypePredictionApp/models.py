@@ -27,7 +27,7 @@ class UploadedFile(models.Model):
             models.Index(fields=['key'])
         ]
 
-    key = models.TextField(default=uuid.uuid4(), unique=True)
+    key = models.CharField(default=uuid.uuid4(), unique=True, max_length=36)
     filename = models.TextField()
     fileInput = models.FileField(upload_to=upload_function_upload)
     fileOutput = models.FileField(upload_to=upload_function_results)
@@ -49,7 +49,7 @@ class bin(models.Model):
         ]
 
     bin_name = models.TextField()
-    md5sum = models.TextField(unique=True)
+    md5sum = models.CharField(unique=True, max_length=32)
     comple = models.FloatField()
     conta = models.FloatField()
 
@@ -79,11 +79,11 @@ class enog(models.Model):
             models.Index(fields=['enog_name'])
         ]
 
-    enog_name = models.TextField(unique=True)
+    enog_name = models.CharField(unique=True, max_length=32)
     enog_descr = models.TextField()
 
     def __str__(self):
-        return "ID: {eid}\tDescription: {ed}\tCategor(y/ies): {ca}".format(eid=self.enog_name,
+        return "ID: {eid}\tDescription: {ed}\tCategories): {ca}".format(eid=self.enog_name,
                                                      ed=self.enog_descr)
 
 
@@ -95,8 +95,7 @@ class model(models.Model):
             models.Index(fields=['model_name', 'model_train_date'])
        ]
 
-    model_name = models.TextField()
-    #version_nr = models.IntegerField()
+    model_name = models.CharField(max_length=64)
     type = models.CharField(max_length=2)
     model_desc = models.TextField()
     model_train_date = models.DateTimeField(auto_now=True)

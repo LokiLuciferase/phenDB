@@ -75,6 +75,8 @@ all_picamodels=os.listdir(PICAMODELFOLDER)
 # store a dictionary of all enogs that are currently in the db
 # if statement forces the objects to be loaded from the database (?)
 db_enogs = enog.objects.in_bulk()
+db_enogs = {v.enog_name: v for k, v in db_enogs.items()}
+
 if db_enogs:
 
     for picamodel in all_picamodels:
