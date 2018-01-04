@@ -5,5 +5,5 @@ Delete source/web-server/phenotypePredictionApp/phenDB.sqlite3
 2. Run "python3.6 source/web-server/manage.py migrate"
 
 3. run:  "python3.6 source/general_scripts/add_enogs_to_db.py" (needs the bactNOG.annotations.tsv.gz and COG_functional_categories.txt in the
-right locations - check the source code for that
-4. run "python3.6 source/general_scripts/add_models_to_db.py" (needs the correct path to the modelfolder  - check the source code for that)
+right location: /var/www/eggnog - check the source code for that
+4. run "python3.6 source/general_scripts/add_models_to_db.py" (needs the correct path to the modelfolder  - /apps/pica/models check the source code for that)

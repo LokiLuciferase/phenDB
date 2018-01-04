@@ -7,9 +7,8 @@ from phenotypePredictionApp.models import *
 import gzip
 import sys
 
-# this does not work in VM! no eggnog mirror in vm!
-ENOG_files = ["/mirror/eggnog/eggnog_4.5/data/bacNOG/bacNOG.annotations.tsv.gz",
-              "/mirror/eggnog/eggnog_4.5/data/bactNOG/bactNOG.annotations.tsv.gz" ]
+ENOG_files = ["/var/www/eggnog/eggnog_4.5/data/bacNOG/bacNOG.annotations.tsv.gz",
+              "/var/www/eggnog/eggnog_4.5/data/bactNOG/bactNOG.annotations.tsv.gz" ]
 
 enoglist=[]
 for annot in ENOG_files:
