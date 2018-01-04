@@ -5,6 +5,7 @@ jobname = file(params.inputfolder).getBaseName()
 outdir = file(params.outdir)
 file(outdir).mkdir()
 models = file(params.modelfolder).listFiles()
+// make this independent of ending!! try to unpack, then directly check contents
 input_files = Channel.fromPath("${params.inputfolder}/*.fasta")
 input_gzipfiles = Channel.fromPath("${params.inputfolder}/*.tar.gz")
 input_barezipfiles = Channel.fromPath("${params.inputfolder}/*.zip")
@@ -47,7 +48,12 @@ process tgz {
     script:
     outfolder = tarfile.getSimpleName()
     """
-    mkdir ${outfolder} && tar -xf $tarfile -C ${outfolder} --strip-components 1
+    tar -xf $tarfile 
+    rm -f $tarfile
+    
+    if [[ \$(ls) != "$outfolder" ]]; then
+        mv ./*/ $outfolder
+    fi
     """
 }
 
@@ -103,6 +109,7 @@ process fasta_sanity_check {
     //todo: maybe recursively uncompress everything we can find and put it into one folder beforehand?
     errorStrategy 'ignore'
     tag { binname }
+    maxForks 10
 
     input:
     file(item) from truly_all_input_files
@@ -261,6 +268,7 @@ bin_to_db_out.into{bin_is_in_db;bin_is_not_in_db}
 process prodigal {
 
     tag { binname }
+    maxForks 10
 
     memory = "2 GB"
 
@@ -274,7 +282,6 @@ process prodigal {
     calc_bin_or_not.equals("YES")
 
     script:
-
     """
     prodigal -i ${item} -a prodigalout.faa > /dev/null
     """
@@ -322,7 +329,7 @@ process determine_models_that_need_recalculation {
 determined_if_model_recalculation_needed.into{calc_model; dont_calc_model}
 
 // if the results for this bin and model are up-to-date, we only need to include them in the final output file
-process new_model_to_targz1 {
+process uptodate_model_to_targz1 {
 
     input:
     set val(binname), val(mdsum), val(model), val(calc_model_or_not) from dont_calc_model
@@ -356,7 +363,7 @@ process new_model_to_targz1 {
     """
 }
 
-process new_model_to_targz2 {
+process uptodate_model_to_targz2 {
 
     input:
     set val(binname), val(mdsum), val(RULEBOOK), val(accuracy), file(verdict_and_accuracy) from new_model_to_targz1_out
@@ -571,6 +578,8 @@ process call_accuracy_for_all_models {
     output:
     set val(binname), val(mdsum), val(model), file(hmmeritem), file(complecontaitem) into accuracy_in
 
+    when:
+    model.isDirectory()
 
     script:
     """
@@ -634,7 +643,6 @@ process accuracy {
     """
 }
 
-
 // call pica for every sample for every condition in parallel
 process pica {
 
@@ -659,7 +667,7 @@ process pica {
     echo -ne "${binname}\t" > tempfile.tmp
     cut -f2 $hmmeritem | tr "\n" "\t" >> tempfile.tmp
     test.py -m $TEST_MODEL -t $RULEBOOK -s tempfile.tmp > picaout.result
-    echo -n \$(cat picaout.result | tail -n1 | cut -f2,3 | tr "\t" " ")
+    echo -n \$(cat picaout.result | tail -n1 | cut -f2,3)
     """
     }
 
@@ -667,8 +675,8 @@ process pica {
     """
     echo -ne "${binname}\t" > tempfile.tmp
     cut -f2 $hmmeritem | tr "\n" "\t" >> tempfile.tmp
-    echo "N/A\tN/A" > picaout.result
-    echo -n \$(cat picaout.result | tail -n1 | cut -f2,3 | tr "\t" " ")
+    echo "none\tN/A\tNA" > picaout.result
+    echo -n \$(cat picaout.result | tail -n1 | cut -f2,3)
     """
     }
 }
@@ -677,37 +685,134 @@ process pica {
 picaout.into{pica_db_write; pica_out_write}
 
 outfilechannel = pica_out_write.mix(picaout_from_new_model).collectFile() { item ->
-    [ "${item[0]}.results", "${item[2]} ${item[3]} ${item[4]}" ]  // use given bin name as filename
+    [ "${item[0]}.results", "${item[2]}\t${item[3]}\t${item[4]}" ]  // use given bin name as filename
 }.collect()
 
 
-process tar_results {
+// create a matrix file containing all verdicts for each bin and add to output files
+// create a matrix file containing summaries per model
+// here we could for example add a header to each results file
+process make_matrix_and_headers {
+
+    stageInMode 'copy'
+
+    input:
+    file(allfiles) from outfilechannel
+
+    output:
+    file("*.{txt,tsv}") into all_files_for_tar
+
+"""
+#!/usr/bin/env python3
+
+import django
+import datetime
+import os
+import glob
+
+os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
+django.setup()
+from phenotypePredictionApp.models import *
+
+cutoff = "${params.accuracy_cutoff}"
+now = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+HEADER = "Model_name\\tVerdict\\tProbability\\tBalanced_accuracy\\n"
+
+modelvec = list(set([x.model_name for x in model.objects.filter()]))
+modelvec = sorted(modelvec)
+
+bin_dict = {}
+countdict = {x: {"YES": 0, "NO": 0, "N/A": 0} for x in modelvec}
+resultmat = []
+
+for name in glob.glob("*.results"):
+
+    # extract info for matrix writing
+    with open(os.path.join(os.getcwd(), name), "r") as binfile:
+        binname = name.replace(".results", "")
+        bin_dict[binname] = {}
+        for line in binfile:
+            sline = line.split()
+            modelname, verdict = sline[0], sline[1]
+            bin_dict[binname][modelname] = verdict
+            countdict[modelname][verdict] += 1
+    
+        # sort results file and prepend header
+        with open(os.path.join(os.getcwd(), name + ".txt"), "w") as sortfile:
+            binfile.seek(0, 0)
+            content = []
+            for line in binfile:
+                content.append(line.split())
+            content = sorted(content, key=lambda x: x[0])
+            sortfile.write(HEADER)
+            for tup in content:
+                sortfile.write("\\t".join(tup))
+                sortfile.write("\\n")
+
+countlist = []
+for cond in ("YES", "NO", "N/A"):
+    condlist = []
+    for key, vals in countdict.items():
+        condlist.append(vals[cond])
+    countlist.append("\\t".join([cond] + [str(x) for x in condlist]))
+
+with open("summary_matrix.results.tsv", "w") as outfile:
+    outfile.write("# phenDB\\n# Time of run: {da}\\n# Accuracy cut-off: {co}\\n".format(da=now, co=cutoff))
+    outfile.write("#\\nSummary of models:\\n")
+    outfile.write("\\t".join([" "] + modelvec))
+    outfile.write("\\n")
+    for line in countlist:
+        outfile.write(line)
+        outfile.write("\\n")
+
+with open("per_bin_matrix.results.tsv", "w") as outfile2:
+    outfile2.write("# phenDB\\n# Time of run: {da}\\n# Accuracy cut-off: {co}\\n".format(da=now, co=cutoff))
+    outfile2.write("\\n#Results per bin:\\n")
+    outfile2.write("\\t".join([" "] + modelvec))
+    outfile2.write("\\n")
+    for item in bin_dict.keys():
+        resultlist = []
+        for modelname in modelvec:
+            try:
+                resultlist.append(bin_dict[item][modelname])
+            except KeyError:
+                resultlist.append("NC")
+        outfile2.write("\\t".join([item] + resultlist))
+        outfile2.write("\\n")
+"""
+}
+
+
+process zip_results {
 
     tag { jobname }
 
     stageInMode 'copy'  //actually copy in the results so we not only tar symlinks
 
     input:
-    file(allfiles) from outfilechannel
+    file(allfiles) from all_files_for_tar
     file(errorfile)
 
     output:
-    file("${jobname}.tar.gz") into tgz_to_db
+    file("${jobname}.zip") into zip_to_db
 
     script:
     """
-    mkdir ${jobname}
-    cp ${errorfile} ${jobname}/invalid_input_files.log
-    mv *.results ${jobname}
-    tar -cvf ${jobname}.tar.gz ./${jobname}
+    mkdir -p ${jobname}/summaries
+    cp ${errorfile} ${jobname}/summaries/input_errors.log
+    mv *.results.tsv ${jobname}/summaries
+    mv *.results.txt ${jobname}
+    zip -r ${jobname}.zip ./${jobname}
     rm -rf ${jobname}
     """
 }
 
 db_written = pica_db_write.collectFile() { item ->
-    [ "${item[1]}.results", "${item[2]} ${item[3]} ${item[4]}" ]  // use md5sum as filename
+    [ "${item[1]}.results", "${item[2]}\t${item[3]}\t${item[4]}" ]  // use md5sum as filename
 }
 
+
+//TODO: add pica_pvalue to model_results
 process write_pica_result_to_db {
 
     //errorStrategy 'ignore'
@@ -745,9 +850,11 @@ with open("${mdsum_file}", "r") as picaresults:
         conditions.append(line.split())
 
 modelresultlist=[]
-for result in conditions:
+for result in conditions:  # result = [modelname, verdict, pica_p_val, balanced_accuracy]
     try:
         get_bool = {"YES": True, "NO": False, "N/A": None}
+        get_pica_pval = float(result[2]) if type(result[2]) != str else float(0)
+        
         boolean_verdict = get_bool[result[1]]
         #get model from db
         try:
@@ -756,7 +863,8 @@ for result in conditions:
             sys.exit("Current Model for this result not found.")
         
         modelresult = result_model(verdict=boolean_verdict,
-                                   accuracy=float(result[2]),
+                                   accuracy=float(result[3]),
+                                   pica_pval=get_pica_pval,
                                    bin=parentbin,
                                    model=this_model
                                    )
@@ -767,10 +875,10 @@ result_model.objects.bulk_create(modelresultlist)
 """
 }
 
-process write_tgz_to_db {
+process write_zip_to_db {
 
     input:
-    file(tgz) from tgz_to_db
+    file(zip) from zip_to_db
 
     script:
     errors_occurred = errorfile.isEmpty() ? "False" : "True"
@@ -792,9 +900,9 @@ from phenotypePredictionApp.models import UploadedFile
 try:
     obj = UploadedFile.objects.filter(key='${jobname}')
     obj.update(errors = ${errors_occurred})
-    file = open('${tgz}', 'rb')
+    file = open('${zip}', 'rb')
     djangoFile = File(file)
-    obj[0].fileOutput.save('${jobname}.tar.gz', djangoFile, save="True")
+    obj[0].fileOutput.save('${jobname}.zip', djangoFile, save="True")
     obj.update(job_status = '100')
 except IntegrityError:
     sys.exit("Exited with integrity error upon adding results to database.")

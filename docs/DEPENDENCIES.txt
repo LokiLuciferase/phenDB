@@ -1,5 +1,6 @@
 python3
 python2, and installed pip (using get-pip.py) and numpy, biopython
+python-devel (installed via yum)
 django.ipware (external dependancy -> not included in django)
 nextflow (requires java8), installed as suggested on the nextflow homepage
 django (requires python), installed via pip (pip for python3)
@@ -11,3 +12,7 @@ singularity (installed from source/github)
 httpd-devel (installed via yum)
 mod_wsgi (installed from source/github, configured --with-python=/usr/bin/python3)
 gunicorn (installed via pip3)
+MySQL-python (installed via yum)
+mariadb-devel (installed via yum)
+mysqlclient (installed via pip3)
+pymysql (installed via pip3)

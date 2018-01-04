@@ -83,7 +83,7 @@ def getResults(request):
         showResult = 'none'
         showProgressBar = True
         refresh = True
-        showErrorMessage = False;
+        showErrorMessage = False
         error_message = ""
         error_summary = ""
         error_severity = ""
@@ -104,5 +104,5 @@ def fileDownload(request):
     key = getKeyFromUrl(request)
     resFile = UploadedFile.objects.get(key = key)
     response = HttpResponse(resFile.fileOutput, content_type='application/tar+gzip')
-    response['Content-Disposition'] = 'attachment; filename="phendb_results.tar.gz"'
+    response['Content-Disposition'] = 'attachment; filename="{k}.zip"'.format(k=key)
     return response
