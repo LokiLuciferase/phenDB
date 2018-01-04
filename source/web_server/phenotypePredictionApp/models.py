@@ -27,7 +27,7 @@ class UploadedFile(models.Model):
             models.Index(fields=['key'])
         ]
 
-    key = models.TextField(default=uuid.uuid4(), primary_key=True)
+    key = models.TextField(default=uuid.uuid4(), unique=True)
     filename = models.TextField()
     fileInput = models.FileField(upload_to=upload_function_upload)
     fileOutput = models.FileField(upload_to=upload_function_results)
@@ -49,7 +49,7 @@ class bin(models.Model):
         ]
 
     bin_name = models.TextField()
-    md5sum = models.TextField(primary_key=True)
+    md5sum = models.TextField(unique=True)
     comple = models.FloatField()
     conta = models.FloatField()
 
@@ -79,7 +79,7 @@ class enog(models.Model):
             models.Index(fields=['enog_name'])
         ]
 
-    enog_name = models.TextField(primary_key=True)
+    enog_name = models.TextField(unique=True)
     enog_descr = models.TextField()
 
     def __str__(self):
@@ -174,6 +174,7 @@ class result_model(models.Model):
     bin = models.ForeignKey(bin)
     model = models.ForeignKey(model)
     verdict = models.NullBooleanField()
+    pica_pval = models.FloatField()
     accuracy = models.FloatField() #change this to predicion probability
 
     def __str__(self):

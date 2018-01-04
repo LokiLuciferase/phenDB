@@ -813,7 +813,7 @@ for result in conditions:  # result = [modelname, verdict, pica_p_val, balanced_
         
         modelresult = result_model(verdict=boolean_verdict,
                                    accuracy=float(result[3]),
-                                   # TODO: here we should add pica_pval
+                                   pica_pval=get_pica_pval,
                                    bin=parentbin,
                                    model=this_model
                                    )
