@@ -71,7 +71,7 @@ def rankfile_to_list(rankfile, groupfile, db_enogs):
 
     return enog_rank_list
 
-PICAMODELFOLDER="/scratch/swe_ws17/data/models"
+PICAMODELFOLDER="/apps/pica/models"
 all_picamodels=os.listdir(PICAMODELFOLDER)
 
 # store a dictionary of all enogs that are currently in the db
