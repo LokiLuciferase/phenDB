@@ -687,11 +687,12 @@ picaout.into{picaout_db_write; picaout_for_download}
 
 process replace_with_NA {
     input:
-    set val(binname), val(mdsum), val(RULEBOOK), val(verdict), val(accuracy) from pica_for_download.mix(picaout_from_new_model)
+    set val(binname), val(mdsum), val(RULEBOOK), val(verdict), val(accuracy) from picaout_for_download.mix(picaout_from_new_model)
 
     output:
     set val(binname), val(mdsum), val(RULEBOOK), stdout, val(accuracy) into NA_replaced_for_download
 
+    script:
     float accuracy_cutoff = params.accuracy_cutoff as float
     float accuracy_float = accuracy as float
 
@@ -699,7 +700,8 @@ process replace_with_NA {
         """
     echo -ne "${binname}"
     """
-    } else {
+    }
+    else {
         """
     echo -ne "${binname}\t" > tempfile.tmp
     cut -f2 $hmmeritem | tr "\n" "\t" >> tempfile.tmp
@@ -709,7 +711,7 @@ process replace_with_NA {
     }
 }
 
-outfilechannel = pica_out_write.mix(picaout_from_new_model).collectFile() { item ->
+outfilechannel = NA_replaced_for_download.collectFile() { item ->
     [ "${item[0]}.results", "${item[2]}\t${item[3]}\t${item[4]}" ]  // use given bin name as filename
 }.collect()
 
@@ -832,7 +834,7 @@ process zip_results {
     """
 }
 
-db_written = pica_db_write.collectFile() { item ->
+db_written = picaout_db_write.collectFile() { item ->
     [ "${item[1]}.results", "${item[2]}\t${item[3]}\t${item[4]}" ]  // use md5sum as filename
 }
 

@@ -84,9 +84,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'phenDB',
-        'USER': <add user here>,
-        'PASSWORD': <add password here>,
-        'HOST': localhost,
+        'USER': 'devel_PP',
+        'PASSWORD': 'devel_pw',
+        'HOST': 'localhost',
         'PORT': '',
     }
 }
