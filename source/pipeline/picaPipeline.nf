@@ -685,33 +685,32 @@ process pica {
 // merge all results into a file called $id.results and move each file to results folder.
 picaout.into{picaout_db_write; picaout_for_download}
 
-process replace_with_NA {
-    input:
-    set val(binname), val(mdsum), val(RULEBOOK), val(verdict), val(accuracy) from picaout_for_download.mix(picaout_from_new_model)
+//process replace_with_NA {
+//    input:
+//    set val(binname), val(mdsum), val(RULEBOOK), val(verdict), val(accuracy) from picaout_for_download.mix(picaout_from_new_model)
+//
+//    echo = true
+//
+//    output:
+//    set val(binname), val(mdsum), val(RULEBOOK), stdout, val(accuracy) into NA_replaced_for_download
+//
+//    script:
+//    float accuracy_cutoff = params.accuracy_cutoff as float
+//    float accuracy_float = accuracy as float
+//
+//    if (accuracy_float+100 < accuracy_cutoff) {
+//        newout="N/A\t"
+//        newout+=verdict.split(" ")[1].toString()
+//        println newout
+//    }
+//
+//    else {
+//      println verdict
+//
+//      }
+//}
 
-    output:
-    set val(binname), val(mdsum), val(RULEBOOK), stdout, val(accuracy) into NA_replaced_for_download
-
-    script:
-    float accuracy_cutoff = params.accuracy_cutoff as float
-    float accuracy_float = accuracy as float
-
-    if (accuracy_float >= accuracy_cutoff) {
-        """
-    echo -ne "${binname}"
-    """
-    }
-    else {
-        """
-    echo -ne "${binname}\t" > tempfile.tmp
-    cut -f2 $hmmeritem | tr "\n" "\t" >> tempfile.tmp
-    echo "none\tN/A\tNA" > picaout.result
-    echo -n \$(cat picaout.result | tail -n1 | cut -f2,3)
-    """
-    }
-}
-
-outfilechannel = NA_replaced_for_download.collectFile() { item ->
+outfilechannel = picaout_for_download.mix(picaout_from_new_model).collectFile() { item ->
     [ "${item[0]}.results", "${item[2]}\t${item[3]}\t${item[4]}" ]  // use given bin name as filename
 }.collect()
 
