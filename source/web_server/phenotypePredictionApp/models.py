@@ -83,7 +83,7 @@ class enog(models.Model):
     enog_descr = models.TextField()
 
     def __str__(self):
-        return "ID: {eid}\tDescription: {ed}\tCategories): {ca}".format(eid=self.enog_name,
+        return "ID: {eid}\tDescription: {ed}".format(eid=self.enog_name,
                                                      ed=self.enog_descr)
 
 

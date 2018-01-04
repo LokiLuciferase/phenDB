@@ -30,5 +30,4 @@ for annot in ENOG_files:
 
 print("\n writing enogs to db...")
 
-print(len(namelist) != len(set(namelist)))
 enog.objects.bulk_create(enoglist)
