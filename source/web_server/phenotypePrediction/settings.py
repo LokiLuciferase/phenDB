@@ -83,7 +83,7 @@ WSGI_APPLICATION = 'phenotypePrediction.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'phenDB',
+        'NAME': 'phenDB_devel_PP',
         'USER': 'devel_PP',
         'PASSWORD': 'devel_pw',
         'HOST': 'localhost',
