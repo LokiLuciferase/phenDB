@@ -510,6 +510,7 @@ process write_hmmer_results_to_db {
     tag { binname }
 
                // TODO: this appears to be a huge bottleneck, let's optimize this
+                // TODO: check if enog.objects.in_bulk() makes sense also here
 
     input:
     set val(binname), val(mdsum), file(hmmeritem), file(complecontaitem) from complecontaout_for_hmmerresults_to_db
@@ -544,20 +545,20 @@ with open("${hmmeritem}", "r") as enogresfile:
         enoglist.append(enogfield)
     # hmmer outputs some ENOGS multiple times --> add them only once
     enoglist=list(set(enoglist))
-    enogobjectlist=[]
+    enog_res_objectlist=[]
     for enog_elem in enoglist:    
         try:
             print("Attempting to add enog {en} from bin {bn} to database.".format(en=enog_elem,
                                                                                   bn="${binname}"))
-            newenog = result_enog(bin=parentbin, enog=enog.objects.get(enog_name=enog_elem))
-            enogobjectlist.append(newenog)
+            new_enog_res = result_enog(bin=parentbin, enog=enog.objects.get(enog_name=enog_elem))
+            enog_res_objectlist.append(new_enog_res)
         except IntegrityError:
             print("Skipping due to IntegrityError.")
             continue     
             
 
     try:
-        result_enog.objects.bulk_create(enogobjectlist)        
+        result_enog.objects.bulk_create(enog_res_objectlist)        
     except IntegrityError:
         print("Could not add enogs of bin ${binname} to the db.")  
     
@@ -584,17 +585,16 @@ process call_accuracy_for_all_models {
     script:
     """
     """
-   // RULEBOOK = model.getBaseName()
 }
 
-// compute accuracy from compleconta output and model intrinsics (once for each model).
+// compute accuracy from compleconta output and model intrinsics .
 process accuracy {
 
     tag { "${binname}_${model.getBaseName()}" }
 
     memory = '10 MB'
 
-    input:
+    input:                       // .mix: this is where models from bins that were already in the db, but that have outdated results, are added
     set val(binname), val(mdsum), val(model), file(hmmeritem), file(complecontaitem) from accuracy_in.mix(accuracy_in_from_old_model)
 
     output:
@@ -635,7 +635,7 @@ process accuracy {
     except ObjectDoesNotExist:
         sys.exit("Bin not found.")
     
-    #this is how you would check the balanced accuracy...
+    #check the balanced accuracy. other metrices would be very similar to evaluate, just change the part after the last dot
     print(model_accuracies.objects.get(model=model.objects.filter(model_name="${model.getBaseName()}").latest('model_train_date'),
     comple=round_nearest(float(parentbin.comple),0.05), 
     conta=round_nearest(float(parentbin.conta),0.05)).mean_balanced_accuracy)
@@ -644,6 +644,7 @@ process accuracy {
 }
 
 // call pica for every sample for every condition in parallel
+//todo: do not show YES/NO for user download-file if below threshold
 process pica {
 
     tag { "${binname}_${model.getBaseName()}" }
@@ -659,20 +660,47 @@ process pica {
     script:
     RULEBOOK = model.getBaseName()
     TEST_MODEL = "$model/${RULEBOOK}.rules"
-    float accuracy_cutoff = params.accuracy_cutoff as float
-    float accuracy_float = accuracy as float
-
-    if (accuracy_float >= accuracy_cutoff) {
+//    float accuracy_cutoff = params.accuracy_cutoff as float
+//    float accuracy_float = accuracy as float
+//
+//    if (accuracy_float >= accuracy_cutoff) {
     """
     echo -ne "${binname}\t" > tempfile.tmp
     cut -f2 $hmmeritem | tr "\n" "\t" >> tempfile.tmp
     test.py -m $TEST_MODEL -t $RULEBOOK -s tempfile.tmp > picaout.result
     echo -n \$(cat picaout.result | tail -n1 | cut -f2,3)
     """
-    }
+//    }
 
-    else {
+//    else {
+//    """
+//    echo -ne "${binname}\t" > tempfile.tmp
+//    cut -f2 $hmmeritem | tr "\n" "\t" >> tempfile.tmp
+//    echo "N/A\tN/A" > picaout.result
+//    echo -n \$(cat picaout.result | tail -n1 | cut -f2,3 | tr "\t" " ")
+//    """
+//    }
+}
+
+// merge all results into a file called $id.results and move each file to results folder.
+picaout.into{picaout_db_write; picaout_for_download}
+
+process replace_with_NA {
+    input:
+    set val(binname), val(mdsum), val(RULEBOOK), val(verdict), val(accuracy) from pica_for_download.mix(picaout_from_new_model)
+
+    output:
+    set val(binname), val(mdsum), val(RULEBOOK), stdout, val(accuracy) into NA_replaced_for_download
+
+    float accuracy_cutoff = params.accuracy_cutoff as float
+    float accuracy_float = accuracy as float
+
+    if (accuracy_float >= accuracy_cutoff) {
+        """
+    echo -ne "${binname}"
     """
+    } else {
+        """
     echo -ne "${binname}\t" > tempfile.tmp
     cut -f2 $hmmeritem | tr "\n" "\t" >> tempfile.tmp
     echo "none\tN/A\tNA" > picaout.result
@@ -680,9 +708,6 @@ process pica {
     """
     }
 }
-
-// merge all results into a file called $id.results and move each file to results folder.
-picaout.into{pica_db_write; pica_out_write}
 
 outfilechannel = pica_out_write.mix(picaout_from_new_model).collectFile() { item ->
     [ "${item[0]}.results", "${item[2]}\t${item[3]}\t${item[4]}" ]  // use given bin name as filename
