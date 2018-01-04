@@ -10,8 +10,8 @@ cd /apps/phenDB/source/web_server/phenotypePredictionApp
 #sqlite3 phenDB.sqlite3 "delete from phenotypePredictionApp_bins_in_UploadedFile;"
 #sqlite3 phenDB.sqlite3 "VACUUM;"
 
-mysql -u root -e "use phenDB_devel_LL; delete from phenotypePredictionApp_UploadedFile;"
-mysql -u root -e "use phenDB_devel_LL; delete from phenotypePredictionApp_bin;"
-mysql -u root -e "use phenDB_devel_LL; delete from phenotypePredictionApp_result_model;"
-mysql -u root -e "use phenDB_devel_LL; delete from phenotypePredictionApp_result_enog;"
-mysql -u root -e "use phenDB_devel_LL; delete from phenotypePredictionApp_bins_in_UploadedFile;"
+mysql -u root -e "use phenDB_devel_PP; delete from phenotypePredictionApp_bins_in_uploadedfile;"
+mysql -u root -e "use phenDB_devel_PP; delete from phenotypePredictionApp_bin;"
+mysql -u root -e "use phenDB_devel_PP; delete from phenotypePredictionApp_uploadedfile;"
+mysql -u root -e "use phenDB_devel_PP; delete from phenotypePredictionApp_result_model;"
+mysql -u root -e "use phenDB_devel_PP; delete from phenotypePredictionApp_result_enog;"
