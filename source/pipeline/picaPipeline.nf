@@ -202,6 +202,7 @@ process add_bin_to_db {
     output:
     set val(binname), val(mdsum), file(item), stdout into bin_to_db_out
 
+    tag { binname }
 
     script:
 // language=Python
@@ -256,13 +257,13 @@ process prodigal {
     memory = "450 MB"
 
     input:
-    set val(binname), val(mdsum), file(item), val(calc_bin_or_not) from bin_is_not_in_db
+    set val(binname), val(mdsum), file(item), val(calc_bin_verdict) from bin_is_not_in_db
 
     output:
     set val(binname), val(mdsum), file("prodigalout.faa") into prodigalout
 
     when:
-    calc_bin_or_not.equals("YES")
+    calc_bin_verdict.equals("YES")
 
     script:
     """
@@ -274,14 +275,14 @@ process prodigal {
 process determine_models_that_need_recalculation {
 
     input:
-    set val(binname), val(mdsum), file(item), val(calc_bin_or_not) from bin_is_in_db
+    set val(binname), val(mdsum), file(item), val(calc_bin_verdict) from bin_is_in_db
     each model from models
 
     output:
     set val(binname), val(mdsum), val(model), stdout into determined_if_model_recalculation_needed
 
     when:
-    calc_bin_or_not == "NO"
+    calc_bin_verdict == "NO"
 
     script:
     // language=Python
@@ -315,13 +316,13 @@ determined_if_model_recalculation_needed.into{calc_model; dont_calc_model}
 process uptodate_model_to_targz1 {
 
     input:
-    set val(binname), val(mdsum), val(model), val(calc_model_or_not) from dont_calc_model
+    set val(binname), val(mdsum), val(model), val(calc_model_verdict) from dont_calc_model
 
     output:
     set val(binname), val(mdsum), val(RULEBOOK), val(accuracy), file("verdict_and_accuracy.txt") into new_model_to_targz1_out
     // print YES or NO
     when:
-    calc_model_or_not == "NO"
+    calc_model_verdict == "NO"
 
     script:
     RULEBOOK=model.getBaseName()
@@ -364,13 +365,13 @@ process uptodate_model_to_targz2 {
 process old_model_to_accuracy {
 
     input:
-    set val(binname), val(mdsum), val(model), val(calc_model_or_not) from calc_model
+    set val(binname), val(mdsum), val(model), val(calc_model_verdict) from calc_model
 
     output:
     set val(binname), val(mdsum), val(model), file("reconstructed_hmmer_file.txt"), file("reconstructed_compleconta_file.txt") into accuracy_in_from_old_model
 
     when:
-    calc_model_or_not == "YES"
+    calc_model_verdict == "YES"
 
     script:
     // language=Python
