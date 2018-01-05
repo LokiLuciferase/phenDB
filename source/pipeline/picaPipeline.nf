@@ -27,10 +27,6 @@ log.info"""
     ##################################################################################
     """.stripIndent()
 
-// initialize filecount file
-fastafilecount= file("$outdir/logs/fastafilecount.log")
-fastafilecount.text = ""
-
 // initialize error file for "sanity" errors (eg. corrupt fasta files)
 errorfile= file("$outdir/logs/sanity_errors.log")
 errorfile.text=""
@@ -191,9 +187,8 @@ if os.stat("sanitychecked.fasta").st_size == 0:
 
 }
 
-// Print the number of valid fasta files to a file for progress display
+// sanity_check_for_count is later used in update_job_completeness to count the total nr. of bins
 fasta_sanitycheck_out.into { sanity_check_for_continue; sanity_check_for_count }
-sanity_check_for_count.count().subscribe { fastafilecount.text=it }
 
 process md5sum {
 
@@ -451,6 +446,8 @@ process update_job_completeness {
 
     input:
     set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem) from hmmerout
+    each nr_of_files from sanity_check_for_count.count()
+
     output:
     set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem) into job_updated_out
     script:
@@ -472,7 +469,7 @@ try:
     parentjob = UploadedFile.objects.get(key="${jobname}")
 
     current_status = int(parentjob.job_status) if parentjob.job_status else 0
-    total_valid_count = int('${fastafilecount.text}'.strip())
+    total_valid_count = int(${nr_of_files}) #int('${fastafilecount.text}'.strip())
     plusone = int((1 / total_valid_count)*100)
     
     if (current_status + plusone < 100):
@@ -825,7 +822,7 @@ process zip_results {
     script:
     """
     mkdir -p ${jobname}/summaries
-    cp ${errorfile} ${jobname}/summaries/input_errors.log
+    cp ${errorfile} ${jobname}/summaries/invalid_input_files.log.txt
     mv *.results.tsv ${jobname}/summaries
     mv *.results.txt ${jobname}
     zip -r ${jobname}.zip ./${jobname}
