@@ -44,12 +44,11 @@ process tgz {
     script:
     outfolder = tarfile.getSimpleName()
     """
-    tar -xf $tarfile 
-    rm -f $tarfile
-    
-    if [[ \$(ls) != "$outfolder" ]]; then
-        mv ./*/ $outfolder
-    fi
+    mkdir ${outfolder}
+    mkdir tempfolder
+    tar -xf ${tarfile} --directory tempfolder
+    cd tempfolder
+    mv \$(find . -type f) ../${outfolder}/.
     """
 }
 
@@ -61,42 +60,23 @@ process unzip {
 
     output:
     //file("${zipfile.getSimpleName()}/*/*.fasta") into zip_unraveled_fasta
-    //todo: PP: I changed this from "/*/*" to "/*" - is that ok?
-    file("${zipfile.getSimpleName()}/*/*") into zip_unraveled_all
+    file("${zipfile.getSimpleName()}/*") into zip_unraveled_all
 
     script:
     outfolder = zipfile.getSimpleName()
     """
-    mkdir ${outfolder} && unzip ${zipfile} -d ${outfolder}
+    mkdir ${outfolder}
+    mkdir tempfolder
+    unzip ${zipfile} -d tempfolder
+    cd tempfolder
+    mv \$(find . -type f) ../${outfolder}/.
     """
 }
+
 
 // combine raw fasta files and those extracted from archive files
 //all_fasta_input_files = input_files.mix(tgz_unraveled_fasta.flatten(), zip_unraveled_fasta.flatten())
 truly_all_input_files = all_input_files.mix(tgz_unraveled_all.flatten(), zip_unraveled_all.flatten())
-
-
-//// Error handling
-//truly_all_input_files.subscribe {
-//
-//    //check if there are any non-fasta files
-//    if ((!(it.getName() ==~ /.+\.fasta$/ )) && (!(it.getName() =~ /.+\.tar.gz$/ )) && (!(it.getName() =~ /.+\.zip$/ ))){
-//
-//        endingmess = "WARNING: the file ${it.getName()} does not end in '.fasta', '.zip' or '.tar.gz'.\n" +
-//                     "The file was dropped from the analysis.\n\n"
-//        log.info(endingmess)
-//        errorfile.append(endingmess)
-//
-//    }
-//    //check if there are any files with non-ascii character names
-//    if (!( it.getBaseName() ==~ /^\p{ASCII}+$/ )) {
-//
-//        asciimess = "WARNING: The filename of ${it.getName()} contains non-ASCII characters.\n" +
-//                    "The file was dropped from the analysis.\n\n"
-//        log.info(asciimess)
-//        errorfile.append(asciimess)
-//    }
-//}
 
 // Passes every fasta file through Biopythons SeqIO to check for corrupted files
 process fasta_sanity_check {
@@ -145,8 +125,11 @@ if ("${item}".endswith("tar.gz")):
             tar.close()
             inputfasta="extr/"+str(os.listdir("extr")[0])
             
-        else: 
-            raise 
+        else:
+            with open("${errorfile}", "a") as myfile:
+                myfile.write("WARNING: ${binname} is a compressed directory, not a file. It is dropped from further analysis. (Nested directories cannot be analyzed!) \n\n")
+            sys.exit("There was an unexpected letter in the sequence, aborting.")
+             
 
 elif ("${item}".endswith("tar")):
     os.makedirs("extr")
@@ -157,8 +140,10 @@ elif ("${item}".endswith("tar")):
             tar.close()
             inputfasta="extr/"+str(os.listdir("extr")[0])
     
-        else: 
-            raise 
+        else:
+            with open("${errorfile}", "a") as myfile:
+                myfile.write("WARNING: ${binname} is a compressed directory, not a file. It is dropped from further analysis. (Nested compressed directories cannot be analyzed!) \\n\\n")
+            sys.exit("There was an unexpected letter in the sequence, aborting.")
 else:
     inputfasta="${item}"
 
@@ -170,16 +155,16 @@ with open("sanitychecked.fasta","w") as outfile:
     for read in SeqIO.parse(inputfasta, "fasta", IUPAC.ambiguous_dna):
         if not Alphabet._verify_alphabet(read.seq):
             with open("${errorfile}", "a") as myfile:
-                myfile.write("WARNING: There was an unexpected DNA letter in the sequence of file ${binname}.\\n")
-                myfile.write("Allowed letters are G,A,T,C,R,Y,W,S,M,K,H,B,V,D,N.\\n")
-                myfile.write("The file was dropped from the analysis.\\n\\n")
+                myfile.write("WARNING: There was an unexpected DNA letter in the sequence of file ${binname}.\n")
+                myfile.write("Allowed letters are G,A,T,C,R,Y,W,S,M,K,H,B,V,D,N.\n")
+                myfile.write("The file was dropped from the analysis.\n\n")
             os.remove("sanitychecked.fasta")
             sys.exit("There was an unexpected letter in the sequence, aborting.")
             
         SeqIO.write(read, outfile, "fasta")
 if os.stat("sanitychecked.fasta").st_size == 0:
     with open("${errorfile}", "a") as myfile:
-        myfile.write("WARNING: The file ${binname} is empty or not a fasta file and was dropped from the analysis.\\n\\n")
+        myfile.write("WARNING: The file ${binname} is empty or not a fasta file and was dropped from the analysis.\n\n")
     os.remove("sanitychecked.fasta")
     sys.exit("The file is empty or not in fasta format, aborting.")
 
@@ -469,7 +454,7 @@ try:
     parentjob = UploadedFile.objects.get(key="${jobname}")
 
     current_status = int(parentjob.job_status) if parentjob.job_status else 0
-    total_valid_count = int(${nr_of_files}) #int('${fastafilecount.text}'.strip())
+    total_valid_count = int(${nr_of_files}) 
     plusone = int((1 / total_valid_count)*100)
     
     if (current_status + plusone < 100):
