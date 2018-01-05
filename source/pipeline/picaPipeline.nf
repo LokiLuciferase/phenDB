@@ -66,7 +66,7 @@ process unzip {
     output:
     //file("${zipfile.getSimpleName()}/*/*.fasta") into zip_unraveled_fasta
     //todo: PP: I changed this from "/*/*" to "/*" - is that ok?
-    file("${zipfile.getSimpleName()}/*") into zip_unraveled_all
+    file("${zipfile.getSimpleName()}/*/*") into zip_unraveled_all
 
     script:
     outfolder = zipfile.getSimpleName()

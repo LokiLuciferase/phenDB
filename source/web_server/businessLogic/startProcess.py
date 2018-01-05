@@ -20,9 +20,12 @@ class startProcessThread(threading.Thread):
         infolder = os.path.join(str(web_server_folder), str(relFilePath)[1:])
         print("infolder:", infolder)
 
-        runscript_path = "/apps/phenDB/source/pipeline/run_picaPipeline.sh"
-        pipeline_path = "/apps/phenDB/source/pipeline/picaPipeline.nf"
-        above_workfolder = "/apps/phenDB/source/web_server/results/resultFiles"
+        # runscript_path = "/apps/phenDB/source/pipeline/run_picaPipeline.sh"
+        # pipeline_path = "/apps/phenDB/source/pipeline/picaPipeline.nf"
+        # above_workfolder = "/apps/phenDB/source/web_server/results/resultFiles"
+        runscript_path = "/apps/phenDB_devel_PP/phenDB/source/pipeline/run_picaPipeline.sh"
+        pipeline_path = "/apps/phenDB_devel_PP/phenDB/source/pipeline/picaPipeline.nf"
+        above_workfolder = "/apps/phenDB_devel_PP/phenDB/source/web_server/results/resultFiles"
         # runscript_path = "/apps/phenDB_devel_LL/phenDB/source/pipeline/run_picaPipeline.sh"
         # pipeline_path = "/apps/phenDB_devel_LL/phenDB/source/pipeline/picaPipeline.nf"
         # above_workfolder = "/apps/phenDB_devel_LL/phenDB/source/web_server/results/resultFiles"
