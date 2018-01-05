@@ -253,7 +253,7 @@ process prodigal {
     tag { binname }
     maxForks 10
 
-    memory = "2 GB"
+    memory = "450 MB"
 
     input:
     set val(binname), val(mdsum), file(item), val(calc_bin_or_not) from bin_is_not_in_db
@@ -577,7 +577,7 @@ process accuracy {
 
     tag { "${binname}_${model.getBaseName()}" }
 
-    memory = '10 MB'
+    memory = '300 MB'
 
     input:                       // .mix: this is where models from bins that were already in the db, but that have outdated results, are added
     set val(binname), val(mdsum), val(model), file(hmmeritem), file(complecontaitem) from accuracy_in.mix(accuracy_in_from_old_model)
@@ -634,7 +634,7 @@ process pica {
 
     tag { "${binname}_${model.getBaseName()}" }
 
-    memory = '500 MB'
+    memory = '800 MB'
 
     input:
     set val(binname), val(mdsum), val(model), file(hmmeritem), val(accuracy) from accuracyout
