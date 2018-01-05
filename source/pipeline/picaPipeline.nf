@@ -9,7 +9,10 @@ models = file(params.modelfolder).listFiles()
 input_files = Channel.fromPath("${params.inputfolder}/*.fasta")
 input_gzipfiles = Channel.fromPath("${params.inputfolder}/*.tar.gz")
 input_barezipfiles = Channel.fromPath("${params.inputfolder}/*.zip")
-all_input_files = Channel.fromPath("${params.inputfolder}/*")
+
+all_input_files = Channel.fromPath("${params.inputfolder}/*").filter{!it.name.endsWith('.tar.gz') && !it.name.endsWith('.zip')}
+
+
 hmmdb = file(params.hmmdb)
 
 log.info"""
@@ -127,8 +130,8 @@ if ("${item}".endswith("tar.gz")):
             
         else:
             with open("${errorfile}", "a") as myfile:
-                myfile.write("WARNING: ${binname} is a compressed directory, not a file. It is dropped from further analysis. (Nested directories cannot be analyzed!) \n\n")
-            sys.exit("There was an unexpected letter in the sequence, aborting.")
+                myfile.write("WARNING: ${binname} is a compressed directory, not a file. It is dropped from further analysis; Nested directories cannot be analyzed! \\n\\n")
+            sys.exit("${binname} is a compressed directory, not a file. Aborting.")
              
 
 elif ("${item}".endswith("tar")):
@@ -142,8 +145,8 @@ elif ("${item}".endswith("tar")):
     
         else:
             with open("${errorfile}", "a") as myfile:
-                myfile.write("WARNING: ${binname} is a compressed directory, not a file. It is dropped from further analysis. (Nested compressed directories cannot be analyzed!) \\n\\n")
-            sys.exit("There was an unexpected letter in the sequence, aborting.")
+                myfile.write("WARNING: ${binname} is a compressed directory, not a file. It is dropped from further analysis; Nested directories cannot be analyzed! \\n\\n")
+            sys.exit("${binname} is a compressed directory, not a file. Aborting.")
 else:
     inputfasta="${item}"
 
@@ -155,16 +158,16 @@ with open("sanitychecked.fasta","w") as outfile:
     for read in SeqIO.parse(inputfasta, "fasta", IUPAC.ambiguous_dna):
         if not Alphabet._verify_alphabet(read.seq):
             with open("${errorfile}", "a") as myfile:
-                myfile.write("WARNING: There was an unexpected DNA letter in the sequence of file ${binname}.\n")
-                myfile.write("Allowed letters are G,A,T,C,R,Y,W,S,M,K,H,B,V,D,N.\n")
-                myfile.write("The file was dropped from the analysis.\n\n")
+                myfile.write("WARNING: There was an unexpected DNA letter in the sequence of file ${binname}.\\n")
+                myfile.write("Allowed letters are G,A,T,C,R,Y,W,S,M,K,H,B,V,D,N.\\n")
+                myfile.write("The file was dropped from the analysis.\\n\\n")
             os.remove("sanitychecked.fasta")
             sys.exit("There was an unexpected letter in the sequence, aborting.")
             
         SeqIO.write(read, outfile, "fasta")
 if os.stat("sanitychecked.fasta").st_size == 0:
     with open("${errorfile}", "a") as myfile:
-        myfile.write("WARNING: The file ${binname} is empty or not a fasta file and was dropped from the analysis.\n\n")
+        myfile.write("WARNING: The file ${binname} is empty or not a fasta file and was dropped from the analysis.\\n\\n")
     os.remove("sanitychecked.fasta")
     sys.exit("The file is empty or not in fasta format, aborting.")
 
