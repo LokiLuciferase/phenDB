@@ -75,30 +75,16 @@ WSGI_APPLICATION = 'phenotypePrediction.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': os.path.join(BASE_DIR, 'phenotypePredictionApp/phenDB.sqlite3'),
-#     }
-# }
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'phenDB_devel_PP',
-        'USER': 'devel_PP',
+        'NAME': 'phenDB_devel_LL',
+        'USER': 'devel_LL',
         'PASSWORD': 'devel_pw',
         'HOST': 'localhost',
         'PORT': '',
     }
 }
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'phenDB'
-#     }
-# }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
