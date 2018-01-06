@@ -1,0 +1,77 @@
+BootStrap: docker
+From: centos:latest
+
+%post
+	echo "Building phenDB container..."
+	yum -y groupinstall "Development Tools"
+	yum -y install epel-release yum-utils automake make python2 gzip zip unzip git curl wget which
+	yum -y install java-1.8.0-openjdk python34
+	yum -y install python-devel
+	wget https://bootstrap.pypa.io/get-pip.py && python2 get-pip.py && python3 get-pip.py
+	pip3 install biopython Django django-ipware gunicorn numpy pytz setuptools
+	pip2 install biopython backports.ssl-match-hostname
+
+	curl -s https://get.nextflow.io | bash
+	mv nextflow /usr/bin
+	mkdir /apps && cd /apps
+
+	git clone https://github.com/LokiLuciferase/phenDB.git
+	chmod 777 -R phenDB
+
+	git clone https://github.com/hyattpd/Prodigal.git && cd Prodigal
+	make install
+	cd /apps/
+
+	mkdir muscle && cd muscle
+	wget https://www.drive5.com/muscle/downloads3.8.31/muscle3.8.31_i86linux64.tar.gz && tar -xf muscle3.8.31_i86linux64.tar.gz
+	mv muscle3.8.31_i86linux64 /usr/bin/muscle
+	cd /apps/
+
+	git clone https://github.com/phyden/compleconta && cd compleconta
+	chmod +x -R .
+	sed -ie 's/\/usr\/env/\/usr\/bin\/env/g' compleconta.py
+	ln -s /apps/compleconta/compleconta.py /usr/bin
+	ln -s /apps/compleconta/compleconta /usr/bin
+	cd /apps/
+
+	mkdir hmmer && cd hmmer
+	wget http://eddylab.org/software/hmmer3/3.1b2/hmmer-3.1b2-linux-intel-x86_64.tar.gz && tar -xf hmmer-3.1b2-linux-intel-x86_64.tar.gz
+	cd hmmer-3.1b2-linux-intel-x86_64/binaries
+	mv * /usr/bin
+	cd /apps/
+
+	git clone https://github.com/univieCUBE/PICA.git && cd PICA
+	chmod +x *
+	ln -s /apps/PICA/test.py /usr/bin
+	
+	ln -s /apps/phenDB/source/pipeline/phenDB_simple_pipeline.nf /usr/bin/phenDB
+	ln -s /apps/phenDB/source/pipeline/*.sh /usr/bin
+	ln -s /apps/phenDB/source/pipeline/*.config /usr/bin
+	ln -s /apps/phenDB/source/pipeline/scripts/get_balanced_accuracy.py /usr/bin
+	ln -s /apps/phenDB/source/pipeline/scripts/hmmc.py /usr/bin
+
+	
+%runscript
+	echo "###########################   PhenDB Singularity Container v0.1   #########################"
+    echo "Most of us pass the listless days in these cells on our backs, gazing into the darkness which acts as our ceiling. It is all too easy to succumb to the perpetual oneiric existence this lifestyle offers.
+	The only openings in the cells are a single chest high window on each wall, which allow us to communicate with those in the surrounding cells, and a network of fine cracks that exists on every visible surface. None can say with certainty whether there is anything solid beyond that pitch overhead. To those who seek escape, it seems the only reasonable method is to enter one of the cracks.
+	Some of us have succeeded in projecting ourselves into these tiny spaces and momentarily existing therein. With practice and skill, these moments can be stretched into minutes, then hours, then days. Existence in these spaces between is usually pleasant, but can be terrifying if one loses his head. Most will agree that the worst aspect of passing time there is the always present knowledge of the cell and the body we will return to.
+	There are whispers of cells that house decayed bodies. Some think that these bodies are left by those who have discovered the method to exist permanently beyond. I believe there is a way to escape in the aether space of the cracks and I intend to discover that path and to leave a map for the others to follow."
+	echo -e "\n --Bosse-de-Nage, \"Cells\""
+	echo ""
+	
+	prodigal -h
+	which hmmc.py
+	which compleconta.py
+	which test.py
+	which muscle
+	nextflow -h
+	which phenDB
+	
+	phenDB -h
+	
+	
+%labels
+	
+	Version 0.1
+	Hatemail to: <add_email_here>

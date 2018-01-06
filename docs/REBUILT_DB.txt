@@ -1,5 +1,6 @@
 Delete everything except "__init__.py" in source/web-server/phenotypePredictionApp/migrations
-Delete source/web-server/phenotypePredictionApp/phenDB.sqlite3
+drop the database from mariadb and rebuild it (name of db given in the settings.py file in the database dict) and give
+the relevant user all privileges on it
 
 1. Run "python3.6 source/web-server/manage.py makemigrations"
 2. Run "python3.6 source/web-server/manage.py migrate"

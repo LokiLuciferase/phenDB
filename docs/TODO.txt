@@ -17,6 +17,11 @@ Database ( ) (LL):
 -make new database for enog x enog function to conserve space!
 - check if bin exists before calculation, new model sceme for bin (PP)
 
+Singularity:
+- enable hmmer calculation inside container (remodel hmmc.py?)
+- download models automatically
+-
+
 Other stuff:
 - model: appear, disappear, change. Upon update: overwrite and check dates against dates in databases
 -if there is a new enog version nr: wipe out the database. need a description of that.

@@ -6,8 +6,6 @@ function usage()
     echo ""
     echo -e "\tNo arguments: start chromium browser and run gunicorn server for phenDB."
     echo -e "\t-h --help"
-    echo -e "\t--view-bins\tdisplay bins in database"
-    echo -e "\t--view-jobs\tdisplay jobs in database"
     echo -e "\t--purge\tremove jobs, bins and associated data\n\t\tfrom database, then start chromium and run server"
     echo ""
 }
@@ -17,18 +15,6 @@ function runserver() {
     cd /apps/phenDB_devel_LL/source/web_server
     nohup chromium-browser http://127.0.0.1:8000/phendb &> /dev/null &
     gunicorn phenotypePrediction.wsgi
-}
-
-function showbins() {
-    echo "Viewing table 'bin' from database, then exiting..."
-    sqlite3 /apps/phenDB_devel_LL/source/web_server/phenotypePredictionApp/phenDB.sqlite3 "select * from phenotypePredictionApp_bin;"
-    echo ""
-}
-
-function showjobs() {
-    echo "Viewing table 'UploadedFile' from database, then exiting..."
-    sqlite3 /apps/phenDB_devel_LL/source/web_server/phenotypePredictionApp/phenDB.sqlite3 "select * from phenotypePredictionApp_UploadedFile;"
-    echo ""
 }
 
 function purge() {
@@ -51,12 +37,6 @@ while [ "$1" != "" ]; do
         --purge)
             purge
             runserver
-            ;;
-        --view-jobs)
-            showjobs
-            ;;
-        --view-bins)
-            showbins
             ;;
         *)
             echo "ERROR: unknown parameter \"$PARAM\""

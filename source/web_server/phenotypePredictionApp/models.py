@@ -134,8 +134,8 @@ class model_accuracies(models.Model):
     comple = models.FloatField()
     conta = models.FloatField()
     mean_balanced_accuracy  = models.FloatField()
-    mean_fp_rate  = models.FloatField()
-    mean_fn_rate  = models.FloatField()
+    mean_fp_rate = models.FloatField()
+    mean_fn_rate = models.FloatField()
 
 
     def __str__(self):
