@@ -501,7 +501,7 @@ process pica_bacteria {
     set val(binname), val(mdsum), file(hmmeritem), val(complecontaitem) from complecontaout
 
     output:
-    set val(binname), val(mdsum), val(hmmeritem), val(complecontaitem), stdout into bacteria_checked  // "YES"= is bacterium
+    set val(binname), val(mdsum), file(hmmeritem), val(complecontaitem), stdout into bacteria_checked  // "YES"= is bacterium
 
     script:
     RULEBOOK = "<enter model name for bacteria here"
