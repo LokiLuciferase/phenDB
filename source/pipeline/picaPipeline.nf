@@ -488,8 +488,36 @@ process compleconta {
     """
 }
 
+// determine if the uploaded bin is a bacterium. add verdict to set
+// later on, use verdict to omit certain models for archaea
+// TODO: implement this, right now all are treated as bacteria
+process pica_bacteria {
 
-complecontaout.into{complecontaout_for_call_accuracy; complecontaout_for_hmmerresults_to_db}
+    tag { "${binname}_${model.getBaseName()}" }
+
+    memory = '500 MB'
+
+    input:
+    set val(binname), val(mdsum), file(hmmeritem), val(complecontaitem) from complecontaout
+
+    output:
+    set val(binname), val(mdsum), val(hmmeritem), val(complecontaitem), stdout into bacteria_checked  // "YES"= is bacterium
+
+    script:
+    RULEBOOK = "<enter model name for bacteria here"
+    model = "<enter path to bacteria model here"
+    TEST_MODEL = "$model/${RULEBOOK}.rules"
+
+    """
+    #echo -ne "${binname}\t" > tempfile.tmp
+    #cut -f2 $hmmeritem | tr "\n" "\t" >> tempfile.tmp
+    #test.py -m $TEST_MODEL -t $RULEBOOK -s tempfile.tmp > picaout.result
+    #echo -n \$(cat picaout.result | tail -n1 | cut -f2)
+    echo -n "YES"
+    """
+}
+
+bacteria_checked.into{complecontaout_for_call_accuracy; complecontaout_for_hmmerresults_to_db}
 
 process write_hmmer_results_to_db {
 
@@ -499,7 +527,7 @@ process write_hmmer_results_to_db {
                 // TODO: check if enog.objects.in_bulk() makes sense also here
 
     input:
-    set val(binname), val(mdsum), file(hmmeritem), file(complecontaitem) from complecontaout_for_hmmerresults_to_db
+    set val(binname), val(mdsum), file(hmmeritem), file(complecontaitem), val(is_bacterium) from complecontaout_for_hmmerresults_to_db
 
     script:
 // language=Python
@@ -558,7 +586,7 @@ process call_accuracy_for_all_models {
     memory = '10 MB'
 
     input:
-    set val(binname), val(mdsum), file(hmmeritem), file(complecontaitem) from complecontaout_for_call_accuracy
+    set val(binname), val(mdsum), file(hmmeritem), file(complecontaitem), val(is_bacterium) from complecontaout_for_call_accuracy
     //todo: do not rely on folder but on db here
     each model from models
 
@@ -566,7 +594,7 @@ process call_accuracy_for_all_models {
     set val(binname), val(mdsum), val(model), file(hmmeritem), file(complecontaitem) into accuracy_in
 
     when:
-    model.isDirectory()
+    model.isDirectory() && (is_bacterium == "YES" || !(params.omit_in_archaea.contains(model)))
 
     script:
     """
@@ -713,7 +741,7 @@ process make_matrix_and_headers {
 
     output:
     file("*.{txt,tsv}") into all_files_for_tar
-
+// language=python
 """
 #!/usr/bin/env python3
 
