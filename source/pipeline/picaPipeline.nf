@@ -493,7 +493,7 @@ process compleconta {
 // TODO: implement this, right now all are treated as bacteria
 process pica_bacteria {
 
-    tag { "${binname}_${model.getBaseName()}" }
+    tag { binname }
 
     memory = '500 MB'
 
@@ -509,8 +509,8 @@ process pica_bacteria {
     TEST_MODEL = "$model/${RULEBOOK}.rules"
 
     """
-    #echo -ne "${binname}\t" > tempfile.tmp
-    #cut -f2 $hmmeritem | tr "\n" "\t" >> tempfile.tmp
+    #echo -ne "${binname}\\t" > tempfile.tmp
+    #cut -f2 $hmmeritem | tr "\\n" "\\t" >> tempfile.tmp
     #test.py -m $TEST_MODEL -t $RULEBOOK -s tempfile.tmp > picaout.result
     #echo -n \$(cat picaout.result | tail -n1 | cut -f2)
     echo -n "YES"
@@ -679,8 +679,8 @@ process pica {
 //
 //    if (accuracy_float >= accuracy_cutoff) {
     """
-    echo -ne "${binname}\t" > tempfile.tmp
-    cut -f2 $hmmeritem | tr "\n" "\t" >> tempfile.tmp
+    echo -ne "${binname}\\t" > tempfile.tmp
+    cut -f2 $hmmeritem | tr "\\n" "\\t" >> tempfile.tmp
     test.py -m $TEST_MODEL -t $RULEBOOK -s tempfile.tmp > picaout.result
     echo -n \$(cat picaout.result | tail -n1 | cut -f2,3)
     """
