@@ -26,7 +26,7 @@ class startProcessThread(threading.Thread):
         # pipeline_path = "/apps/phenDB_devel_PP/phenDB/source/pipeline/picaPipeline.nf"
         # above_workfolder = "/apps/phenDB_devel_PP/phenDB/source/web_server/results/resultFiles"
         runscript_path = "/apps/phenDB_devel_LL/source/pipeline/run_picaPipeline.sh"
-        pipeline_path = "/apps/phenDB_devel_LL/phenDB/pipeline/picaPipeline.nf"
+        pipeline_path = "/apps/phenDB_devel_LL/source/pipeline/picaPipeline.nf"
         above_workfolder = "/apps/phenDB_devel_LL/source/web_server/results/resultFiles"
 
         pica_cutoff = "0.5"
