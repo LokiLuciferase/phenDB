@@ -342,10 +342,17 @@ process uptodate_model_to_targz1 {
     django.setup()
     from phenotypePredictionApp.models import *
     
-    #with open("verdict_and_accuracy.txt", "w") as v_a:    
-
-    #check the database for the entries and print them to file
-
+    #with open("verdict_and_accuracy.txt", "w") as v_a:   
+        
+        picaresult=result_model.objects.get(model=model.objects.filter(model_name="${RULEBOOK}").latest('model_train_date'), bin=bin.objects.get(md5sum="${mdsum}"))     
+        verdict= "YES" if not picaresult.verdict else "NO"
+        pica_pval= "N/A" if picaresult.pica_pval == 0.0 else str(picaresult.pica_pval)  
+        accuracy=str(picaresult.accuracy)      
+        write_this=verdict+" "+pica_pval+"\\t"+accuracy      
+        v_a.write(write_this)
+        
+        
+    
     """
 }
 
@@ -358,8 +365,9 @@ process uptodate_model_to_targz2 {
 
     script:
     //TODO: read verdict and accuracy from the file
-    verdict=""
-    accuracy=0
+    splitted=verdict_and_accuracy.text.split("\t")
+    verdict=splitted[0]
+    accuracy=[1]
 
 }
 
