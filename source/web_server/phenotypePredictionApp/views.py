@@ -78,7 +78,7 @@ def getResults(request):
         else:
             showErrorMessage = obj.errors
             error_summary = 'Invalid input file(s)'
-            error_message = 'Please check the invalid_input_files.log file'
+            error_message = 'Please check the invalid_input_files.log file in the summaries directory'
     else:
         showResult = 'none'
         showProgressBar = True

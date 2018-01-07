@@ -174,11 +174,12 @@ class result_model(models.Model):
     model = models.ForeignKey(model)
     verdict = models.NullBooleanField()
     pica_pval = models.FloatField()
-    accuracy = models.FloatField() #change this to predicion probability
+    accuracy = models.FloatField()
 
     def __str__(self):
-        return "Bin {mds}: {v} ({acc} accuracy) for model {mid} trained on {mtd}.".format(mds=self.bin.bin_name,
+        return "Bin {mds}: {v} ({acc} accuracy, {pval} pica_p_value) for model {mid} trained on {mtd}.".format(mds=self.bin.bin_name,
                                                                                           v=str(self.verdict),
                                                                                           acc=str(self.accuracy),
+                                                                                        pval=str(self.pica_pval),
                                                                                           mid=self.model.model_name,
                                                                                           mtd=str(self.model.model_train_date))

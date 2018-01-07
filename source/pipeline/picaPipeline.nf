@@ -321,7 +321,7 @@ process uptodate_model_to_targz1 {
     set val(binname), val(mdsum), val(model), val(calc_model_or_not) from dont_calc_model
 
     output:
-    set val(binname), val(mdsum), val(RULEBOOK), val(accuracy), file("verdict_and_accuracy.txt") into new_model_to_targz1_out
+    set val(binname), val(mdsum), val(RULEBOOK), stdout into new_model_to_targz1_out
     // print YES or NO
     when:
     calc_model_or_not == "NO"
@@ -341,25 +341,42 @@ process uptodate_model_to_targz1 {
     
     django.setup()
     from phenotypePredictionApp.models import *
+
+    picaresult=result_model.objects.get(model=model.objects.filter(model_name="${RULEBOOK}").latest('model_train_date'), bin=bin.objects.get(md5sum="${mdsum}"))     
     
-    #with open("verdict_and_accuracy.txt", "w") as v_a:    
-
-    #check the database for the entries and print them to file
-
+    try:
+        if picaresult.verdict == True:
+            verdict="YES"
+        elif picaresult.verdict == None:
+            verdict = "N/A"
+        else:
+            verdict= "NO" 
+    except:
+            verdict="N/A"
+    pica_pval= "N/A" if picaresult.pica_pval == 0.0 else str(picaresult.pica_pval)  
+    accuracy=str(picaresult.accuracy)      
+    write_this=verdict+" "+pica_pval+"\\t"+accuracy    
+    print(write_this, end="")        
+    
     """
 }
 
 process uptodate_model_to_targz2 {
 
     input:
-    set val(binname), val(mdsum), val(RULEBOOK), val(accuracy), file(verdict_and_accuracy) from new_model_to_targz1_out
+    set val(binname), val(mdsum), val(RULEBOOK), val(verdict_and_accuracy) from new_model_to_targz1_out
     output:
     set val(binname), val(mdsum), val(RULEBOOK), val(verdict), val(accuracy) into picaout_from_new_model //
 
-    script:
-    //TODO: read verdict and accuracy from the file
-    verdict=""
-    accuracy=0
+    exec:
+//    accuracy=0
+//    verdict="YES 1"
+//    println verdict_and_accuracy
+    splitted=verdict_and_accuracy.split("\t")
+    verdict=splitted[0]
+    accuracy=splitted[1] as float
+    accuracy+="\n"
+
 
 }
 
@@ -624,6 +641,8 @@ process accuracy {
         sys.exit("Bin not found.")
     
     #check the balanced accuracy. other metrices would be very similar to evaluate, just change the part after the last dot
+    # the print statments includes a newline at the end, this is important for processing further downstream
+    
     print(model_accuracies.objects.get(model=model.objects.filter(model_name="${model.getBaseName()}").latest('model_train_date'),
     comple=round_nearest(float(parentbin.comple),0.05), 
     conta=round_nearest(float(parentbin.conta),0.05)).mean_balanced_accuracy)
@@ -673,6 +692,8 @@ picaout.into{picaout_db_write; picaout_for_download}
 
 // replace the verdict of pica with "N/A" if the balanced accuracy is below the treshold
 process replace_with_NA {
+    tag { "${binname}_${RULEBOOK}" }
+
     input:                         // .mix: include the results from bins that were already in the db that used up-to-date-models
     set val(binname), val(mdsum), val(RULEBOOK), val(verdict_pica_pval), val(accuracy) from picaout_for_download.mix(picaout_from_new_model)
 
@@ -832,8 +853,6 @@ db_written = picaout_db_write.collectFile() { item ->
 //TODO: add pica_pvalue to model_results
 process write_pica_result_to_db {
 
-    //errorStrategy 'ignore'
-
     input:
     file(mdsum_file) from db_written
 
@@ -870,7 +889,11 @@ modelresultlist=[]
 for result in conditions:  # result = [modelname, verdict, pica_p_val, balanced_accuracy]
     try:
         get_bool = {"YES": True, "NO": False, "N/A": None}
-        get_pica_pval = float(result[2]) if type(result[2]) != str else float(0)
+        if result[2]=="NA" or result[2]=="N/A":
+            get_pica_pval=float(0)
+        else:
+            get_pica_pval=float(result[2])
+
         
         boolean_verdict = get_bool[result[1]]
         #get model from db
