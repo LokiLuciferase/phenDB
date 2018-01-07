@@ -341,9 +341,18 @@ process uptodate_model_to_targz1 {
     
     django.setup()
     from phenotypePredictionApp.models import *
-    
+
     picaresult=result_model.objects.get(model=model.objects.filter(model_name="${RULEBOOK}").latest('model_train_date'), bin=bin.objects.get(md5sum="${mdsum}"))     
-    verdict= "YES" if not picaresult.verdict else "NO"
+    
+    try:
+        if picaresult.verdict == True:
+            verdict="YES"
+        elif picaresult.verdict == None:
+            verdict = "N/A"
+        else:
+            verdict= "NO" 
+    except:
+            verdict="N/A"
     pica_pval= "N/A" if picaresult.pica_pval == 0.0 else str(picaresult.pica_pval)  
     accuracy=str(picaresult.accuracy)      
     write_this=verdict+" "+pica_pval+"\\t"+accuracy    
@@ -881,9 +890,10 @@ for result in conditions:  # result = [modelname, verdict, pica_p_val, balanced_
     try:
         get_bool = {"YES": True, "NO": False, "N/A": None}
         if result[2]=="NA" or result[2]=="N/A":
-            get_pica_pval=float(result[2])
-        else:
             get_pica_pval=float(0)
+        else:
+            get_pica_pval=float(result[2])
+
         
         boolean_verdict = get_bool[result[1]]
         #get model from db
