@@ -12,20 +12,20 @@ class startProcessThread(threading.Thread):
 
     def run(self):
         print('startProcess called')
-        # web_server_folder = "/apps/phenDB/source/web_server"
-        web_server_folder = "/apps/phenDB_devel_PP/phenDB/source/web_server"
+        web_server_folder = "/apps/phenDB/source/web_server"
+        # web_server_folder = "/apps/phenDB_devel_PP/phenDB/source/web_server"
         # web_server_folder = "/apps/phenDB_devel_LL/source/web_server"
 
         relFilePath = os.path.dirname(UploadedFile.objects.get(key=self.keyname).fileInput.url)
         infolder = os.path.join(str(web_server_folder), str(relFilePath)[1:])
         print("infolder:", infolder)
 
-        # runscript_path = "/apps/phenDB/source/pipeline/run_picaPipeline.sh"
-        # pipeline_path = "/apps/phenDB/source/pipeline/picaPipeline.nf"
-        # above_workfolder = "/apps/phenDB/source/web_server/results/resultFiles"
-        runscript_path = "/apps/phenDB_devel_PP/phenDB/source/pipeline/run_picaPipeline.sh"
-        pipeline_path = "/apps/phenDB_devel_PP/phenDB/source/pipeline/picaPipeline.nf"
-        above_workfolder = "/apps/phenDB_devel_PP/phenDB/source/web_server/results/resultFiles"
+        runscript_path = "/apps/phenDB/source/pipeline/run_picaPipeline.sh"
+        pipeline_path = "/apps/phenDB/source/pipeline/picaPipeline.nf"
+        above_workfolder = "/apps/phenDB/source/web_server/results/resultFiles"
+        # runscript_path = "/apps/phenDB_devel_PP/phenDB/source/pipeline/run_picaPipeline.sh"
+        # pipeline_path = "/apps/phenDB_devel_PP/phenDB/source/pipeline/picaPipeline.nf"
+        # above_workfolder = "/apps/phenDB_devel_PP/phenDB/source/web_server/results/resultFiles"
         # runscript_path = "/apps/phenDB_devel_LL/phenDB/source/pipeline/run_picaPipeline.sh"
         # pipeline_path = "/apps/phenDB_devel_LL/phenDB/source/pipeline/picaPipeline.nf"
         # above_workfolder = "/apps/phenDB_devel_LL/phenDB/source/web_server/results/resultFiles"
@@ -34,9 +34,9 @@ class startProcessThread(threading.Thread):
         node_offs = ""
 
         os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
-        #os.environ["PYTHONPATH"] = "/apps/phenDB/source/web_server:$PYTHONPATH"
-        #os.environ["PYTHONPATH"] = "/apps/phenDB_devel_LL/source/web_server:$PYTHONPATH"
-        os.environ["PYTHONPATH"] = "/apps/phenDB_devel_PP/phenDB/source/web_server:$PYTHONPATH"
+        os.environ["PYTHONPATH"] = "/apps/phenDB/source/web_server:$PYTHONPATH"
+        # os.environ["PYTHONPATH"] = "/apps/phenDB_devel_LL/source/web_server:$PYTHONPATH"
+        # os.environ["PYTHONPATH"] = "/apps/phenDB_devel_PP/phenDB/source/web_server:$PYTHONPATH"
 
         # create workfolder
         outfolder = os.path.join(above_workfolder, "{jn}_results".format(jn=self.keyname))
