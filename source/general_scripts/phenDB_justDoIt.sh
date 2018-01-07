@@ -14,26 +14,30 @@ function usage()
 
 function runserver() {
     echo "Starting web server and opening a browser window..."
-    cd /apps/phenDB_devel_LL/source/web_server
+    #cd /apps/phenDB_devel_LL/source/web_server
+    #cd /apps/phenDB_devel_PP/phenDB/source/web_server
+    cd /apps/phenDB/source/web_server
+
     nohup chromium-browser http://127.0.0.1:8000/phendb &> /dev/null &
     gunicorn phenotypePrediction.wsgi
 }
 
 function showbins() {
     echo "Viewing table 'bin' from database, then exiting..."
-    sqlite3 /apps/phenDB_devel_LL/source/web_server/phenotypePredictionApp/phenDB.sqlite3 "select * from phenotypePredictionApp_bin;"
+    mysql -u root -e "use phenDB; select * from phenotypePredictionApp_bin;"
     echo ""
 }
 
 function showjobs() {
     echo "Viewing table 'UploadedFile' from database, then exiting..."
-    sqlite3 /apps/phenDB_devel_LL/source/web_server/phenotypePredictionApp/phenDB.sqlite3 "select * from phenotypePredictionApp_UploadedFile;"
+    mysql -u root -e "use phenDB; select * from phenotypePredictionApp_uploadedfile;"
     echo ""
 }
 
 function purge() {
     echo "Purging samples from database..."
-    bash /apps/phenDB_devel_LL/source/general_scripts/purge_samples_from_db.sh
+    bash /apps/phenDB/source/general_scripts/purge_samples_from_db.sh
+    #bash /apps/phenDB_devel_LL/source/general_scripts/purge_samples_from_db.sh
 }
 
 if [[ $# -eq 0 ]]; then
