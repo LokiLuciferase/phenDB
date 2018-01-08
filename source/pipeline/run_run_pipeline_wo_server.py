@@ -4,7 +4,8 @@ import os
 import os.path
 import threading
 
-infolder = "/home/phen_work/test_samplesets/abc_folder"
+#infolder = "/home/phen_work/test_samplesets/abc_folder"
+infolder = "/home/phen_work/test_samplesets/test/C2406.fasta"
 #infolder = "/home/phen_work/test_samplesets/dereplicated_genomes"
 
 runscript_path = "/apps/phenDB_devel_PP/phenDB/source/pipeline/run_picaPipeline.sh"
@@ -19,7 +20,9 @@ os.environ["PYTHONPATH"] = "/apps/phenDB_devel_PP/phenDB/source/web_server:$PYTH
 
 # create workfolder
 #outfolder = os.path.join(above_workfolder, "{jn}_results".format(jn="dereplicated_genomes"))
-outfolder = os.path.join(above_workfolder, "{jn}_results".format(jn="abc2"))
+#outfolder = os.path.join(above_workfolder, "{jn}_results".format(jn="abc2"))
+outfolder = os.path.join(above_workfolder, "{jn}_results".format(jn="C2406"))
+
 os.makedirs(outfolder, exist_ok=True)
 
 # create log folder

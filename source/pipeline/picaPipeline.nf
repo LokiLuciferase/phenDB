@@ -84,8 +84,6 @@ truly_all_input_files = all_input_files.mix(tgz_unraveled_all.flatten(), zip_unr
 // Passes every fasta file through Biopythons SeqIO to check for corrupted files
 process fasta_sanity_check {
 //todo: output also sequences-only for md5sum?
-    //todo: at the moment, the zip file itself is also processed here. ok for now but not pretty
-    //todo: maybe recursively uncompress everything we can find and put it into one folder beforehand?
     errorStrategy 'ignore'
     tag { binname }
     maxForks 10
@@ -284,7 +282,7 @@ process determine_models_that_need_recalculation {
     set val(binname), val(mdsum), val(model), stdout into determined_if_model_recalculation_needed
 
     when:
-    calc_bin_or_not == "NO"
+    calc_bin_or_not == "NO" && model.isDirectory()
 
     script:
     // language=Python
@@ -382,7 +380,7 @@ process uptodate_model_to_targz2 {
 
 // if the results in our db for this bin and model are outdated, a hmmerfile & compleconta file needs to be reconstructed and pica needs to be called
 process old_model_to_accuracy {
-
+//todo: hmmer file is reconstruced for every single outdated model, even though the file is always the same. How to circumvent this?
     input:
     set val(binname), val(mdsum), val(model), val(calc_model_or_not) from calc_model
 
@@ -407,14 +405,17 @@ process old_model_to_accuracy {
     django.setup()
     from phenotypePredictionApp.models import *
     
-    #with open("reconstructed_hmmer_file.txt", "w") as hmmer:
-        # TODO: construct hmmer file
+    try:
+        parentbin = bin.objects.get(md5sum="${mdsum}")
+    except ObjectDoesNotExist:
+        sys.exit("Bin not found.")
     
-    #with open("reconstructed_compleconta_file.txt", "w") as hmmer:
-        # TODO: construct compleconta file
+    with open("reconstructed_hmmer_file.txt", "w") as hmmer:
+        for entry in result_enog.objects.filter(bin=parentbin):
+            hmmer.write("dummy\\t"+entry.enog.enog_name+"\\tdummy\\n")
         
-
-
+    with open("reconstructed_compleconta_file.txt", "w") as complecon:
+        complecon.write(parentbin.comple+"\\t"+parentbin.conta)
 
     """
 }
@@ -514,7 +515,6 @@ process write_hmmer_results_to_db {
 
     tag { binname }
 
-               // TODO: this appears to be a huge bottleneck, let's optimize this
                 // TODO: check if enog.objects.in_bulk() makes sense also here
 
     input:
@@ -557,6 +557,7 @@ with open("${hmmeritem}", "r") as enogresfile:
                                                                                   bn="${binname}"))
             new_enog_res = result_enog(bin=parentbin, enog=enog.objects.get(enog_name=enog_elem))
             enog_res_objectlist.append(new_enog_res)
+            #todo: should that not throw an error?
         except IntegrityError:
             print("Skipping due to IntegrityError.")
             continue     
@@ -578,7 +579,6 @@ process call_accuracy_for_all_models {
 
     input:
     set val(binname), val(mdsum), file(hmmeritem), file(complecontaitem) from complecontaout_for_call_accuracy
-    //todo: do not rely on folder but on db here
     each model from models
 
     output:
@@ -850,7 +850,6 @@ db_written = picaout_db_write.collectFile() { item ->
 }
 
 
-//TODO: add pica_pvalue to model_results
 process write_pica_result_to_db {
 
     input:
