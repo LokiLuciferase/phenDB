@@ -125,27 +125,37 @@ if db_enogs:
         with open(PICAMODELFOLDER+"/"+picamodel+"/"+picamodel+".rank","r") as rankfile:
             with open(PICAMODELFOLDER+"/"+picamodel+"/"+picamodel+".rank.groups", "r") as groupfile:
                 print("Creating list of enogs...")
-                enog_rank_list_filled=rankfile_to_list(rankfile, groupfile, db_enogs)
+                try:
+                    enog_rank_list_filled=rankfile_to_list(rankfile, groupfile, db_enogs)
+                except: #specifc error here?
+                    newmodel.delete()
+                    sys.exit("\n There was a problem when creating enog lists")
+
                 print(" \n Saving to database... ")
                 try:
                     model_enog_ranks.objects.bulk_create(enog_rank_list_filled)
                 except: #specifc error here?
+                    newmodel.delete()
                     sys.exit("\n There was a problem when writing enog_ranks-objects to the db")
 
 
 
         print("Processing the model's accuracy file...")
         # Read the model's accuracy file and enter the data into the db
-        jsonfile=PICAMODELFOLDER+"/"+picamodel+"/"+picamodel+".accuracy.json"
-        data = json.load(open(jsonfile))
-        acc_list=[]
-        for i in range (0,21*21):
-            this_data=data[i]
-            acc_list.append(model_accuracies(model=newmodel,
-                                           comple=this_data["completeness"], conta=this_data["contamination"],
-                                           mean_balanced_accuracy=this_data["mean_balanced_accuracy"],
-                                           mean_fp_rate = this_data["mean_fp_rate"],
-                                           mean_fn_rate = this_data["mean_fn_rate"]))
-        print("writing accuracy entries into db...")
-        model_accuracies.objects.bulk_create(acc_list)
+        try:
+            jsonfile=PICAMODELFOLDER+"/"+picamodel+"/"+picamodel+".accuracy.json"
+            data = json.load(open(jsonfile))
+            acc_list=[]
+            for i in range (0,21*21):
+                this_data=data[i]
+                acc_list.append(model_accuracies(model=newmodel,
+                                               comple=this_data["completeness"], conta=this_data["contamination"],
+                                               mean_balanced_accuracy=this_data["mean_balanced_accuracy"],
+                                               mean_fp_rate = this_data["mean_fp_rate"],
+                                               mean_fn_rate = this_data["mean_fn_rate"]))
+            print("writing accuracy entries into db...")
+            model_accuracies.objects.bulk_create(acc_list)
 
+        except:  # specifc error here?
+            newmodel.delete()
+            sys.exit("\n There was a problem while processing the accuracy file or while writing it to the db ")

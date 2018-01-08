@@ -12,6 +12,7 @@ input_barezipfiles = Channel.fromPath("${params.inputfolder}/*.zip")
 
 all_input_files = Channel.fromPath("${params.inputfolder}/*").filter{!it.name.endsWith('.tar.gz') && !it.name.endsWith('.zip')}
 
+//todo: job status update is incorrect if some bins are already known
 
 hmmdb = file(params.hmmdb)
 
@@ -26,7 +27,7 @@ log.info"""
     
     Disabled compute nodes (for hmmer computation) (--omit_nodes): ${(params.omit_nodes == "") ? "None" : params.omit_nodes }
     Accuracy cutoff for displaying PICA results (--accuracy_cutoff): $params.accuracy_cutoff
-
+      
     ##################################################################################
     """.stripIndent()
 
@@ -84,8 +85,6 @@ truly_all_input_files = all_input_files.mix(tgz_unraveled_all.flatten(), zip_unr
 // Passes every fasta file through Biopythons SeqIO to check for corrupted files
 process fasta_sanity_check {
 //todo: output also sequences-only for md5sum?
-    //todo: at the moment, the zip file itself is also processed here. ok for now but not pretty
-    //todo: maybe recursively uncompress everything we can find and put it into one folder beforehand?
     errorStrategy 'ignore'
     tag { binname }
     maxForks 10
@@ -177,7 +176,7 @@ if os.stat("sanitychecked.fasta").st_size == 0:
 
 // sanity_check_for_count is later used in update_job_completeness to count the total nr. of bins
 fasta_sanitycheck_out.into { sanity_check_for_continue; sanity_check_for_count }
-
+sanity_check_for_count.into { sanity_check_for_count1; sanity_check_for_count2 }
 process md5sum {
 
     tag { binname }
@@ -193,14 +192,15 @@ process md5sum {
     echo -n \$(md5sum ${item} | cut -f1 -d" ")
     """
 }
-
+// todo: job completeness update
 process add_bin_to_db {
 
     input:
     set val(binname), val(mdsum), file(item) from md5_out
+    each nr_of_files from sanity_check_for_count1.count()
 
     output:
-    set val(binname), val(mdsum), file(item), stdout into bin_to_db_out
+    set val(binname), val(mdsum), file(item), stdout, file("reconstructed_hmmer_file.txt"), file("reconstructed_compleconta_file.txt") into bin_to_db_out
 
     tag { binname }
 
@@ -226,14 +226,33 @@ try:
 except ObjectDoesNotExist:
     sys.exit("Job not found.")
 
+# if the bin exists, calculate it's hmmer and compleconta file from the db entries
 try:
     thisbin=bin.objects.get(md5sum="${mdsum}")
+    with open("reconstructed_hmmer_file.txt", "w") as hmmer:
+        for entry in result_enog.objects.filter(bin=thisbin):
+            hmmer.write("dummy\\t"+entry.enog.enog_name+"\\tdummy\\n")
+        
+    with open("reconstructed_compleconta_file.txt", "w") as complecon:
+        complecon.write(str(thisbin.comple)+"\\t"+str(thisbin.conta))
+
     print("NO", end='')
+    
+    # TODO: also update the job completeness here, because then hmmer wont be called
+    
 except ObjectDoesNotExist:
     # write impossible Nr. for comple and conta that would cause an error during get_accuracy if not overwritten:
     thisbin = bin(bin_name="${binname}", md5sum="${mdsum}", comple=2, conta=2)
     thisbin.save()
     print("YES", end='')
+    
+    #if it not in the db yet, just create dummy files
+    with open("reconstructed_hmmer_file.txt", "w") as hmmer:
+        hmmer.write("dummy")
+    with open("reconstructed_compleconta_file.txt", "w") as complecon:
+        complecon.write("dummy")
+
+
 
 try:
     assoc= bins_in_UploadedFile(bin=thisbin, UploadedFile=parentjob)
@@ -259,7 +278,7 @@ process prodigal {
     memory = "450 MB"
 
     input:
-    set val(binname), val(mdsum), file(item), val(calc_bin_or_not) from bin_is_not_in_db
+    set val(binname), val(mdsum), file(item), val(calc_bin_or_not), file(reconstr_hmmer), file(reconst_hmmer) from bin_is_not_in_db
 
     output:
     set val(binname), val(mdsum), file("prodigalout.faa") into prodigalout
@@ -277,14 +296,14 @@ process prodigal {
 process determine_models_that_need_recalculation {
 
     input:
-    set val(binname), val(mdsum), file(item), val(calc_bin_or_not) from bin_is_in_db
+    set val(binname), val(mdsum), file(item), val(calc_bin_or_not), file(reconstr_hmmer), file(reconst_hmmer) from bin_is_in_db
     each model from models
 
     output:
-    set val(binname), val(mdsum), val(model), stdout into determined_if_model_recalculation_needed
+    set val(binname), val(mdsum), val(model), stdout ,file(reconstr_hmmer), file(reconst_hmmer) into determined_if_model_recalculation_needed
 
     when:
-    calc_bin_or_not == "NO"
+    calc_bin_or_not == "NO" && model.isDirectory()
 
     script:
     // language=Python
@@ -301,8 +320,6 @@ process determine_models_that_need_recalculation {
     django.setup()
     from phenotypePredictionApp.models import *
     
-  
-
     try: #if this succeeds, then there is a result for this bin and the newest model version in our db
         result_model.objects.get(model=model.objects.filter(model_name="${model.getBaseName()}").latest('model_train_date'), bin=bin.objects.get(md5sum="${mdsum}"))
         print("NO", end='')    
@@ -318,7 +335,7 @@ determined_if_model_recalculation_needed.into{calc_model; dont_calc_model}
 process uptodate_model_to_targz1 {
 
     input:
-    set val(binname), val(mdsum), val(model), val(calc_model_or_not) from dont_calc_model
+    set val(binname), val(mdsum), val(model), val(calc_model_or_not), file(reconstr_hmmer), file(reconst_hmmer) from dont_calc_model
 
     output:
     set val(binname), val(mdsum), val(RULEBOOK), stdout into new_model_to_targz1_out
@@ -365,57 +382,34 @@ process uptodate_model_to_targz2 {
 
     input:
     set val(binname), val(mdsum), val(RULEBOOK), val(verdict_and_accuracy) from new_model_to_targz1_out
+
     output:
     set val(binname), val(mdsum), val(RULEBOOK), val(verdict), val(accuracy) into picaout_from_new_model //
 
     exec:
-//    accuracy=0
-//    verdict="YES 1"
-//    println verdict_and_accuracy
     splitted=verdict_and_accuracy.split("\t")
     verdict=splitted[0]
     accuracy=splitted[1] as float
     accuracy+="\n"
-
-
 }
 
-// if the results in our db for this bin and model are outdated, a hmmerfile & compleconta file needs to be reconstructed and pica needs to be called
-process old_model_to_accuracy {
 
+
+
+// if the results in our db for this bin and model are outdated, pica needs to be called
+// this process just reformats the input and just calls pica if the value is YES
+process old_model_to_accuracy {
     input:
-    set val(binname), val(mdsum), val(model), val(calc_model_or_not) from calc_model
+    set val(binname), val(mdsum), val(model), val(calc_model_or_not), file(reconstr_hmmer), file(reconst_hmmer) from calc_model
 
     output:
-    set val(binname), val(mdsum), val(model), file("reconstructed_hmmer_file.txt"), file("reconstructed_compleconta_file.txt") into accuracy_in_from_old_model
+    set val(binname), val(mdsum), val(model), file(reconstr_hmmer), file(reconst_hmmer) into accuracy_in_from_old_model
 
     when:
     calc_model_or_not == "YES"
 
     script:
-    // language=Python
     """
-    #!/usr/bin/env python3
-    
-    import django
-    import sys
-    import os
-    from django.core.exceptions import ObjectDoesNotExist
-    from django.db import IntegrityError
-    os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"    
-    
-    django.setup()
-    from phenotypePredictionApp.models import *
-    
-    #with open("reconstructed_hmmer_file.txt", "w") as hmmer:
-        # TODO: construct hmmer file
-    
-    #with open("reconstructed_compleconta_file.txt", "w") as hmmer:
-        # TODO: construct compleconta file
-        
-
-
-
     """
 }
 
@@ -454,7 +448,7 @@ process update_job_completeness {
 
     input:
     set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem) from hmmerout
-    each nr_of_files from sanity_check_for_count.count()
+    each nr_of_files from sanity_check_for_count2.count()
 
     output:
     set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem) into job_updated_out
@@ -514,7 +508,6 @@ process write_hmmer_results_to_db {
 
     tag { binname }
 
-               // TODO: this appears to be a huge bottleneck, let's optimize this
                 // TODO: check if enog.objects.in_bulk() makes sense also here
 
     input:
@@ -557,6 +550,7 @@ with open("${hmmeritem}", "r") as enogresfile:
                                                                                   bn="${binname}"))
             new_enog_res = result_enog(bin=parentbin, enog=enog.objects.get(enog_name=enog_elem))
             enog_res_objectlist.append(new_enog_res)
+            #todo: should that not throw an error?
         except IntegrityError:
             print("Skipping due to IntegrityError.")
             continue     
@@ -578,7 +572,6 @@ process call_accuracy_for_all_models {
 
     input:
     set val(binname), val(mdsum), file(hmmeritem), file(complecontaitem) from complecontaout_for_call_accuracy
-    //todo: do not rely on folder but on db here
     each model from models
 
     output:
@@ -631,8 +624,8 @@ process accuracy {
 
     try:
         parentbin = bin.objects.get(md5sum="${mdsum}")
-        parentbin.comple = cc[0]
-        parentbin.conta= cc[1]
+        parentbin.comple = float(cc[0])
+        parentbin.conta= float(cc[1])
         parentbin.save()
 
 
@@ -644,8 +637,8 @@ process accuracy {
     # the print statments includes a newline at the end, this is important for processing further downstream
     
     print(model_accuracies.objects.get(model=model.objects.filter(model_name="${model.getBaseName()}").latest('model_train_date'),
-    comple=round_nearest(float(parentbin.comple),0.05), 
-    conta=round_nearest(float(parentbin.conta),0.05)).mean_balanced_accuracy)
+    comple=round_nearest(float(cc[0]),0.05), 
+    conta=round_nearest(float(cc[1]),0.05)).mean_balanced_accuracy)
 
     """
 }
@@ -850,7 +843,6 @@ db_written = picaout_db_write.collectFile() { item ->
 }
 
 
-//TODO: add pica_pvalue to model_results
 process write_pica_result_to_db {
 
     input:
