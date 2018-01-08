@@ -26,7 +26,7 @@ log.info"""
     
     Disabled compute nodes (for hmmer computation) (--omit_nodes): ${(params.omit_nodes == "") ? "None" : params.omit_nodes }
     Accuracy cutoff for displaying PICA results (--accuracy_cutoff): $params.accuracy_cutoff
-
+      
     ##################################################################################
     """.stripIndent()
 
@@ -378,6 +378,9 @@ process uptodate_model_to_targz2 {
 
 }
 
+
+
+
 // if the results in our db for this bin and model are outdated, a hmmerfile & compleconta file needs to be reconstructed and pica needs to be called
 process old_model_to_accuracy {
 //todo: hmmer file is reconstruced for every single outdated model, even though the file is always the same. How to circumvent this?
@@ -415,7 +418,7 @@ process old_model_to_accuracy {
             hmmer.write("dummy\\t"+entry.enog.enog_name+"\\tdummy\\n")
         
     with open("reconstructed_compleconta_file.txt", "w") as complecon:
-        complecon.write(parentbin.comple+"\\t"+parentbin.conta)
+        complecon.write(str(parentbin.comple)+"\\t"+str(parentbin.conta))
 
     """
 }
@@ -631,8 +634,8 @@ process accuracy {
 
     try:
         parentbin = bin.objects.get(md5sum="${mdsum}")
-        parentbin.comple = cc[0]
-        parentbin.conta= cc[1]
+        parentbin.comple = float(cc[0])
+        parentbin.conta= float(cc[1])
         parentbin.save()
 
 
@@ -644,8 +647,8 @@ process accuracy {
     # the print statments includes a newline at the end, this is important for processing further downstream
     
     print(model_accuracies.objects.get(model=model.objects.filter(model_name="${model.getBaseName()}").latest('model_train_date'),
-    comple=round_nearest(float(parentbin.comple),0.05), 
-    conta=round_nearest(float(parentbin.conta),0.05)).mean_balanced_accuracy)
+    comple=round_nearest(float(cc[0]),0.05), 
+    conta=round_nearest(float(cc[1]),0.05)).mean_balanced_accuracy)
 
     """
 }
