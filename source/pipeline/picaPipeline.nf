@@ -12,6 +12,7 @@ input_barezipfiles = Channel.fromPath("${params.inputfolder}/*.zip")
 
 all_input_files = Channel.fromPath("${params.inputfolder}/*").filter{!it.name.endsWith('.tar.gz') && !it.name.endsWith('.zip')}
 
+//todo: job status update is incorrect if some bins are already known
 
 hmmdb = file(params.hmmdb)
 
@@ -175,7 +176,7 @@ if os.stat("sanitychecked.fasta").st_size == 0:
 
 // sanity_check_for_count is later used in update_job_completeness to count the total nr. of bins
 fasta_sanitycheck_out.into { sanity_check_for_continue; sanity_check_for_count }
-
+sanity_check_for_count.into { sanity_check_for_count1; sanity_check_for_count2 }
 process md5sum {
 
     tag { binname }
@@ -191,14 +192,15 @@ process md5sum {
     echo -n \$(md5sum ${item} | cut -f1 -d" ")
     """
 }
-
+// todo: job completeness update
 process add_bin_to_db {
 
     input:
     set val(binname), val(mdsum), file(item) from md5_out
+    each nr_of_files from sanity_check_for_count1.count()
 
     output:
-    set val(binname), val(mdsum), file(item), stdout into bin_to_db_out
+    set val(binname), val(mdsum), file(item), stdout, file("reconstructed_hmmer_file.txt"), file("reconstructed_compleconta_file.txt") into bin_to_db_out
 
     tag { binname }
 
@@ -224,14 +226,33 @@ try:
 except ObjectDoesNotExist:
     sys.exit("Job not found.")
 
+# if the bin exists, calculate it's hmmer and compleconta file from the db entries
 try:
     thisbin=bin.objects.get(md5sum="${mdsum}")
+    with open("reconstructed_hmmer_file.txt", "w") as hmmer:
+        for entry in result_enog.objects.filter(bin=thisbin):
+            hmmer.write("dummy\\t"+entry.enog.enog_name+"\\tdummy\\n")
+        
+    with open("reconstructed_compleconta_file.txt", "w") as complecon:
+        complecon.write(str(thisbin.comple)+"\\t"+str(thisbin.conta))
+
     print("NO", end='')
+    
+    # TODO: also update the job completeness here, because then hmmer wont be called
+    
 except ObjectDoesNotExist:
     # write impossible Nr. for comple and conta that would cause an error during get_accuracy if not overwritten:
     thisbin = bin(bin_name="${binname}", md5sum="${mdsum}", comple=2, conta=2)
     thisbin.save()
     print("YES", end='')
+    
+    #if it not in the db yet, just create dummy files
+    with open("reconstructed_hmmer_file.txt", "w") as hmmer:
+        hmmer.write("dummy")
+    with open("reconstructed_compleconta_file.txt", "w") as complecon:
+        complecon.write("dummy")
+
+
 
 try:
     assoc= bins_in_UploadedFile(bin=thisbin, UploadedFile=parentjob)
@@ -257,7 +278,7 @@ process prodigal {
     memory = "450 MB"
 
     input:
-    set val(binname), val(mdsum), file(item), val(calc_bin_or_not) from bin_is_not_in_db
+    set val(binname), val(mdsum), file(item), val(calc_bin_or_not), file(reconstr_hmmer), file(reconst_hmmer) from bin_is_not_in_db
 
     output:
     set val(binname), val(mdsum), file("prodigalout.faa") into prodigalout
@@ -275,11 +296,11 @@ process prodigal {
 process determine_models_that_need_recalculation {
 
     input:
-    set val(binname), val(mdsum), file(item), val(calc_bin_or_not) from bin_is_in_db
+    set val(binname), val(mdsum), file(item), val(calc_bin_or_not), file(reconstr_hmmer), file(reconst_hmmer) from bin_is_in_db
     each model from models
 
     output:
-    set val(binname), val(mdsum), val(model), stdout into determined_if_model_recalculation_needed
+    set val(binname), val(mdsum), val(model), stdout ,file(reconstr_hmmer), file(reconst_hmmer) into determined_if_model_recalculation_needed
 
     when:
     calc_bin_or_not == "NO" && model.isDirectory()
@@ -299,8 +320,6 @@ process determine_models_that_need_recalculation {
     django.setup()
     from phenotypePredictionApp.models import *
     
-  
-
     try: #if this succeeds, then there is a result for this bin and the newest model version in our db
         result_model.objects.get(model=model.objects.filter(model_name="${model.getBaseName()}").latest('model_train_date'), bin=bin.objects.get(md5sum="${mdsum}"))
         print("NO", end='')    
@@ -316,7 +335,7 @@ determined_if_model_recalculation_needed.into{calc_model; dont_calc_model}
 process uptodate_model_to_targz1 {
 
     input:
-    set val(binname), val(mdsum), val(model), val(calc_model_or_not) from dont_calc_model
+    set val(binname), val(mdsum), val(model), val(calc_model_or_not), file(reconstr_hmmer), file(reconst_hmmer) from dont_calc_model
 
     output:
     set val(binname), val(mdsum), val(RULEBOOK), stdout into new_model_to_targz1_out
@@ -363,63 +382,34 @@ process uptodate_model_to_targz2 {
 
     input:
     set val(binname), val(mdsum), val(RULEBOOK), val(verdict_and_accuracy) from new_model_to_targz1_out
+
     output:
     set val(binname), val(mdsum), val(RULEBOOK), val(verdict), val(accuracy) into picaout_from_new_model //
 
     exec:
-//    accuracy=0
-//    verdict="YES 1"
-//    println verdict_and_accuracy
     splitted=verdict_and_accuracy.split("\t")
     verdict=splitted[0]
     accuracy=splitted[1] as float
     accuracy+="\n"
-
-
 }
 
 
 
 
-// if the results in our db for this bin and model are outdated, a hmmerfile & compleconta file needs to be reconstructed and pica needs to be called
+// if the results in our db for this bin and model are outdated, pica needs to be called
+// this process just reformats the input and just calls pica if the value is YES
 process old_model_to_accuracy {
-//todo: hmmer file is reconstruced for every single outdated model, even though the file is always the same. How to circumvent this?
     input:
-    set val(binname), val(mdsum), val(model), val(calc_model_or_not) from calc_model
+    set val(binname), val(mdsum), val(model), val(calc_model_or_not), file(reconstr_hmmer), file(reconst_hmmer) from calc_model
 
     output:
-    set val(binname), val(mdsum), val(model), file("reconstructed_hmmer_file.txt"), file("reconstructed_compleconta_file.txt") into accuracy_in_from_old_model
+    set val(binname), val(mdsum), val(model), file(reconstr_hmmer), file(reconst_hmmer) into accuracy_in_from_old_model
 
     when:
     calc_model_or_not == "YES"
 
     script:
-    // language=Python
     """
-    #!/usr/bin/env python3
-    
-    import django
-    import sys
-    import os
-    from django.core.exceptions import ObjectDoesNotExist
-    from django.db import IntegrityError
-    os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"    
-    
-    django.setup()
-    from phenotypePredictionApp.models import *
-    
-    try:
-        parentbin = bin.objects.get(md5sum="${mdsum}")
-    except ObjectDoesNotExist:
-        sys.exit("Bin not found.")
-    
-    with open("reconstructed_hmmer_file.txt", "w") as hmmer:
-        for entry in result_enog.objects.filter(bin=parentbin):
-            hmmer.write("dummy\\t"+entry.enog.enog_name+"\\tdummy\\n")
-        
-    with open("reconstructed_compleconta_file.txt", "w") as complecon:
-        complecon.write(str(parentbin.comple)+"\\t"+str(parentbin.conta))
-
     """
 }
 
@@ -458,7 +448,7 @@ process update_job_completeness {
 
     input:
     set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem) from hmmerout
-    each nr_of_files from sanity_check_for_count.count()
+    each nr_of_files from sanity_check_for_count2.count()
 
     output:
     set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem) into job_updated_out
