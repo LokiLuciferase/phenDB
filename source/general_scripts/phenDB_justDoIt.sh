@@ -15,8 +15,8 @@ function usage()
 function runserver() {
     echo "Starting web server and opening a browser window..."
     #cd /apps/phenDB_devel_LL/source/web_server
-    cd /apps/phenDB_devel_PP/phenDB/source/web_server
-    #cd /apps/phenDB/source/web_server
+    #cd /apps/phenDB_devel_PP/phenDB/source/web_server
+    cd /apps/phenDB/source/web_server
 
     nohup chromium-browser http://127.0.0.1:8000/phendb &> /dev/null &
     gunicorn phenotypePrediction.wsgi
