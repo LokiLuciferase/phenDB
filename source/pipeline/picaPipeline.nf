@@ -686,26 +686,12 @@ process pica {
     script:
     RULEBOOK = model.getBaseName()
     TEST_MODEL = "$model/${RULEBOOK}.rules"
-//    float accuracy_cutoff = params.accuracy_cutoff as float
-//    float accuracy_float = accuracy as float
-//
-//    if (accuracy_float >= accuracy_cutoff) {
     """
     echo -ne "${binname}\t" > tempfile.tmp
     cut -f2 $hmmeritem | tr "\n" "\t" >> tempfile.tmp
     test.py -m $TEST_MODEL -t $RULEBOOK -s tempfile.tmp > picaout.result
     echo -n \$(cat picaout.result | tail -n1 | cut -f2,3)
     """
-//    }
-
-//    else {
-//    """
-//    echo -ne "${binname}\t" > tempfile.tmp
-//    cut -f2 $hmmeritem | tr "\n" "\t" >> tempfile.tmp
-//    echo "N/A\tN/A" > picaout.result
-//    echo -n \$(cat picaout.result | tail -n1 | cut -f2,3 | tr "\t" " ")
-//    """
-//    }
 }
 
 picaout.into{picaout_db_write; picaout_for_download}
