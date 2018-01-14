@@ -30,8 +30,7 @@ class startProcessThread(threading.Thread):
         # pipeline_path = "/apps/phenDB_devel_PP/phenDB/source/pipeline/picaPipeline.nf"
         # above_workfolder = "/apps/phenDB_devel_PP/phenDB/source/web_server/results/resultFiles"
 
-        relFilePath = os.path.dirname(UploadedFile.objects.get(key=self.keyname).fileInput.url)
-        infolder = os.path.join(infolder_base, str(relFilePath)[1:])
+        infolder = os.path.join(infolder_base, self.keyname)
         print("infolder:", infolder)
 
         pica_cutoff = "0.5"
