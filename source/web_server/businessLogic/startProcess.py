@@ -4,6 +4,9 @@ import os
 import os.path
 import threading
 from phenotypePredictionApp.models import UploadedFile
+from redis import Redis
+from rq import Queue
+from phenotypePredictionApp import phenDB_enqueue
 
 class startProcessThread(threading.Thread):
     def __init__(self, keyname):
@@ -49,10 +52,15 @@ class startProcessThread(threading.Thread):
         ## call fake script for testing
         # subprocess.run(["python3", "./fakeScript.py", "--infolder", infolder, "--key", self.keyname])
 
-        # call minimal runscript which performs nohup and output rerouting
-        subprocess.run([runscript_path,
-                        pipeline_path,
-                        infolder,
-                        outfolder,
-                        pica_cutoff,
-                        node_offs], check=True)
+        # add the function call to the redis queue
+        redis_conn = Redis()
+        q = Queue(connection=redis_conn)
+        q.enqueue(phenDB_enqueue, runscript_path, pipeline_path, infolder, outfolder, pica_cutoff, node_offs)
+        #
+        # # call minimal runscript which performs nohup and output rerouting
+        # subprocess.run([runscript_path,
+        #                 pipeline_path,
+        #                 infolder,
+        #                 outfolder,
+        #                 pica_cutoff,
+        #                 node_offs], check=True)
