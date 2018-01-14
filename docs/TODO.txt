@@ -12,10 +12,7 @@ Web server:
 -benchmark pipeline on VM using different node settings
 
 Database ( ) (LL):
--modell version cont comp fnr fpr für alle kombinationen (fette table)
 -better names for "model" model
--make new database for enog x enog function to conserve space!
-- check if bin exists before calculation, new model sceme for bin (PP)
 
 Singularity:
 - enable hmmer calculation inside container (remodel hmmc.py?)
@@ -35,5 +32,9 @@ full specification of:
     how are models entered
 deliverabels, milestones, responisibilities
 problems, alternatives
+
+job queueing:
+make start script which starts redis-server and rq worker (with good arguments) in background
+look into what makes job return 0 even though pipeline is not yet finished - rq? subprocess?
 
 
