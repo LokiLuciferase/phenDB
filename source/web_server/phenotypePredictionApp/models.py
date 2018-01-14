@@ -8,12 +8,12 @@ def upload_function_upload(instance, filename):
     print('upload called')
     subfolder = instance.key
     filename = instance.filename
-    return "documents/" + subfolder + "/" + filename
+    return "uploads/" + subfolder + "/" + filename
 
 def upload_function_results(instance, givenname):
     print(givenname)
     subfolder = instance.key
-    filename = "resultFiles/" + subfolder + "_results/" + givenname
+    filename = "results/" + subfolder + "_results/" + givenname
     return filename
 
 

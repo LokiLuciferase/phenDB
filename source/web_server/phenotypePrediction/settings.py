@@ -128,4 +128,4 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 MEDIA_URL = '/results/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'results')
+MEDIA_ROOT = os.path.join(BASE_DIR, '../../data')

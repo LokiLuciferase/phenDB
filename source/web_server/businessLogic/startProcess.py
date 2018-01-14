@@ -23,7 +23,7 @@ class startProcessThread(threading.Thread):
         ppath = "/apps/phenDB_devel_LL/source/web_server:$PYTHONPATH"
         web_server_folder = "/apps/phenDB_devel_LL/source/web_server"
         pipeline_path = "/apps/phenDB_devel_LL/source/pipeline/picaPipeline.nf"
-        above_workfolder = "/apps/phenDB_devel_LL/source/web_server/results/resultFiles"
+        above_workfolder = "/apps/phenDB_devel_LL/data/results"
 
         # ppath = "/apps/phenDB_devel_PP/phenDB/source/web_server:$PYTHONPATH"
         # web_server_folder = "/apps/phenDB_devel_PP/phenDB/source/web_server"
