@@ -21,8 +21,8 @@ class startProcessThread(threading.Thread):
         # above_workfolder = "/apps/phenDB/source/web_server/results/resultFiles"
 
         ppath = "/apps/phenDB_devel_LL/source/web_server:$PYTHONPATH"
-        web_server_folder = "/apps/phenDB_devel_LL/source/web_server"
         pipeline_path = "/apps/phenDB_devel_LL/source/pipeline/picaPipeline.nf"
+        infolder_base = "/apps/phenDB_devel_LL/data/uploads"
         above_workfolder = "/apps/phenDB_devel_LL/data/results"
 
         # ppath = "/apps/phenDB_devel_PP/phenDB/source/web_server:$PYTHONPATH"
@@ -31,7 +31,7 @@ class startProcessThread(threading.Thread):
         # above_workfolder = "/apps/phenDB_devel_PP/phenDB/source/web_server/results/resultFiles"
 
         relFilePath = os.path.dirname(UploadedFile.objects.get(key=self.keyname).fileInput.url)
-        infolder = os.path.join(str(web_server_folder), str(relFilePath)[1:])
+        infolder = os.path.join(infolder_base, str(relFilePath)[1:])
         print("infolder:", infolder)
 
         pica_cutoff = "0.5"
