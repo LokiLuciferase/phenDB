@@ -6,7 +6,7 @@ import threading
 from phenotypePredictionApp.models import UploadedFile
 from redis import Redis
 from rq import Queue
-from phenotypePredictionApp import phenDB_enqueue
+from phenotypePredictionApp.enqueue_job import phenDB_enqueue
 
 class startProcessThread(threading.Thread):
     def __init__(self, keyname):
@@ -29,9 +29,9 @@ class startProcessThread(threading.Thread):
         # runscript_path = "/apps/phenDB_devel_PP/phenDB/source/pipeline/run_picaPipeline.sh"
         # pipeline_path = "/apps/phenDB_devel_PP/phenDB/source/pipeline/picaPipeline.nf"
         # above_workfolder = "/apps/phenDB_devel_PP/phenDB/source/web_server/results/resultFiles"
-        runscript_path = "/apps/phenDB_devel_LL/phenDB/source/pipeline/run_picaPipeline.sh"
-        pipeline_path = "/apps/phenDB_devel_LL/phenDB/source/pipeline/picaPipeline.nf"
-        above_workfolder = "/apps/phenDB_devel_LL/phenDB/source/web_server/results/resultFiles"
+        runscript_path = "/apps/phenDB_devel_LL/source/pipeline/run_picaPipeline.sh"
+        pipeline_path = "/apps/phenDB_devel_LL/source/pipeline/picaPipeline.nf"
+        above_workfolder = "/apps/phenDB_devel_LL/source/web_server/results/resultFiles"
 
         pica_cutoff = "0.5"
         node_offs = ""
