@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-import subprocess
 import os
 import os.path
 import threading
 from phenotypePredictionApp.models import UploadedFile
 from redis import Redis
 from rq import Queue
-from phenotypePredictionApp.enqueue_job import phenDB_enqueue
+from businessLogic.enqueue_job import phenDB_enqueue
 
 class startProcessThread(threading.Thread):
     def __init__(self, keyname):
@@ -53,14 +52,15 @@ class startProcessThread(threading.Thread):
         # subprocess.run(["python3", "./fakeScript.py", "--infolder", infolder, "--key", self.keyname])
 
         # add the function call to the redis queue
-        redis_conn = Redis()
-        q = Queue(connection=redis_conn)
-        q.enqueue(phenDB_enqueue, runscript_path, pipeline_path, infolder, outfolder, pica_cutoff, node_offs)
-        #
-        # # call minimal runscript which performs nohup and output rerouting
-        # subprocess.run([runscript_path,
-        #                 pipeline_path,
-        #                 infolder,
-        #                 outfolder,
-        #                 pica_cutoff,
-        #                 node_offs], check=True)
+        # worker is started like so (requires running redis server):
+        # rq worker --path /apps/phenDB/source/web_server --name phenDB phenDB [--verbose]
+
+        q = Queue('phenDB', connection=Redis())
+        pipeline_job = q.enqueue_call(funct=phenDB_enqueue,
+                                      args=(runscript_path, pipeline_path, infolder, outfolder, pica_cutoff, node_offs),
+                                      timeout=5000,
+                                      job_id=self.keyname
+                                      )
+        #return pipeline_job
+
+        # here we could return len(q). or fetch it somewhere else
