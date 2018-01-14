@@ -14,11 +14,14 @@ function usage()
 {
     echo "phenDB Utility Script"
     echo ""
-    echo -e "\tNo arguments: start chromium browser and run gunicorn server for phenDB."
-    echo -e "\t-h --help"
+    echo -e "\tNo arguments: start chromium browser and run django development server for phenDB."
+    echo -e "\t-h, --help\tDisplay this message and exit"
     echo -e "\t--view-bins\tdisplay bins in database"
     echo -e "\t--view-jobs\tdisplay jobs in database"
     echo -e "\t--purge\tremove jobs, bins and associated data\n\t\tfrom database, then start chromium and run server"
+    echo -e "\t--server-detached\tStart django development server in detached mode - log file at $BASEDIR/logs"
+    echo -e "\t--start-queue\tActivate redis and python-rq tools if they are not running. Logs at $BASEDIR/logs"
+    echo -e "\t--monitor-queue\tRuns a script to display current status of redis queue."
     echo ""
 }
 
@@ -58,7 +61,7 @@ function showjobs() {
 
 function purge() {
     echo "Purging samples from database..."
-    bash ${BASEDIR}/source/general_scripts/purge_samples_from_db.sh
+    bash ${BASEDIR}/source/general_scripts/purge_samples_from_db.sh ${DB}
 }
 
 function start_queue() {

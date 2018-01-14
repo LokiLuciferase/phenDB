@@ -13,12 +13,11 @@ class startProcessThread(threading.Thread):
         self.keyname = keyname
 
     def run(self):
-        print('startProcess called')
 
         # ppath = "/apps/phenDB/source/web_server:$PYTHONPATH"
-        # web_server_folder = "/apps/phenDB/source/web_server"
+        # infolder_base = "/apps/phenDB/data/uploads"
         # pipeline_path = "/apps/phenDB/source/pipeline/picaPipeline.nf"
-        # above_workfolder = "/apps/phenDB/source/web_server/results/resultFiles"
+        # above_workfolder = "/apps/phenDB/data/results"
 
         ppath = "/apps/phenDB_devel_LL/source/web_server:$PYTHONPATH"
         pipeline_path = "/apps/phenDB_devel_LL/source/pipeline/picaPipeline.nf"
@@ -26,14 +25,13 @@ class startProcessThread(threading.Thread):
         above_workfolder = "/apps/phenDB_devel_LL/data/results"
 
         # ppath = "/apps/phenDB_devel_PP/phenDB/source/web_server:$PYTHONPATH"
-        # web_server_folder = "/apps/phenDB_devel_PP/phenDB/source/web_server"
+        # infolder_base = "/apps/phenDB_devel_PP/phenDB/data/uploads"
         # pipeline_path = "/apps/phenDB_devel_PP/phenDB/source/pipeline/picaPipeline.nf"
-        # above_workfolder = "/apps/phenDB_devel_PP/phenDB/source/web_server/results/resultFiles"
+        # above_workfolder = "/apps/phenDB_devel_PP/data/results"
 
-        relFilePath = os.path.dirname(UploadedFile.objects.get(key=self.keyname).fileInput.url)
-        infolder = os.path.join(infolder_base, str(relFilePath)[1:])
-        print("infolder:", infolder)
+        infolder = os.path.join(infolder_base, self.keyname)
 
+        # we should make these parameters settable from the web mask
         pica_cutoff = "0.5"
         node_offs = ""
 
