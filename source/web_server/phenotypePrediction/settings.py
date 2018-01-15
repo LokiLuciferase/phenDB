@@ -78,12 +78,12 @@ WSGI_APPLICATION = 'phenotypePrediction.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        # 'NAME': 'phenDB_devel_PP',
-        # 'USER': 'devel_PP',
-        # 'PASSWORD': 'devel_pw',
-        'NAME'    : 'phenDB',
-        'USER'    : 'root',
-        'PASSWORD': '',
+        'NAME': 'phenDB_devel_LL',
+        'USER': 'devel_LL',
+        'PASSWORD': 'devel_pw',
+        # 'NAME'    : 'phenDB',
+        # 'USER'    : 'root',
+        # 'PASSWORD': '',
         'HOST': 'localhost',
         'PORT': '',
        # 'OPTIONS': "SET sql_mode='STRICT_ALL_TABLES'",
@@ -128,4 +128,4 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 MEDIA_URL = '/results/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'results')
+MEDIA_ROOT = os.path.join(BASE_DIR, '../../data')

@@ -149,10 +149,7 @@ elif ("${item}".endswith("tar")):
 else:
     inputfasta="${item}"
 
-        
 
-    
-        
 with open("sanitychecked.fasta","w") as outfile:
     for read in SeqIO.parse(inputfasta, "fasta", IUPAC.ambiguous_dna):
         if not Alphabet._verify_alphabet(read.seq):
