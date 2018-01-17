@@ -512,16 +512,17 @@ process pica_bacteria {
     set val(binname), val(mdsum), file(hmmeritem), val(complecontaitem), stdout into bacteria_checked  // "YES"= is bacterium
 
     script:
-    RULEBOOK = "<enter model name for bacteria here"
-    model = "<enter path to bacteria model here"
-    TEST_MODEL = "$model/${RULEBOOK}.rules"
 
     """
-    #echo -ne "${binname}\\t" > tempfile.tmp
-    #cut -f2 $hmmeritem | tr "\\n" "\\t" >> tempfile.tmp
-    #test.py -m $TEST_MODEL -t $RULEBOOK -s tempfile.tmp > picaout.result
-    #echo -n \$(cat picaout.result | tail -n1 | cut -f2)
-    echo -n "YES"
+    echo -ne "${binname}\\t" > tempfile.tmp
+    cut -f2 $hmmeritem | tr "\\n" "\\t" >> tempfile.tmp
+    test.py -m ${archaea_model_path} -t ARCHAEA -s tempfile.tmp > picaout.result
+    is_archaea=\$(cat picaout.result | tail -n1 | cut -f2)
+    if [[ \$is_archaea = "YES" ]]; then
+        echo -n "NO"
+    else
+        echo -n "YES"
+    fi
     """
 }
 
@@ -601,7 +602,7 @@ process call_accuracy_for_all_models {
     set val(binname), val(mdsum), val(model), file(hmmeritem), file(complecontaitem) into accuracy_in
 
     when:
-    model.isDirectory() && (is_bacterium == "YES" || !(params.omit_in_archaea.contains(model)))
+    model.isDirectory() && (is_bacterium == "YES" || !(params.omit_in_archaea.contains(model.getBaseName())))
 
     script:
     """
