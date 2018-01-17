@@ -512,9 +512,8 @@ process pica_bacteria {
     set val(binname), val(mdsum), file(hmmeritem), val(complecontaitem), stdout into bacteria_checked  // "YES"= is bacterium
 
     script:
-    model = params.archaea_model_path
-    RULEBOOK = model.getBaseName()
-    TEST_MODEL = "$model/${RULEBOOK}.rules"
+    RULEBOOK = file(params.archaea_model_path).getBaseName()
+    TEST_MODEL = "${params.archaea_model_path}/${RULEBOOK}.rules"
     """
     echo -ne "${binname}\\t" > tempfile.tmp
     cut -f2 $hmmeritem | tr "\\n" "\\t" >> tempfile.tmp
