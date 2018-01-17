@@ -24,4 +24,6 @@ def phenDB_enqueue(ppath, pipeline_path, infolder, outfolder, pica_cutoff, node_
     with open(os.path.join(outfolder, "logs/nextflow.log"), "w") as logfile:
         pipeline_call = subprocess.Popen(arguments.split(), stdout=logfile, stderr=logfile)
         pipeline_call.wait()
+        if pipeline_call.returncode != 0:
+            raise RuntimeError("Pipeline has exited with error.")
         return pipeline_call.returncode

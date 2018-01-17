@@ -469,8 +469,10 @@ from phenotypePredictionApp.models import *
 try:
     parentjob = UploadedFile.objects.get(key="${jobname}")
     current_finished = parentjob.finished_bins
-    parentjob.finished_bins = int(current_finished) + 1
-    parentjob.save()
+    total_jobs = parentjob.total_bins
+    if current_finished < total_jobs - 1:
+        parentjob.finished_bins = int(current_finished) + 1
+        parentjob.save()
     
 except ObjectDoesNotExist:
     sys.exit("Job not found.")
@@ -956,6 +958,8 @@ try:
     file = open('${zip}', 'rb')
     djangoFile = File(file)
     obj[0].fileOutput.save('${jobname}.zip', djangoFile, save="True")
+    obj[0].finished_bins = obj[0].total_bins
+    obj[0].save()
 except IntegrityError:
     sys.exit("Exited with integrity error upon adding results to database.")
 """
@@ -972,5 +976,9 @@ workflow.onError {
     fatal_error_file = file("${outdir}/logs/errorReport.log")
     fatal_error_file.text = workflow.errorReport
     // maybe have to set pythonpath too
-    "python3 scripts/set_pipeline_error.py ${jobname}".execute()
+    println "Setting pipeline error to UploadedFile..."
+    def seterror=new ProcessBuilder("python3 ./scripts/set_pipeline_error.py ${jobname}")
+            .redirectErrorStream(true)
+            .start()
+    seterror.inputStream.eachLine { println it }
 }
