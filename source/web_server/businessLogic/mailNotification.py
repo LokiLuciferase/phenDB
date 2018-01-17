@@ -22,7 +22,7 @@ class MailNotification(threading.Thread):
             sleepTime = self.initialSleep * self.runCounter
             if sleepTime > self.maxSleep:
                 sleepTime = self.maxSleep
-            time.sleep(self.maxSleep)
+            time.sleep(self.maxSleep)  # should this not be sleepTime?
 
     def __sendMail(self, mailAddress, url):
         send_mail(
