@@ -958,8 +958,8 @@ try:
     file = open('${zip}', 'rb')
     djangoFile = File(file)
     obj[0].fileOutput.save('${jobname}.zip', djangoFile, save="True")
-    obj[0].finished_bins = obj[0].total_bins
-    obj[0].save()
+    totalbins = obj[0].total_bins
+    obj.update(finished_bins = totalbins)
 except IntegrityError:
     sys.exit("Exited with integrity error upon adding results to database.")
 """

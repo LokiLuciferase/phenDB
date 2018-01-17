@@ -19,6 +19,7 @@ def clean_up_on_pipeline_fail(keyname, ppath):
     assoc_rows = bins_in_UploadedFile.objects.filter(UploadedFile=currentjob)
     bins_of_failed = [x.bin for x in assoc_rows]
     for b in bins_of_failed:
+        # TODO: here we could select for bins with only comple=2, conta=2
         b.delete()
     assoc_rows.delete()
     currentjob.save()
