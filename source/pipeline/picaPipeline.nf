@@ -467,9 +467,10 @@ django.setup()
 from phenotypePredictionApp.models import *
 
 try:
-    parentjob = UploadedFile.objects.filter(key="${jobname}")
-    current_finished = int(parentjob.finished_bins) if parentjob.finished_bins else 0
-    parentjob.update(finished_bins = int(current_finished + 1))
+    parentjob = UploadedFile.objects.get(key="${jobname}")
+    current_finished = parentjob.finished_bins
+    parentjob.finished_bins = int(current_finished) + 1
+    parentjob.save()
     
 except ObjectDoesNotExist:
     sys.exit("Job not found.")
