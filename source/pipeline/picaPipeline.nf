@@ -975,10 +975,4 @@ workflow.onError {
     println "Writing error report to directory ${outdir}/logs..."
     fatal_error_file = file("${outdir}/logs/errorReport.log")
     fatal_error_file.text = workflow.errorReport
-    // maybe have to set pythonpath too
-    println "Setting pipeline error to UploadedFile..."
-    def seterror=new ProcessBuilder("python3 ./scripts/set_pipeline_error.py ${jobname}")
-            .redirectErrorStream(true)
-            .start()
-    seterror.inputStream.eachLine { println it }
 }
