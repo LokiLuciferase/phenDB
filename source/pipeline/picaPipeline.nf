@@ -452,7 +452,7 @@ process update_job_completeness {
     output:
     set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem) into job_updated_out
     script:
-// language=Python
+
 """
 #!/usr/bin/env python3
 
@@ -512,11 +512,13 @@ process pica_bacteria {
     set val(binname), val(mdsum), file(hmmeritem), val(complecontaitem), stdout into bacteria_checked  // "YES"= is bacterium
 
     script:
-
+    model = params.archaea_model_path
+    RULEBOOK = model.getBaseName()
+    TEST_MODEL = "$model/${RULEBOOK}.rules"
     """
     echo -ne "${binname}\\t" > tempfile.tmp
     cut -f2 $hmmeritem | tr "\\n" "\\t" >> tempfile.tmp
-    test.py -m ${params.archaea_model_path} -t ARCHAEA -s tempfile.tmp > picaout.result
+    test.py -m $TEST_MODEL -t $RULEBOOK -s tempfile.tmp > picaout.result
     is_archaea=\$(cat picaout.result | tail -n1 | cut -f2)
     if [[ \$is_archaea = "YES" ]]; then
         echo -n "NO"
