@@ -218,6 +218,9 @@ from phenotypePredictionApp.models import *
 
 try:
     parentjob = UploadedFile.objects.get(key="${jobname}")
+    parentjob.total_bins = ${nr_of_files}
+    parentjob.save()
+
 except ObjectDoesNotExist:
     sys.exit("Job not found.")
 
@@ -464,16 +467,9 @@ django.setup()
 from phenotypePredictionApp.models import *
 
 try:
-    parentjob = UploadedFile.objects.get(key="${jobname}")
-
-    current_status = int(parentjob.job_status) if parentjob.job_status else 0
-    total_valid_count = int(${nr_of_files}) 
-    plusone = int((1 / total_valid_count)*100)
-    
-    if (current_status + plusone < 100):
-        current_status += plusone
-        parentjob.job_status = current_status
-        parentjob.save()
+    parentjob = UploadedFile.objects.filter(key="${jobname}")
+    current_finished = int(parentjob.finished_bins) if parentjob.finished_bins else 0
+    parentjob.update(finished_bins = int(current_finished + 1))
     
 except ObjectDoesNotExist:
     sys.exit("Job not found.")
@@ -959,7 +955,6 @@ try:
     file = open('${zip}', 'rb')
     djangoFile = File(file)
     obj[0].fileOutput.save('${jobname}.zip', djangoFile, save="True")
-    obj.update(job_status = '100')
 except IntegrityError:
     sys.exit("Exited with integrity error upon adding results to database.")
 """
