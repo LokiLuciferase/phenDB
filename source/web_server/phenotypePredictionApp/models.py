@@ -66,7 +66,7 @@ class bins_in_UploadedFile(models.Model):
             models.Index(fields=['bin', 'UploadedFile'])
        ]
 
-    bin = models.ForeignKey(bin)
+    bin = models.ForeignKey(bin, on_delete=models.CASCADE) # delete bins if we delete the association row
     UploadedFile=models.ForeignKey(UploadedFile)
 
     def __str__(self):
