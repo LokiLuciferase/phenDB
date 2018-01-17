@@ -5,14 +5,14 @@ import os.path
 import threading
 from phenotypePredictionApp.models import UploadedFile
 
-class startProcessThread(threading.Thread):
+class StartProcessThread(threading.Thread):
     def __init__(self, keyname):
         threading.Thread.__init__(self)
         self.keyname = keyname
 
     def run(self):
         print('startProcess called')
-        web_server_folder = "/apps/phenDB/source/web_server"
+        web_server_folder = "/home/florian/Studium/Master_Bioinformatics/3rd_semester/SoftwareEntwicklungsprojektBioInfo/WebServer/phenDB/source/web_server/"
         relFilePath = os.path.dirname(UploadedFile.objects.get(key=self.keyname).fileInput.url)
         infolder = os.path.join(str(web_server_folder), str(relFilePath)[1:])
         print("infolder:", infolder)
@@ -23,24 +23,24 @@ class startProcessThread(threading.Thread):
         pica_cutoff = "0.5"
         node_offs = ""
 
-        os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
-        os.environ["PYTHONPATH"] = "/apps/phenDB/source/web_server:$PYTHONPATH"
+        #os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
+        #os.environ["PYTHONPATH"] = "/apps/phenDB/source/web_server:$PYTHONPATH"
 
         # create workfolder
-        outfolder = os.path.join(above_workfolder, "{jn}_results".format(jn=self.keyname))
-        os.makedirs(outfolder, exist_ok=True)
+        #outfolder = os.path.join(above_workfolder, "{jn}_results".format(jn=self.keyname))
+        #os.makedirs(outfolder, exist_ok=True)
 
         # create log folder
-        logfolder = os.path.join(outfolder, "logs")
-        os.makedirs(logfolder)
+        #logfolder = os.path.join(outfolder, "logs")
+        #os.makedirs(logfolder)
 
-        ## call fake script for testing
-        # subprocess.run(["python3", "./fakeScript.py", "--infolder", infolder, "--key", self.keyname])
+        # call fake script for testing
+        subprocess.run(["python3", "/home/florian/Studium/Master_Bioinformatics/3rd_semester/SoftwareEntwicklungsprojektBioInfo/WebServer/phenDB/source/web_server/businessLogic/fakeScript.py", "--infolder", infolder, "--key", self.keyname])
 
         # call minimal runscript which performs nohup and output rerouting
-        subprocess.run([runscript_path,
+        ''' subprocess.run([runscript_path,
                         pipeline_path,
                         infolder,
                         outfolder,
                         pica_cutoff,
-                        node_offs], check=True)
+                        node_offs], check=True) '''
