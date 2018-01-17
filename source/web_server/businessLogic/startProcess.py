@@ -7,7 +7,7 @@ from redis import Redis
 from rq import Queue
 from businessLogic.enqueue_job import phenDB_enqueue
 
-class startProcessThread(threading.Thread):
+class StartProcessThread(threading.Thread):
     def __init__(self, keyname):
         threading.Thread.__init__(self)
         self.keyname = keyname

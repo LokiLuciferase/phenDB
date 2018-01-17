@@ -4,9 +4,10 @@ from django.template import loader
 from django.urls import reverse
 from .forms import FileForm
 from django.shortcuts import redirect
+from businessLogic.mailNotification import MailNotification
 import uuid
 from django.core.urlresolvers import resolve
-from businessLogic.startProcess import startProcessThread
+from businessLogic.startProcess import StartProcessThread
 from phenotypePredictionApp.models import UploadedFile
 from pprint import pprint
 from ipware.ip import get_real_ip
@@ -31,10 +32,11 @@ def getKeyFromUrl(request):
 def index(request):
     template = loader.get_template('phenotypePredictionApp/index.xhtml')
     context = {'result' : 'No result yet',
-               'showResult' : 'none',
-               'showInputForm': 'block',
+               'showResultCSS' : 'none',
+               'showNotification' : False,
+               'showInputFormCSS': 'block',
                'showProgressBar' : False,
-               'refresh' : False,}
+               'refresh' : False}
     return HttpResponse(template.render(context, request))
 
 def sendinput(request):
@@ -49,55 +51,91 @@ def sendinput(request):
     postobj['filename'] = name
     postobj['fileInput'] = fileobj['fileInput']
     postobj['user_ip'] = get_real_ip(request)
+    postobj['errors'] = False
     form = FileForm(postobj, fileobj)
     if(form.is_valid()):
         print("Is valid")
         modelInstance = form.save(commit=False)
         modelInstance.save()
-        thread = startProcessThread(key)
-        thread.start()
+        StartProcessThread(key).start()
+        if postobj['user_email'] != '':
+            MailNotification(key).start()
     resultObj = UploadedFile.objects.get(key=key)
     return redirect(resultObj)
+
+accessed = {}
 
 def getResults(request):
     #TODO: show error on UI not related to sanity-error
     template = loader.get_template('phenotypePredictionApp/index.xhtml')
     key = getKeyFromUrl(request)
     obj = UploadedFile.objects.get(key=key)
+
     #errors: when errors from model UploadedFile set to true -> sanity error, when None -> Error in the pipeline
-    error_severity = 'warn'
-    if obj.job_status == '100':
-        showResult = 'block'
+
+    showResultCSS = ''
+    showProgressBar = None
+    refresh = None
+    showErrorMessage = None
+    errorSeverityPU = None
+    errorSummaryPU = None
+    errorMessagePU = None
+
+
+
+
+    if obj.finished_bins == obj.total_bins and obj.total_bins != 0:
+        try:
+            numAccessed = accessed[key]
+            print(numAccessed)
+        except:
+            numAccessed = 0
+        numAccessed += 1
+        accessed[key] = numAccessed
+        print(accessed[key])
+        showResultCSS = 'block'
         showProgressBar = False
         refresh = False
         if(obj.errors == None):
             showErrorMessage = True
-            error_severity = 'error'
-            error_summary = 'unknown error'
-            error_message = 'phendb service not working'
-        else:
-            showErrorMessage = obj.errors
-            error_summary = 'Invalid input file(s)'
-            error_message = 'Please check the invalid_input_files.log file in the summaries directory'
+            errorSeverityPU = 'error'
+            errorSummaryPU = 'unknown error'
+            errorMessagePU = 'phendb service not working'
+        elif(obj.errors == True):
+            showErrorMessage = True
+            errorSeverityPU = 'warn'
+            errorSummaryPU = 'Invalid input file(s)'
+            errorMessagePU = 'Please check the invalid_input_files.log file'
     else:
-        showResult = 'none'
-        showProgressBar = True
-        refresh = True
-        showErrorMessage = False
-        error_message = ""
-        error_summary = ""
-        error_severity = ""
-    print('status ' + obj.job_status)
+        numAccessed = 0
+        showResultCSS = 'none'
+        if(obj.errors == False or obj.errors == True):
+            showProgressBar = True
+            refresh = True
+            showErrorMessage = False
+        elif (obj.errors == None):
+            refresh = False
+            showErrorMessage = True
+            showProgressBar = False
+            errorSeverityPU = 'error'
+            errorSummaryPU = 'unknown error'
+            errorMessagePU = 'phendb service not working'
+
+    print(obj.finished_bins)
+    print(obj.total_bins)
     context = {'result' : 'download/',
-               'showResult' : showResult,
+               'showResultCSS' : showResultCSS,
+               'showNotification' : True if numAccessed == 1 else False,
                'showProgressBar' : showProgressBar,
-               'progress' : obj.job_status,
+               'progress' : (obj.finished_bins * 1.0 / obj.total_bins) * 100 if (obj.total_bins!=0) else 0,
+               'finished_bins' : str(obj.finished_bins),
+               'total_bins' : str(obj.total_bins),
                'refresh' : refresh,
-               'showInputForm': 'none',
+               'showInputFormCSS': 'none',
                'showErrorMessage': showErrorMessage,
-               'error_severity' : error_severity,
-               'error_summary' : error_summary,
-               'error_message' : error_message}
+               'error_severity' : errorSeverityPU,
+               'error_summary' : errorSummaryPU,
+               'error_message' : errorMessagePU}
     return HttpResponse(template.render(context, request))
 
 def fileDownload(request):
