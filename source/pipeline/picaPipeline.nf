@@ -516,7 +516,7 @@ process pica_bacteria {
     """
     echo -ne "${binname}\\t" > tempfile.tmp
     cut -f2 $hmmeritem | tr "\\n" "\\t" >> tempfile.tmp
-    test.py -m ${archaea_model_path} -t ARCHAEA -s tempfile.tmp > picaout.result
+    test.py -m ${params.archaea_model_path} -t ARCHAEA -s tempfile.tmp > picaout.result
     is_archaea=\$(cat picaout.result | tail -n1 | cut -f2)
     if [[ \$is_archaea = "YES" ]]; then
         echo -n "NO"
