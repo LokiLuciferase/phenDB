@@ -6,7 +6,7 @@ import os
 import os.path
 import subprocess
 
-def clean_up_on_pipeline_fail(keyname):
+def clean_up_on_pipeline_fail(keyname, ppath):
 
     import django
     os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
@@ -38,7 +38,7 @@ def phenDB_enqueue(ppath, pipeline_path, infolder, outfolder, pica_cutoff, node_
 
         # if pipeline encounters error, set errors to None in the DB
         if pipeline_call.returncode != 0:
-            clean_up_on_pipeline_fail(os.path.basename(infolder))
+            clean_up_on_pipeline_fail(os.path.basename(infolder), ppath)
             raise RuntimeError("Pipeline run has failed. Error status in DB has been updated.")
 
         return pipeline_call.returncode
