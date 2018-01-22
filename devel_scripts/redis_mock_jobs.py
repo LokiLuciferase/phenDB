@@ -7,6 +7,7 @@ from redis import Redis
 from rq import Queue
 from redis_functions import mockjob, failedjob
 from uuid import uuid4
+from time import sleep
 
 # enqueues fake jobs
 def queue_mock_jobs(number):
@@ -38,6 +39,22 @@ def queue_failed_jobs(number):
         job.meta['filesize'] = 99999
         job.save()
 
+
+def queue_real_job(key):
+
+    que = Queue('phenDB', connection=Redis())
+    job = que.enqueue_call(func=mockjob,
+                           job_id=key,
+                           timeout='5h',
+                           ttl='5h'
+                           )
+    job.meta["ip"] = "192.168.8.1",
+    job.meta['mail'] = "tharealmail.com",
+    job.meta['filesize'] = 440,
+    job.save()
+
+
 queue_mock_jobs(10)
+queue_real_job("a_real_job_key")
 queue_failed_jobs(10)
 queue_mock_jobs(10)

@@ -35,16 +35,27 @@ def query_queue_meta():
     metas = [(x.id, x.enqueued_at, x.args, x.meta) for x in jobs]
     return metas
 
+# print jobs from failed queue with meta data
 def examine_failed_jobs():
     fque = Queue('failed', connection=Redis())
     jobs = fque.jobs
     metas = [(x.id, x.enqueued_at, x.args, x.meta) for x in jobs]
     return metas
 
+# delete jobs from failed queue
 def drop_failed_jobs():
     fque = Queue('failed', connection=Redis())
     fque.empty()
     return True
+
+# returns a tuple: (int(position_in_queue), int(len(queue))) or a tuple (-1, int(len(queue))) if key was not found
+def get_current_position(keyname):
+    que = Queue('phenDB', connection=Redis())
+    jobs = list(que.jobs)
+    for index, job in enumerate(jobs):
+        if job.id == keyname:
+            return (index, len(jobs))
+    return (-1, len(jobs))
 
 
 if __name__ == "__main__":
@@ -57,6 +68,8 @@ if __name__ == "__main__":
     print("\nFailed jobs plus meta info: ")
     pprint(examine_failed_jobs())
 
-    print("\nCancelling failed jobs...")
-    drop_failed_jobs()
-    pprint(examine_failed_jobs())
+    #print("\nCancelling failed jobs...")
+    #drop_failed_jobs()
+    #pprint(examine_failed_jobs())
+    print("\nGetting specific job position:")
+    print(get_current_position("a_real_job_key"))
