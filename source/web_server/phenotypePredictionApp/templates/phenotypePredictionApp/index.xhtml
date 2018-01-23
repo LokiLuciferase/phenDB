@@ -29,9 +29,9 @@
                     $('#progressbar').puiprogressbar({
                         value : {{  progress }},
                         {% if queuePos >= 0 %}
-                            labelTemplate: "Waiting... Your position in the queue: " + "{{ queuePos }} / {{ queueLen }}"
+                            labelTemplate: "Queue position: " + "{{ queuePos }}/{{ queueLen }}"
                         {% else %}
-                            labelTemplate: "Finished / Total : " + "{{ finished_bins }} / {{ total_bins }}"
+                            labelTemplate: "Finished/Total: " + "{{ finished_bins }}/{{ total_bins }}"
                         {% endif %}
                     });
                 {%  endif %}

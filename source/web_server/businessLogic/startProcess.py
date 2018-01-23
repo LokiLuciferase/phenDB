@@ -49,7 +49,7 @@ class StartProcessThread(threading.Thread):
 
         # add the function call to the redis queue
         q = Queue('phenDB', connection=Redis())
-        pipeline_job = q.enqueue_call(func=phenDB_enqueue,
+        pipeline_errorcode = q.enqueue_call(func=phenDB_enqueue,
                                       args=(ppath, pipeline_path, infolder, outfolder, pica_cutoff, node_offs),
                                       timeout=5000,
                                       job_id=self.keyname

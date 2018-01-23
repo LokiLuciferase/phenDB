@@ -148,7 +148,6 @@ def getResults(request):
         showProgressBar = False
 
 
-
     context = {'result' : 'download/',
                'showResultCSS' : showResultCSS,
                'showNotification' : True if numAccessed == 1 else False,
@@ -162,7 +161,7 @@ def getResults(request):
                'errorSeverityPU' : errorSeverityPU,
                'errorSummaryPU' : errorSummaryPU,
                'errorMessagePU' : errorMessagePU,
-               'queuePos' : queuePos,
+               'queuePos' : queuePos + 1,
                'queueLen' : queueLen}
 
     pprint(context)
