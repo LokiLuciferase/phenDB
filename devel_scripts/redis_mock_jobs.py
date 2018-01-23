@@ -2,12 +2,12 @@
 #
 # Created by Lukas Lüftinger on 16/01/2018.
 #
-
 from redis import Redis
 from rq import Queue
 from redis_functions import mockjob, failedjob
 from uuid import uuid4
 from time import sleep
+
 
 # enqueues fake jobs
 def queue_mock_jobs(number):

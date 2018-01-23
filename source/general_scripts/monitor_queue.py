@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
-
 #
 # Created by Lukas Lüftinger on 14/01/2018.
 #
-
 from redis import Redis
 from rq import Queue, get_failed_queue
 from rq.worker import Worker
@@ -23,5 +21,5 @@ pprint([x.name for x in workers])
 print("Currently enqueued jobs: ")
 pprint(q.job_ids)
 
-#print("Failed jobs:")
-#pprint(get_failed_queue().job_ids)
+print("Failed jobs:")
+pprint(get_failed_queue().job_ids)

@@ -6,6 +6,7 @@ class FileForm(forms.ModelForm):
     class Meta:
         model = UploadedFile
         fields = ['filename', 'key', 'fileInput', 'user_ip', 'user_email', 'errors']
+
     def __init__(self, *args, **kwargs):
         super(FileForm, self).__init__(*args, **kwargs)
         self.fields['key'].initial = self.data['key']
@@ -15,4 +16,4 @@ class FileForm(forms.ModelForm):
         self.fields['user_email'].initial = self.data['user_email']
         self.fields['errors'].initial = self.data['errors']
         for key, value in self.data.items():
-            print(str(key) + ' '  + str(value))
+            print(str(key) + ' ' + str(value))

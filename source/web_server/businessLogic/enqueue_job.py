@@ -6,6 +6,7 @@ import os
 import os.path
 import subprocess
 
+
 def clean_up_on_pipeline_fail(keyname, ppath):
 
     import django
@@ -14,7 +15,7 @@ def clean_up_on_pipeline_fail(keyname, ppath):
     django.setup()
     from phenotypePredictionApp.models import UploadedFile, bins_in_UploadedFile
     currentjob = UploadedFile.objects.get(key=keyname)
-    currentjob.errors = None # set error for website
+    currentjob.errors = None  # set error for website
     # delete bins belonging to failed job
     assoc_rows = bins_in_UploadedFile.objects.filter(UploadedFile=currentjob)
     bins_of_failed = [x.bin for x in assoc_rows]
@@ -23,6 +24,7 @@ def clean_up_on_pipeline_fail(keyname, ppath):
         b.delete()
     assoc_rows.delete()
     currentjob.save()
+
 
 def phenDB_enqueue(ppath, pipeline_path, infolder, outfolder, pica_cutoff, node_offs):
 

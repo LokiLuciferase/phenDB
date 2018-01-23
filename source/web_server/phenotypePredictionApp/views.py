@@ -28,12 +28,15 @@ def getKeyFromUrl(request):
     return None
 
 def get_current_position(keyname):
-    que = Queue('phenDB', connection=Redis())
-    jobs = list(que.jobs)
-    for index, job in enumerate(jobs):
-        if job.id == keyname:
-            return (index, len(jobs))
-    return (-1, len(jobs))
+    try:
+        que = Queue('phenDB', connection=Redis())
+        jobs = list(que.jobs)
+        for index, job in enumerate(jobs):
+            if job.id == keyname:
+                return (index, len(jobs))
+        return (-1, len(jobs))
+    except:
+        return (None, None)
 
 
 #-------------------Views-------------------------------------------------
@@ -141,6 +144,8 @@ def getResults(request):
         errorSeverityPU = 'error'
         errorSummaryPU = 'unknown error'
         errorMessagePU = 'phendb service not working'
+        refresh = False
+        showProgressBar = False
 
 
 

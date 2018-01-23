@@ -4,18 +4,20 @@ import threading
 from phenotypePrediction.settings import GlobalVariables
 from phenotypePredictionApp.models import *
 
+
 class MailNotification(threading.Thread):
+
     def __init__(self, key):
         threading.Thread.__init__(self)
         self.key = key
         self.runCounter = 0
-        self.initialSleep = 10 #initial time for thread to sleep in seconds, will be increased dynamically (linear to runCounter), max:20min
+        self.initialSleep = 10  # initial time for thread to sleep in seconds, will be increased dynamically (linear to runCounter), max:20min
         self.maxSleep = 1200
 
     def run(self):
         while True:
             self.runCounter += 1
-            obj = UploadedFile.objects.get(key = self.key)
+            obj = UploadedFile.objects.get(key=self.key)
             if obj.total_bins == obj.finished_bins and obj.total_bins != 0:
                 self.__sendMail(obj.user_email, GlobalVariables.WEBSERVER_URL + "/phendb/results/" + self.key)
                 break

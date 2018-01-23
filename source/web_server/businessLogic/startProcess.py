@@ -7,6 +7,7 @@ from redis import Redis
 from rq import Queue
 from businessLogic.enqueue_job import phenDB_enqueue
 
+
 class StartProcessThread(threading.Thread):
     def __init__(self, keyname):
         threading.Thread.__init__(self)
@@ -53,5 +54,5 @@ class StartProcessThread(threading.Thread):
                                       timeout=5000,
                                       job_id=self.keyname
                                       )
-        #return pipeline_job
+        # return pipeline_job
         # here we could return len(q). or fetch it somewhere else. We could also set errors in the DB.
