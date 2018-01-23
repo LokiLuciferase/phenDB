@@ -136,28 +136,32 @@ def getResults(request):
 
     #position in queue
     queuePos, queueLen = get_current_position(key)
-    if queuePos == -1:
+    if queuePos == None:
         showErrorMessage = True
         errorSeverityPU = 'error'
         errorSummaryPU = 'unknown error'
         errorMessagePU = 'phendb service not working'
 
 
+
     context = {'result' : 'download/',
                'showResultCSS' : showResultCSS,
                'showNotification' : True if numAccessed == 1 else False,
                'showProgressBar' : showProgressBar,
-               'progress' : (obj.finished_bins * 1.0 / obj.total_bins) * 100 if (obj.total_bins!=0) else 0,
+               'progress' : (obj.finished_bins * 1.0 / obj.total_bins) * 100 if (obj.total_bins!=0) else 0.001,
                'finished_bins' : str(obj.finished_bins),
                'total_bins' : str(obj.total_bins),
                'refresh' : refresh,
                'showInputFormCSS': 'none',
                'showErrorMessage': showErrorMessage,
-               'error_severity' : errorSeverityPU,
-               'error_summary' : errorSummaryPU,
-               'error_message' : errorMessagePU,
+               'errorSeverityPU' : errorSeverityPU,
+               'errorSummaryPU' : errorSummaryPU,
+               'errorMessagePU' : errorMessagePU,
                'queuePos' : queuePos,
                'queueLen' : queueLen}
+
+    pprint(context)
+
     return HttpResponse(template.render(context, request))
 
 def fileDownload(request):
