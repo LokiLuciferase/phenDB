@@ -11,6 +11,8 @@ from businessLogic.startProcess import StartProcessThread
 from phenotypePredictionApp.models import UploadedFile
 from pprint import pprint
 from ipware.ip import get_real_ip
+from redis import Redis
+from rq import Queue, get_current_job
 
 #------------------functions---------------------------------------------
 #useful functions, NO views
@@ -25,6 +27,13 @@ def getKeyFromUrl(request):
             return part
     return None
 
+def get_current_position(keyname):
+    que = Queue('phenDB', connection=Redis())
+    jobs = list(que.jobs)
+    for index, job in enumerate(jobs):
+        if job.id == keyname:
+            return (index, len(jobs))
+    return (-1, len(jobs))
 
 
 #-------------------Views-------------------------------------------------
@@ -80,7 +89,8 @@ def getResults(request):
     errorSeverityPU = None
     errorSummaryPU = None
     errorMessagePU = None
-
+    queuePos = None
+    queueLen = None
 
 
 
@@ -123,6 +133,16 @@ def getResults(request):
 
     print(obj.finished_bins)
     print(obj.total_bins)
+
+    #position in queue
+    queuePos, queueLen = get_current_position(key)
+    if queuePos == -1:
+        showErrorMessage = True
+        errorSeverityPU = 'error'
+        errorSummaryPU = 'unknown error'
+        errorMessagePU = 'phendb service not working'
+
+
     context = {'result' : 'download/',
                'showResultCSS' : showResultCSS,
                'showNotification' : True if numAccessed == 1 else False,
@@ -135,7 +155,9 @@ def getResults(request):
                'showErrorMessage': showErrorMessage,
                'error_severity' : errorSeverityPU,
                'error_summary' : errorSummaryPU,
-               'error_message' : errorMessagePU}
+               'error_message' : errorMessagePU,
+               'queuePos' : queuePos,
+               'queueLen' : queueLen}
     return HttpResponse(template.render(context, request))
 
 def fileDownload(request):
