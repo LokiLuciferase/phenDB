@@ -95,8 +95,6 @@ def getResults(request):
     queuePos = None
     queueLen = None
 
-
-
     if obj.finished_bins == obj.total_bins and obj.total_bins != 0:
         try:
             numAccessed = accessed[key]

@@ -38,6 +38,8 @@ errorfile.text=""
 // unzip tar.gz files
 process tgz {
 
+    scratch true
+
     input:
     file(tarfile) from input_gzipfiles
 
@@ -58,6 +60,8 @@ process tgz {
 
 // unzip .zip files
 process unzip {
+
+    scratch true
 
     input:
     file(zipfile) from input_barezipfiles
@@ -85,15 +89,16 @@ truly_all_input_files = all_input_files.mix(tgz_unraveled_all.flatten(), zip_unr
 // Passes every fasta file through Biopythons SeqIO to check for corrupted files
 process fasta_sanity_check {
 //todo: output also sequences-only for md5sum?
-    errorStrategy 'ignore'
     tag { binname }
-    maxForks 10
+    errorStrategy 'ignore'
+    maxForks 5
+    scratch true
 
     input:
     file(item) from truly_all_input_files
 
     output:
-    set val(binname), file("sanitychecked.fasta") into fasta_sanitycheck_out
+    set val(binname), file("sanitychecked.fasta") into sanity_check_for_continue, sanity_check_for_count
 
     script:
     binname = item.getName()
@@ -171,9 +176,9 @@ if os.stat("sanitychecked.fasta").st_size == 0:
 
 }
 
+nr_of_files = sanity_check_for_count.count()
+
 // sanity_check_for_count is later used in update_job_completeness to count the total nr. of bins
-fasta_sanitycheck_out.into { sanity_check_for_continue; sanity_check_for_count }
-sanity_check_for_count.into { sanity_check_for_count1; sanity_check_for_count2 }
 process md5sum {
 
     tag { binname }
@@ -194,10 +199,10 @@ process add_bin_to_db {
 
     input:
     set val(binname), val(mdsum), file(item) from md5_out
-    each nr_of_files from sanity_check_for_count1.count()
+    val(nr_of_files)
 
     output:
-    set val(binname), val(mdsum), file(item), stdout, file("reconstructed_hmmer_file.txt"), file("reconstructed_compleconta_file.txt") into bin_to_db_out
+    set val(binname), val(mdsum), file(item), stdout, file("reconstructed_hmmer_file.txt"), file("reconstructed_compleconta_file.txt") into bin_is_in_db, bin_is_not_in_db
 
     tag { binname }
 
@@ -261,17 +266,13 @@ except IntegrityError:
 
 }
 
-// Do the further checks depending on if the bin is already in the db
-bin_to_db_out.into{bin_is_in_db;bin_is_not_in_db}
-
-
 // call prodigal for every sample in parallel
 // output each result as a set of the sample id and the path to the prodigal outfile
 // only execute prodigal if the been has not already been in our db
 process prodigal {
 
     tag { binname }
-    maxForks 10
+    maxForks 5
 
     memory = "450 MB"
 
@@ -330,13 +331,13 @@ process determine_models_that_need_recalculation {
 determined_if_model_recalculation_needed.into{calc_model; dont_calc_model}
 
 // if the results for this bin and model are up-to-date, we only need to include them in the final output file
-process uptodate_model_to_targz1 {
+process uptodate_model_to_targz {
 
     input:
     set val(binname), val(mdsum), val(model), val(calc_model_or_not), file(reconstr_hmmer), file(reconst_hmmer) from dont_calc_model
 
     output:
-    set val(binname), val(mdsum), val(RULEBOOK), stdout into new_model_to_targz1_out
+    set val(binname), val(mdsum), val(RULEBOOK), stdout into new_model_to_targz_out
     // print YES or NO
     when:
     calc_model_or_not == "NO"
@@ -376,46 +377,28 @@ process uptodate_model_to_targz1 {
     """
 }
 
-process uptodate_model_to_targz2 {
+// split output of last process on tab to get seperate verdict and accuracy fields
+picaout_from_new_model = new_model_to_targz_out.map { l ->
 
-    input:
-    set val(binname), val(mdsum), val(RULEBOOK), val(verdict_and_accuracy) from new_model_to_targz1_out
-
-    output:
-    set val(binname), val(mdsum), val(RULEBOOK), val(verdict), val(accuracy) into picaout_from_new_model //
-
-    exec:
     splitted=verdict_and_accuracy.split("\t")
     verdict=splitted[0]
     accuracy=splitted[1] as float
-    accuracy+="\n"
-}
+    //accuracy+="\n"
+    return [ l[0], l[1], l[2], verdict, accuracy ]
 
+}
 
 // if the results in our db for this bin and model are outdated, pica needs to be called
-// this process just reformats the input and just calls pica if the value is YES
-// this could be a map statement or a fork statement as well
+// this just reformats the input and just calls pica if the value is YES
 
-process old_model_to_accuracy {
+accuracy_in_from_old_model = calc_model.filter{ it[3] == "YES" }.map{ l -> [l[0], l[1], l[2], l[4], l[5]] }
 
-    input:
-    set val(binname), val(mdsum), val(model), val(calc_model_or_not), file(reconstr_hmmer), file(reconst_hmmer) from calc_model
-
-    output:
-    set val(binname), val(mdsum), val(model), file(reconstr_hmmer), file(reconst_hmmer) into accuracy_in_from_old_model
-
-    when:
-    calc_model_or_not == "YES"
-
-    script:
-    """
-    """
-}
 
 // call hmmer daemon for all bins for which prodigal was run (i.e. bins that have not yet been in the db)
 process hmmer {
 
     tag { binname }
+    scratch true
 
     maxForks 1  //do not parallelize!
 
@@ -447,10 +430,11 @@ process update_job_completeness {
 
     input:
     set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem) from hmmerout
-    each nr_of_files from sanity_check_for_count2.count()
+    val(nr_of_files)
 
     output:
     set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem) into job_updated_out
+
     script:
 
 """
@@ -502,6 +486,7 @@ process compleconta {
 process pica_bacteria {
 
     tag { binname }
+    scratch true
 
     memory = '500 MB'
 
@@ -509,7 +494,7 @@ process pica_bacteria {
     set val(binname), val(mdsum), file(hmmeritem), val(complecontaitem) from complecontaout
 
     output:
-    set val(binname), val(mdsum), file(hmmeritem), val(complecontaitem), stdout into bacteria_checked  // "YES"= is bacterium
+    set val(binname), val(mdsum), file(hmmeritem), val(complecontaitem), stdout into complecontaout_for_call_accuracy, complecontaout_for_hmmerresults_to_db  // "YES"= is bacterium
 
     script:
     RULEBOOK = file(params.archaea_model_path).getBaseName()
@@ -527,13 +512,10 @@ process pica_bacteria {
     """
 }
 
-bacteria_checked.into{complecontaout_for_call_accuracy; complecontaout_for_hmmerresults_to_db}
 
 process write_hmmer_results_to_db {
 
     tag { binname }
-
-    // TODO: check if enog.objects.in_bulk() makes sense also here
 
     input:
     set val(binname), val(mdsum), file(hmmeritem), file(complecontaitem), val(is_bacterium) from complecontaout_for_hmmerresults_to_db
@@ -605,12 +587,11 @@ process call_accuracy_for_all_models {
     when:
     model.isDirectory() && (is_bacterium == "YES" || !(params.omit_in_archaea.contains(model.getBaseName())))
 
-    script:
-    """
-    """
+    exec:  // TODO: is this working?
 }
 
-// compute accuracy from compleconta output and model intrinsics .
+
+// compute accuracy from compleconta output and model intrinsics.
 process accuracy {
 
     tag { "${binname}_${model.getBaseName()}" }
@@ -672,74 +653,42 @@ process accuracy {
 process pica {
 
     tag { "${binname}_${model.getBaseName()}" }
-
+    scratch true
     memory = '800 MB'
 
     input:
     set val(binname), val(mdsum), val(model), file(hmmeritem), val(accuracy) from accuracyout
 
     output:
-    set val(binname), val(mdsum), val(RULEBOOK), stdout, val(accuracy) into picaout  //print decision on stdout, and put stdout into return set
+    set val(binname), val(mdsum), val(RULEBOOK), stdout, val(accuracy) into picaout_db_write, picaout_for_download //print decision on stdout, and put stdout into return set
 
     script:
     RULEBOOK = model.getBaseName()
     TEST_MODEL = "$model/${RULEBOOK}.rules"
-//    float accuracy_cutoff = params.accuracy_cutoff as float
-//    float accuracy_float = accuracy as float
-//
-//    if (accuracy_float >= accuracy_cutoff) {
+
     """
     echo -ne "${binname}\t" > tempfile.tmp
     cut -f2 $hmmeritem | tr "\n" "\t" >> tempfile.tmp
     test.py -m $TEST_MODEL -t $RULEBOOK -s tempfile.tmp > picaout.result
     echo -n \$(cat picaout.result | tail -n1 | cut -f2,3)
     """
-//    }
-
-//    else {
-//    """
-//    echo -ne "${binname}\t" > tempfile.tmp
-//    cut -f2 $hmmeritem | tr "\n" "\t" >> tempfile.tmp
-//    echo "N/A\tN/A" > picaout.result
-//    echo -n \$(cat picaout.result | tail -n1 | cut -f2,3 | tr "\t" " ")
-//    """
-//    }
 }
 
-picaout.into{picaout_db_write; picaout_for_download}
+// replace the verdict of pica with "N/A N/A" if the balanced accuracy is below the treshold
+NA_replaced_for_download = picaout_for_download.mix(picaout_from_new_model).map { l ->
 
-// replace the verdict of pica with "N/A" if the balanced accuracy is below the treshold
-process replace_with_NA {
-    tag { "${binname}_${RULEBOOK}" }
-
-    input:                         // .mix: include the results from bins that were already in the db that used up-to-date-models
-    set val(binname), val(mdsum), val(RULEBOOK), val(verdict_pica_pval), val(accuracy) from picaout_for_download.mix(picaout_from_new_model)
-
-    output:
-    set val(binname), val(mdsum), val(RULEBOOK), stdout, val(accuracy) into NA_replaced_for_download
-
-    script:
     float accuracy_cutoff = params.accuracy_cutoff as float
-    float accuracy_float = accuracy as float
+    float accuracy_float = l[4] as float
 
     if (accuracy_float >= accuracy_cutoff) {
-        """
-        #!/usr/bin/env python3
-        print(str("${verdict_pica_pval}"),end='')
-
-        """
-
+        output = l[3]
+    } else {
+        output = "N/A N/A"
     }
-    else{
-        """
-        #!/usr/bin/env python3
-        print("N/A N/A" ,end='')
-        """
+    return [l[0], l[1], l[2], output, l[4]]
+}
 
-    }
-    }
-
-// merge all results into a file called $id.results and move each file to results folder.
+// merge all results into a file called $id.results.
 outfilechannel = NA_replaced_for_download.collectFile() { item ->
     [ "${item[0]}.results", "${item[2]}\t${item[3]}\t${item[4]}" ]  // use given bin name as filename
 }.collect()
@@ -842,7 +791,7 @@ with open("per_bin_matrix.results.tsv", "w") as outfile2:
 process zip_results {
 
     tag { jobname }
-
+    scratch true
     stageInMode 'copy'  //actually copy in the results so we not only tar symlinks
 
     input:
@@ -867,14 +816,12 @@ db_written = picaout_db_write.collectFile() { item ->
     [ "${item[1]}.results", "${item[2]}\t${item[3]}\t${item[4]}" ]  // use md5sum as filename
 }
 
-
 process write_pica_result_to_db {
+
+    scratch true
 
     input:
     file(mdsum_file) from db_written
-
-    output:
-    stdout exo
 
     script:
 // language=Python
@@ -933,6 +880,8 @@ result_model.objects.bulk_create(modelresultlist)
 }
 
 process write_zip_to_db {
+
+    scratch true
 
     input:
     file(zip) from zip_to_db
