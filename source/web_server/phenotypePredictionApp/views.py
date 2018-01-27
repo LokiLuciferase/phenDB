@@ -99,25 +99,23 @@ def getResults(request):
     if obj.finished_bins == obj.total_bins and obj.total_bins != 0:
         try:
             numAccessed = accessed[key]
-            print(numAccessed)
         except:
             numAccessed = 0
         numAccessed += 1
         accessed[key] = numAccessed
-        print(accessed[key])
         showResultCSS = 'block'
         showProgressBar = False
         refresh = False
         if(obj.errors == None):
             showErrorMessage = True
             errorSeverityPU = 'error'
-            errorSummaryPU = 'unknown error'
-            errorMessagePU = 'phendb service not working'
+            errorSummaryPU = 'Unknown Error'
+            errorMessagePU = 'An unknown internal error has occurred.'
         elif(obj.errors == True):
             showErrorMessage = True
             errorSeverityPU = 'warn'
-            errorSummaryPU = 'Invalid input file(s)'
-            errorMessagePU = 'Please check the invalid_input_files.log file'
+            errorSummaryPU = 'Invalid Input File(s)'
+            errorMessagePU = 'Please check the invalid_input_files.log file.'
     else:
         numAccessed = 0
         showResultCSS = 'none'
@@ -130,25 +128,23 @@ def getResults(request):
             showErrorMessage = True
             showProgressBar = False
             errorSeverityPU = 'error'
-            errorSummaryPU = 'unknown error'
-            errorMessagePU = 'phendb service not working'
+            errorSummaryPU = 'Unknown Error'
+            errorMessagePU = 'An unknown internal error has occurred.'
 
-    print(obj.finished_bins)
-    print(obj.total_bins)
 
     #position in queue
     queuePos, queueLen = get_current_position(key)
 
     # write queue length to binary file
-    with open("../../../logs/queuelength", "wb") as bytefile:
+    with open("/apps/phenDB_devel_LL/logs/queuelength", "wb") as bytefile:
         for times in range(queueLen):
             bytefile.write(struct.pack('x'))
 
     if queuePos == None:
         showErrorMessage = True
         errorSeverityPU = 'error'
-        errorSummaryPU = 'unknown error'
-        errorMessagePU = 'phendb service not working'
+        errorSummaryPU = 'Unknown Error'
+        errorMessagePU = 'An unknown internal error has occurred.'
         refresh = False
         showProgressBar = False
 
