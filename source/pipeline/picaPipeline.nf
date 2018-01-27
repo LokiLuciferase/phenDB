@@ -571,25 +571,13 @@ with open("${hmmeritem}", "r") as enogresfile:
 """
 }
 
-process call_accuracy_for_all_models {
-
-    tag { "${binname}_${model.getBaseName()}" }
-
-    memory = '10 MB'
-
-    input:
-    set val(binname), val(mdsum), file(hmmeritem), file(complecontaitem), val(is_bacterium) from complecontaout_for_call_accuracy
-    each model from models
-
-    output:
-    set val(binname), val(mdsum), val(model), file(hmmeritem), file(complecontaitem) into accuracy_in
-
-    when:
-    model.isDirectory() && (is_bacterium == "YES" || !(params.omit_in_archaea.contains(model.getBaseName())))
-
-    exec:  // TODO: is this working?
-}
-
+// instantiates an item for each compleconta output item and each model,
+// drops all channel items which are not either bacteria
+// or archea but the assorted model is not contained in the blacklist omit_in_archaea
+accuracy_in = complecontaout_for_call_accuracy
+                .combine(models.filter{it.isDirectory()})
+                .filter{it[4] == "YES" || !(params.omit_in_archaea.contains(it[5].getBaseName()))}
+                .map { l -> [ l[0], l[1], l[5], l[2], l[3] ]}
 
 // compute accuracy from compleconta output and model intrinsics.
 process accuracy {

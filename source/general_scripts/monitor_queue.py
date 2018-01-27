@@ -22,4 +22,5 @@ print("Currently enqueued jobs: ")
 pprint(q.job_ids)
 
 print("Failed jobs:")
-pprint(get_failed_queue().job_ids)
+fque = Queue('failed', connection=rconn)
+pprint(fque.job_ids)
