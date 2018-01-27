@@ -28,7 +28,7 @@
                     $('#overlay').puidialog('show');
                     $('#progressbar').puiprogressbar({
                         value : {{  progress }},
-                        {% if queuePos >= 0 %}
+                        {% if queuePos > 0 %}
                             labelTemplate: "Queue position: " + "{{ queuePos }}/{{ queueLen }}"
                         {% else %}
                             labelTemplate: "Finished/Total: " + "{{ finished_bins }}/{{ total_bins }}"
