@@ -13,6 +13,7 @@ from pprint import pprint
 from ipware.ip import get_real_ip
 from redis import Redis
 from rq import Queue, get_current_job
+import struct
 
 #------------------functions---------------------------------------------
 #useful functions, NO views
@@ -137,6 +138,12 @@ def getResults(request):
 
     #position in queue
     queuePos, queueLen = get_current_position(key)
+
+    # write queue length to binary file
+    with open("../../../logs/queuelength", "wb") as bytefile:
+        for times in range(queueLen):
+            bytefile.write(struct.pack('x'))
+
     if queuePos == None:
         showErrorMessage = True
         errorSeverityPU = 'error'
