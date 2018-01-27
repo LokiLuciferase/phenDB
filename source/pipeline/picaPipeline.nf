@@ -792,6 +792,7 @@ process zip_results {
     script:
     """
     mkdir -p ${jobname}/summaries
+    cp ${params.description_file} summaries/PICA_trait_descriptions.txt
     cp ${errorfile} ${jobname}/summaries/invalid_input_files.log.txt
     mv *.results.tsv ${jobname}/summaries
     mv *.results.txt ${jobname}
