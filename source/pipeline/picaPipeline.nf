@@ -380,7 +380,7 @@ process uptodate_model_to_targz {
 // split output of last process on tab to get seperate verdict and accuracy fields
 picaout_from_new_model = new_model_to_targz_out.map { l ->
 
-    splitted=verdict_and_accuracy.split("\t")
+    splitted=l[4].split("\t")
     verdict=splitted[0]
     accuracy=splitted[1] as float
     //accuracy+="\n"
