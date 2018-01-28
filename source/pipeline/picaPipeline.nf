@@ -384,7 +384,7 @@ picaout_from_new_model = new_model_to_targz_out.map { l ->
     splitted = l[3].split("\t")
     verdict = splitted[0]
     accuracy = splitted[1] as float
-    //accuracy+="\n"  //why is this here?
+    accuracy += "\n"
     return [ l[0], l[1], l[2], verdict, accuracy ]
 
 }
