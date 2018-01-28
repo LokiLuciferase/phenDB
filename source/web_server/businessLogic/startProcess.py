@@ -32,7 +32,7 @@ class StartProcessThread(threading.Thread):
 
         infolder = os.path.join(infolder_base, self.keyname)
 
-        # we should make these parameters settable from the web mask
+        # TODO: we should make these parameters settable from the web mask
         pica_cutoff = "0.5"
         node_offs = ""
 

@@ -277,7 +277,7 @@ process prodigal {
     memory = "450 MB"
 
     input:
-    set val(binname), val(mdsum), file(item), val(calc_bin_or_not), file(reconstr_hmmer), file(reconst_hmmer) from bin_is_not_in_db
+    set val(binname), val(mdsum), file(sanitychecked), val(calc_bin_or_not), file(reconstr_hmmer), file(reconst_hmmer) from bin_is_not_in_db
 
     output:
     set val(binname), val(mdsum), file("prodigalout.faa") into prodigalout
@@ -287,7 +287,9 @@ process prodigal {
 
     script:
     """
-    prodigal -i ${item} -a prodigalout.faa > /dev/null
+    prodigal -i ${sanitychecked} -a prodigalout.faa > /dev/null
+    rm -f \$(realpath ${sanitychecked})
+    rm ${sanitychecked}
     """
 }
 
@@ -299,7 +301,7 @@ process determine_models_that_need_recalculation {
     each model from models
 
     output:
-    set val(binname), val(mdsum), val(model), stdout ,file(reconstr_hmmer), file(reconst_hmmer) into determined_if_model_recalculation_needed
+    set val(binname), val(mdsum), val(model), stdout ,file(reconstr_hmmer), file(reconst_hmmer) into calc_model, dont_calc_model
 
     when:
     calc_bin_or_not == "NO" && model.isDirectory()
@@ -328,7 +330,6 @@ process determine_models_that_need_recalculation {
     """
 }
 
-determined_if_model_recalculation_needed.into{calc_model; dont_calc_model}
 
 // if the results for this bin and model are up-to-date, we only need to include them in the final output file
 process uptodate_model_to_targz {

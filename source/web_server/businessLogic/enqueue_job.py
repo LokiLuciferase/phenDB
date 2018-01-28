@@ -4,6 +4,7 @@
 import sys
 import os
 import os.path
+import shutil
 import subprocess
 
 
@@ -26,6 +27,14 @@ def clean_up_on_pipeline_fail(keyname, ppath):
     currentjob.save()
 
 
+# TODO: implement this
+def remove_temp_files(infolder):
+
+    logfolder = '/apps/phenDB_devel_LL/logs'
+    shutil.rmtree(os.path.join(logfolder, "work"))
+    shutil.rmtree(infolder)
+
+
 def phenDB_enqueue(ppath, pipeline_path, infolder, outfolder, pica_cutoff, node_offs):
 
     # set environmental variables
@@ -43,7 +52,7 @@ def phenDB_enqueue(ppath, pipeline_path, infolder, outfolder, pica_cutoff, node_
     with open(os.path.join(outfolder, "logs/nextflow.log"), "w") as logfile:
         pipeline_call = subprocess.Popen(arguments.split(), stdout=logfile, stderr=logfile)
         pipeline_call.wait()
-
+        remove_temp_files(infolder) # delete upload and temp folder
         # if pipeline encounters error, set errors to None in the DB
         if pipeline_call.returncode != 0:
             clean_up_on_pipeline_fail(os.path.basename(infolder), ppath)
