@@ -104,7 +104,7 @@ process fasta_sanity_check {
     binname = item.getName()
     if (!( item.getBaseName() ==~ /^\p{ASCII}+$/ )) {
 
-    asciimess = "WARNING: The filename of ${item.getName()} contains non-ASCII characters.\n" +
+    asciimess = "WARNING: The filename of ${item.getName()} contains non-ASCII characters. " +
                 "The file was dropped from the analysis.\n\n"
     log.info(asciimess)
     errorfile.append(asciimess)
@@ -120,57 +120,51 @@ from Bio.Alphabet import IUPAC
 from Bio import Alphabet
 import sys, os
 import tarfile
+import gzip
 
-inputfasta=""
-if ("${item}".endswith("tar.gz")):
-    os.makedirs("extr")
-    tar = tarfile.open("${item}", "r:gz")
-    for tarinfo in tar:
-        #must not be another directory but a regular file
-        if tarinfo.isreg():
-            tar.extractall(path="extr")
-            tar.close()
-            inputfasta="extr/"+str(os.listdir("extr")[0])
-            
-        else:
-            with open("${errorfile}", "a") as myfile:
-                myfile.write("WARNING: ${binname} is a compressed directory, not a file. It is dropped from further analysis; Nested directories cannot be analyzed! \\n\\n")
-            sys.exit("${binname} is a compressed directory, not a file. Aborting.")
-             
+def parse_FASTA(inputfasta):
+    with open("sanitychecked.fasta","w") as outfile:
+        for read in SeqIO.parse(inputfasta, "fasta", IUPAC.ambiguous_dna):
+            if not Alphabet._verify_alphabet(read.seq):
+                with open("${errorfile}", "a") as myfile:
+                    myfile.write("WARNING: There was an unexpected DNA letter in the sequence of file ${binname}.")
+                    myfile.write(" Allowed letters are G,A,T,C,R,Y,W,S,M,K,H,B,V,D,N.")
+                    myfile.write(" Check the sequence and if the file was properly compressed (only uncompressed or .gz compressed files are allowed). The file was dropped from the analysis.\\n\\n")
+                os.remove("sanitychecked.fasta")
+                os._exit(1)
+                
+            SeqIO.write(read, outfile, "fasta")
+    if os.stat("sanitychecked.fasta").st_size == 0:
+        with open("${errorfile}", "a") as myfile:
+            myfile.write("WARNING: The file ${binname} is empty or not a fasta file and was dropped from the analysis.\\n\\n")
+        os.remove("sanitychecked.fasta")
+        os._exit(1)
 
-elif ("${item}".endswith("tar")):
-    os.makedirs("extr")
-    tar = tarfile.open("${item}", "r:")
-    for tarinfo in tar:
-        if tarinfo.isreg():
-            tar.extractall(path="extr")
-            tar.close()
-            inputfasta="extr/"+str(os.listdir("extr")[0])
-    
-        else:
-            with open("${errorfile}", "a") as myfile:
-                myfile.write("WARNING: ${binname} is a compressed directory, not a file. It is dropped from further analysis; Nested directories cannot be analyzed! \\n\\n")
-            sys.exit("${binname} is a compressed directory, not a file. Aborting.")
+def invalid_gz_error():
+    with open("${errorfile}", "a") as myfile:
+        myfile.write("WARNING: An error occured during parsing ${binname}. The file was dropped from the analysis.\\n\\n")
+    os.remove("sanitychecked.fasta")
+    os._exit(1)
+
+
+if "${item}".endswith(".gz"):
+    try:
+       with gzip.open("${item}","rt") as inputfasta:
+            try:
+                parse_FASTA(inputfasta)
+            except:
+                invalid_gz_error()
+
+    except OSError:
+       with open("${errorfile}", "a") as myfile:
+            myfile.write("WARNING: ${binname} is a compressed directory, not a file, or otherwise an not a valid .gz file. It is dropped from further analysis; Nested directories cannot be analyzed! \\n\\n")
+            sys.exit("${binname} is a compressed directory, not a file, or not a valid .gz file. Aborting.")
 else:
     inputfasta="${item}"
-
-
-with open("sanitychecked.fasta","w") as outfile:
-    for read in SeqIO.parse(inputfasta, "fasta", IUPAC.ambiguous_dna):
-        if not Alphabet._verify_alphabet(read.seq):
-            with open("${errorfile}", "a") as myfile:
-                myfile.write("WARNING: There was an unexpected DNA letter in the sequence of file ${binname}.\\n")
-                myfile.write("Allowed letters are G,A,T,C,R,Y,W,S,M,K,H,B,V,D,N.\\n")
-                myfile.write("The file was dropped from the analysis.\\n\\n")
-            os.remove("sanitychecked.fasta")
-            sys.exit("There was an unexpected letter in the sequence, aborting.")
-            
-        SeqIO.write(read, outfile, "fasta")
-if os.stat("sanitychecked.fasta").st_size == 0:
-    with open("${errorfile}", "a") as myfile:
-        myfile.write("WARNING: The file ${binname} is empty or not a fasta file and was dropped from the analysis.\\n\\n")
-    os.remove("sanitychecked.fasta")
-    sys.exit("The file is empty or not in fasta format, aborting.")
+    try:
+        parse_FASTA(inputfasta)
+    except:
+        invalid_gz_error()
 
 """
 
@@ -182,6 +176,7 @@ nr_of_files = sanity_check_for_count.count()
 process md5sum {
 
     tag { binname }
+    maxForks 10
 
     input:
     set val(binname), file(item) from sanity_check_for_continue
@@ -196,6 +191,9 @@ process md5sum {
 }
 // todo: job completeness update
 process add_bin_to_db {
+
+    tag { binname }
+    maxForks 10
 
     input:
     set val(binname), val(mdsum), file(item) from md5_out
@@ -241,7 +239,13 @@ try:
 
     print("NO", end='')
     
-    # TODO: also update the job completeness here, because then hmmer wont be called
+    # Also update the job completeness here, because then hmmer wont be called
+    current_finished = parentjob.finished_bins
+    total_jobs = parentjob.total_bins
+    if current_finished < total_jobs - 1:
+        parentjob.finished_bins = int(current_finished) + 1
+        parentjob.save()
+
     
 except ObjectDoesNotExist:
     # write impossible Nr. for comple and conta that would cause an error during get_accuracy if not overwritten:
@@ -294,6 +298,8 @@ process prodigal {
 }
 
 // if the bin has already been in our db:
+
+// todo: Implement check for bacteria here or filter afterwards
 process determine_models_that_need_recalculation {
 
     input:
@@ -312,10 +318,7 @@ process determine_models_that_need_recalculation {
     #!/usr/bin/env python3
     
     import django
-    import sys
     import os
-    from django.core.exceptions import ObjectDoesNotExist
-    from django.db import IntegrityError
     os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"    
     
     django.setup()
@@ -329,7 +332,6 @@ process determine_models_that_need_recalculation {
 
     """
 }
-
 
 // if the results for this bin and model are up-to-date, we only need to include them in the final output file
 process uptodate_model_to_targz {
@@ -384,13 +386,16 @@ picaout_from_new_model = new_model_to_targz_out.map { l ->
     splitted = l[3].split("\t")
     verdict = splitted[0]
     accuracy = splitted[1] as float
+    // the print statment in the process "accuracy" includes a newline at the end, this is important for processing further downstream
+    // so this has to be included also here.
+    // todo: include "end="" in the print statement in "accurcy", remove the follwing line and adopt downstream handling
     accuracy += "\n"
     return [ l[0], l[1], l[2], verdict, accuracy ]
 
 }
 
 // if the results in our db for this bin and model are outdated, pica needs to be called
-// this just reformats the input and just calls pica if the value is YES
+// this just reformats the input and just calls accuracy if the value is YES
 
 accuracy_in_from_old_model = calc_model.filter{ it[3] == "YES" }.map{ l -> [l[0], l[1], l[2], l[4], l[5]] }
 
@@ -402,6 +407,7 @@ process hmmer {
     scratch true
 
     maxForks 1  //do not parallelize!
+    time '10 m'
 
     input:
     set val(binname), val(mdsum), file(item) from prodigalout
