@@ -61,7 +61,7 @@ def phenDB_enqueue(ppath, pipeline_path, infolder, outfolder, pica_cutoff, node_
 
         # if no output file has been generated despite no pipeline error
         # (if error checking consumes all input files):
-        if not os.path.exists(os.path.join(key, "{k}.zip".format(k=key))):
+        if not os.path.exists(os.path.join(outfolder, "{k}.zip".format(k=key))):
             clean_up_on_pipeline_fail(key, ppath)
             raise RuntimeError("No input files have passed error checking.")
 
