@@ -25,7 +25,7 @@ SECRET_KEY = 'y$0ubax)43!(dx@51)0s32@*%!a1_668%7dspr4s9^gr7m%$0r'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -78,12 +78,12 @@ WSGI_APPLICATION = 'phenotypePrediction.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        #'NAME': 'phenDB_devel_LL',
-        #'USER': 'devel_LL',
-        #'PASSWORD': 'devel_pw',
-        'NAME'    : 'phenDB',
-        'USER'    : 'root',
-        'PASSWORD': '',
+        'NAME': 'phenDB_devel_LL',
+        'USER': 'devel_LL',
+        'PASSWORD': 'devel_pw',
+        #'NAME'    : 'phenDB',
+        #'USER'    : 'root',
+        #'PASSWORD': '',
         'HOST': 'localhost',
         'PORT': '',
        # 'OPTIONS': "SET sql_mode='STRICT_ALL_TABLES'",

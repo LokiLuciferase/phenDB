@@ -5,8 +5,8 @@ BASEDIR="/apps/phenDB"
 #BASEDIR="/apps/phenDB_devel_LL"
 #BASEDIR="/apps/phenDB_devel_PP/phenDB"
 
-DB="phenDB"
-#DB="phenDB_devel_LL"
+#DB="phenDB"
+DB="phenDB_devel_LL"
 #DB="phenDB_devel_PP"
 
 
@@ -92,6 +92,18 @@ function stop() {
     kill $(ps aux | grep "/usr/bin/python3 manage.py runserve[r]" | tr -s " " | cut -f2 -d" ")
     kill $(ps aux | grep usr/bin/[r]q | tr -s " " | cut -f2 -d" ")
     kill $(pgrep redis-server)
+}
+
+function start() {
+    echo "Checking if service is running..."
+    if ! [[ $(pgrep redis-server) = "" ]] || ! [[ $(ps aux | grep "/usr/bin/[r]q") = "" ]]; then
+        echo "Either redis-server or python-rq worker are running."
+        stop
+    fi
+    echo "Starting Redis queue and Django development server..."
+    start_queue
+    server_detached
+    exit 0
 }
 
 if [[ $# -eq 0 ]]; then
