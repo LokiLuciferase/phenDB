@@ -15,15 +15,15 @@ class StartProcessThread(threading.Thread):
 
     def run(self):
 
-        # ppath = "/apps/phenDB/source/web_server:$PYTHONPATH"
-        # infolder_base = "/apps/phenDB/data/uploads"
-        # pipeline_path = "/apps/phenDB/source/pipeline/picaPipeline.nf"
-        # above_workfolder = "/apps/phenDB/data/results"
+        ppath = "/apps/phenDB/source/web_server:$PYTHONPATH"
+        infolder_base = "/apps/phenDB/data/uploads"
+        pipeline_path = "/apps/phenDB/source/pipeline/picaPipeline.nf"
+        above_workfolder = "/apps/phenDB/data/results"
 
-        ppath = "/apps/phenDB_devel_LL/source/web_server:$PYTHONPATH"
-        pipeline_path = "/apps/phenDB_devel_LL/source/pipeline/picaPipeline.nf"
-        infolder_base = "/apps/phenDB_devel_LL/data/uploads"
-        above_workfolder = "/apps/phenDB_devel_LL/data/results"
+        # ppath = "/apps/phenDB_devel_LL/source/web_server:$PYTHONPATH"
+        # pipeline_path = "/apps/phenDB_devel_LL/source/pipeline/picaPipeline.nf"
+        # infolder_base = "/apps/phenDB_devel_LL/data/uploads"
+        # above_workfolder = "/apps/phenDB_devel_LL/data/results"
 
         # ppath = "/apps/phenDB_devel_PP/phenDB/source/web_server:$PYTHONPATH"
         # infolder_base = "/apps/phenDB_devel_PP/phenDB/data/uploads"

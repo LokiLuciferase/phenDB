@@ -29,7 +29,8 @@ def clean_up_on_pipeline_fail(keyname, ppath):
 
 def remove_temp_files(infolder):
 
-    logfolder = '/apps/phenDB_devel_LL/logs'
+    #logfolder = '/apps/phenDB_devel_LL/logs'
+    logfolder = '/apps/phenDB/logs'
     shutil.rmtree(os.path.join(logfolder, "work"))
     shutil.rmtree(infolder)
 

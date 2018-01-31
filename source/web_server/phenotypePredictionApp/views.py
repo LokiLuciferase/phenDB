@@ -136,7 +136,7 @@ def getResults(request):
     queuePos, queueLen = get_current_position(key)
 
     # write queue length to binary file
-    with open("/apps/phenDB_devel_LL/logs/queuelength", "wb") as bytefile:
+    with open("/apps/phenDB/logs/queuelength", "wb") as bytefile:
         for times in range(queueLen):
             bytefile.write(struct.pack('x'))
 
@@ -153,7 +153,7 @@ def getResults(request):
                'showResultCSS' : showResultCSS,
                'showNotification' : True if numAccessed == 1 else False,
                'showProgressBar' : showProgressBar,
-               'progress' : (obj.finished_bins * 1.0 / obj.total_bins) * 100 if (obj.total_bins!=0) else 0.001,
+               'progress' : (obj.finished_bins * 1.0 / obj.total_bins) * 100 if (obj.total_bins!=0 and obj.finished_bins != 0) else 0.001,
                'finished_bins' : str(obj.finished_bins),
                'total_bins' : str(obj.total_bins),
                'refresh' : refresh,

@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
 
-#BASEDIR="/apps/phenDB"
-BASEDIR="/apps/phenDB_devel_LL"
+BASEDIR="/apps/phenDB"
+#BASEDIR="/apps/phenDB_devel_LL"
 #BASEDIR="/apps/phenDB_devel_PP/phenDB"
 
-#DB="phenDB"
-DB="phenDB_devel_LL"
+DB="phenDB"
+#DB="phenDB_devel_LL"
 #DB="phenDB_devel_PP"
 
 
@@ -61,7 +61,11 @@ function showjobs() {
 
 function purge() {
     echo "Purging samples from database..."
-    bash ${BASEDIR}/source/general_scripts/purge_samples_from_db.sh ${DB}
+    mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_bins_in_uploadedfile;"
+    mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_result_enog;"
+    mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_result_model;"
+    mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_bin;"
+    mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_uploadedfile;"
 }
 
 function start_queue() {
