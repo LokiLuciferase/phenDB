@@ -22,6 +22,8 @@ function usage()
     echo -e "\t--server-detached\tStart django development server in detached mode - log file at $BASEDIR/logs"
     echo -e "\t--start-queue\tActivate redis and python-rq tools if they are not running. Logs at $BASEDIR/logs"
     echo -e "\t--monitor-queue\tRuns a script to display current status of redis queue."
+    echo -e "\t--stop\tStops queue and development web server gracefully. Pending jobs are saved."
+    echo -e "\t--force-stop\tStops server and queue immediately. All pending jobs are lost."
     echo ""
 }
 
@@ -78,8 +80,22 @@ function monitor_queue() {
     python3 ${BASEDIR}/source/general_scripts/monitor_queue.py
 }
 
+function force_stop() {
+    # hard shutdown: kill everything
+    kill $(ps aux | grep "/usr/bin/python3 manage.py runserve[r]" | tr -s " " | cut -f2 -d" ")
+    kill $(pgrep redis-server)
+}
+
+function stop() {
+    # soft shutdown: rq finalizes the most current task and saves any queued tasks for later
+    echo "Shutting down Redis queue and Django Development Server for phenDB..."
+    kill $(ps aux | grep "/usr/bin/python3 manage.py runserve[r]" | tr -s " " | cut -f2 -d" ")
+    kill $(ps aux | grep usr/bin/[r]q | tr -s " " | cut -f2 -d" ")
+    kill $(pgrep redis-server)
+}
+
 if [[ $# -eq 0 ]]; then
-    runserver
+    usage
     exit 0
 fi
 
@@ -107,6 +123,12 @@ while [ "$1" != "" ]; do
             ;;
         --monitor-queue)
             monitor_queue
+            ;;
+        --force-stop)
+            force_stop
+            ;;
+        --stop)
+            stop
             ;;
         *)
             echo "ERROR: unknown parameter \"$PARAM\""
