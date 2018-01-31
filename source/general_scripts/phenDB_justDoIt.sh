@@ -44,7 +44,7 @@ function server_detached() {
         echo "Either redis-server or python-rq worker are not running. Exiting."
         exit 1
     fi
-    nohup python3 manage.py runserver &>> ${BASEDIR}/logs/django_development_server.log &
+    nohup python3 manage.py runserver 0:80 &>> ${BASEDIR}/logs/django_development_server.log &
 }
 
 function showbins() {

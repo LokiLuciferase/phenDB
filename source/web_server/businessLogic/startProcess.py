@@ -51,7 +51,8 @@ class StartProcessThread(threading.Thread):
         q = Queue('phenDB', connection=Redis())
         pipeline_errorcode = q.enqueue_call(func=phenDB_enqueue,
                                       args=(ppath, pipeline_path, infolder, outfolder, pica_cutoff, node_offs),
-                                      timeout=5000,
+                                      timeout='48h',
+                                      ttl='48h',
                                       job_id=self.keyname
                                       )
         # return pipeline_job
