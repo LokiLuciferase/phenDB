@@ -799,10 +799,11 @@ process zip_results {
     script:
     """
     mkdir -p ${jobname}/summaries
+    mkdir -p ${jobname}/individual_results
     cp ${params.description_file} ${jobname}/summaries/PICA_trait_descriptions.txt
     cp ${errorfile} ${jobname}/summaries/invalid_input_files.log.txt
     mv *.results.tsv ${jobname}/summaries
-    mv *.results.txt ${jobname}
+    mv *.results.txt ${jobname}/individual_results
     zip -r ${jobname}.zip ./${jobname}
     rm -rf ${jobname}
     """
