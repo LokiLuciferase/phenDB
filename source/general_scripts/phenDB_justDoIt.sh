@@ -22,6 +22,7 @@ function usage()
     echo -e "\t--server-detached\tStart django development server in detached mode - log file at $BASEDIR/logs"
     echo -e "\t--start-queue\tActivate redis and python-rq tools if they are not running. Logs at $BASEDIR/logs"
     echo -e "\t--monitor-queue\tRuns a script to display current status of redis queue."
+    echo -e "\t--start\tChecks for running services, then runs start-queue and server-detached."
     echo -e "\t--stop\tStops queue and development web server gracefully. Pending jobs are saved."
     echo -e "\t--force-stop\tStops server and queue immediately. All pending jobs are lost."
     echo ""
@@ -138,6 +139,9 @@ while [ "$1" != "" ]; do
             ;;
         --force-stop)
             force_stop
+            ;;
+        --start)
+            start
             ;;
         --stop)
             stop
