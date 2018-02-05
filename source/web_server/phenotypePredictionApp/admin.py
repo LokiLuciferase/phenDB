@@ -4,7 +4,14 @@ from django.contrib import admin
 
 from .models import UploadedFile
 
+
 class JobDisplay(admin.ModelAdmin):
-    list_display = ('job_date', 'user_email', 'user_ip', 'finished_bins', 'total_bins', 'errors', 'fileInput', 'fileOutput')
+
+    def no_errors(obj):
+        return not obj.errors
+
+    no_errors.boolean = True
+
+    list_display = ('job_date', 'user_email', 'user_ip', 'finished_bins', 'total_bins', no_errors, 'fileInput', 'fileOutput')
 
 admin.site.register(UploadedFile, JobDisplay)

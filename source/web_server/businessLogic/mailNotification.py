@@ -29,7 +29,7 @@ class MailNotification(threading.Thread):
     def __sendMail(self, mailAddress, url):
         send_mail(
             'phenDB notification',
-            'Your phenDB results are now available under ' + url + '\n \n This mail was sent automatically. Please do not respond to it.',
+            'Your phenDB results are now available under phen.csb.univie.ac.at' + url + '\n \n This mail was sent automatically. Please do not respond to it.',
             'webapptest@gmx.de',
             [mailAddress],
             fail_silently=True)
