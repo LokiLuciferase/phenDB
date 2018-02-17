@@ -1,0 +1,45 @@
+AEROBE: Aerobic respiration
+alkb: Alkane degradation
+ANAEROBE: Anaerobic respiration
+AOB: Ammonia-oxidizing bacteria
+ars: Arsenic detoxification
+AUTO: Autotrophic metabolism
+avre: Plant pathogenicity based on AvrE virulence factor
+baicd: Secondary bile acids production
+bena: Benzoate degradation via hydroxylation
+bpp: Phytate hydrolisis
+bsh: glycine and taurine are de-conjugation from bile salts
+buk2: Butyrate-production
+chb: Chitine degradation
+cnta: Aromatic-ring-hydroxylation
+coos: Carbon monoxide assimilation
+cutc: Trimethylamine production via choline
+dbfa4: bibenzofuran (DF) dibenzo-p-dioxin (DD) degradation
+FACULTATIVE: Facultative anaerobe
+GRAMNEGATIVE: Gram negative bacteria
+HALO: Halophile
+hsdh: Steroid hormone metabolism
+hyda: Hydrogen production
+METHANOTROPH: Methane utilization as carbon source
+MOTILE: Motile bacteria
+naph2: Naphthalene degradation
+nif: Nitrogen fixation
+NOB: Nitrite-oxidizing bacteria
+p450: Fatty acid degradation
+phnx: Phosphonate hydrolisis
+phod: Recycling of organic phosphorus
+PHOTO: Phototroph bacteria
+psa: Capsular polysaccharide biosynthesis
+PSYCHRO: Psychrophile
+Sa_PENR: Penicillin resistance model for Staphylococcus aureus
+soxb: Thiosulfate oxidation
+SPORE: Spore formation
+SYMBIONT: Obligate intracellular lifestyle
+T3SS: T3 Secretion System
+T4SS: T4 Secretion System
+T6SS: T6 Secretion System
+THERM: Thermophile
+THERM_OR_TOLERANT: Mesophile
+txta: Plant pathogenicity based on Thaxtomins
+urea: Ureolytic activity
+xen: Reduction of various α,β-unsaturated and nitro compounds

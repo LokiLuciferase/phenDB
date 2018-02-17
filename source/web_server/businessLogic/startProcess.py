@@ -7,22 +7,23 @@ from redis import Redis
 from rq import Queue
 from businessLogic.enqueue_job import phenDB_enqueue
 
-class startProcessThread(threading.Thread):
+
+class StartProcessThread(threading.Thread):
     def __init__(self, keyname):
         threading.Thread.__init__(self)
         self.keyname = keyname
 
     def run(self):
 
-        # ppath = "/apps/phenDB/source/web_server:$PYTHONPATH"
-        # infolder_base = "/apps/phenDB/data/uploads"
-        # pipeline_path = "/apps/phenDB/source/pipeline/picaPipeline.nf"
-        # above_workfolder = "/apps/phenDB/data/results"
+        ppath = "/apps/phenDB/source/web_server:$PYTHONPATH"
+        infolder_base = "/apps/phenDB/data/uploads"
+        pipeline_path = "/apps/phenDB/source/pipeline/picaPipeline.nf"
+        above_workfolder = "/apps/phenDB/data/results"
 
-        ppath = "/apps/phenDB_devel_LL/source/web_server:$PYTHONPATH"
-        pipeline_path = "/apps/phenDB_devel_LL/source/pipeline/picaPipeline.nf"
-        infolder_base = "/apps/phenDB_devel_LL/data/uploads"
-        above_workfolder = "/apps/phenDB_devel_LL/data/results"
+        # ppath = "/apps/phenDB_devel_LL/source/web_server:$PYTHONPATH"
+        # pipeline_path = "/apps/phenDB_devel_LL/source/pipeline/picaPipeline.nf"
+        # infolder_base = "/apps/phenDB_devel_LL/data/uploads"
+        # above_workfolder = "/apps/phenDB_devel_LL/data/results"
 
         # ppath = "/apps/phenDB_devel_PP/phenDB/source/web_server:$PYTHONPATH"
         # infolder_base = "/apps/phenDB_devel_PP/phenDB/data/uploads"
@@ -31,7 +32,7 @@ class startProcessThread(threading.Thread):
 
         infolder = os.path.join(infolder_base, self.keyname)
 
-        # we should make these parameters settable from the web mask
+        # TODO: we should make these parameters settable from the web mask
         pica_cutoff = "0.5"
         node_offs = ""
 
@@ -48,10 +49,11 @@ class startProcessThread(threading.Thread):
 
         # add the function call to the redis queue
         q = Queue('phenDB', connection=Redis())
-        pipeline_job = q.enqueue_call(func=phenDB_enqueue,
+        pipeline_errorcode = q.enqueue_call(func=phenDB_enqueue,
                                       args=(ppath, pipeline_path, infolder, outfolder, pica_cutoff, node_offs),
-                                      timeout=5000,
+                                      timeout='48h',
+                                      ttl='48h',
                                       job_id=self.keyname
                                       )
-        #return pipeline_job
+        # return pipeline_job
         # here we could return len(q). or fetch it somewhere else. We could also set errors in the DB.

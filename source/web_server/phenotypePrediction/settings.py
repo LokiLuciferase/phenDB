@@ -25,7 +25,7 @@ SECRET_KEY = 'y$0ubax)43!(dx@51)0s32@*%!a1_668%7dspr4s9^gr7m%$0r'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -81,14 +81,15 @@ DATABASES = {
         'NAME': 'phenDB_devel_LL',
         'USER': 'devel_LL',
         'PASSWORD': 'devel_pw',
-        # 'NAME'    : 'phenDB',
-        # 'USER'    : 'root',
-        # 'PASSWORD': '',
+        #'NAME'    : 'phenDB',
+        #'USER'    : 'root',
+        #'PASSWORD': '',
         'HOST': 'localhost',
         'PORT': '',
        # 'OPTIONS': "SET sql_mode='STRICT_ALL_TABLES'",
     }
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
@@ -129,3 +130,16 @@ USE_TZ = True
 STATIC_URL = '/static/'
 MEDIA_URL = '/results/'
 MEDIA_ROOT = os.path.join(BASE_DIR, '../../data')
+
+#e-mail notifications
+#TODO: change mail server
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'mail.gmx.net'
+EMAIL_PORT = '465'
+EMAIL_USE_SSL = True
+EMAIL_HOST_USER = 'webapptest@gmx.de'
+EMAIL_HOST_PASSWORD = 'djangoapp'
+
+#own global variables
+class GlobalVariables:
+    WEBSERVER_URL = "" #TODO: insert url of the webserver here (e.g. necessary for email notification)

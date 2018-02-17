@@ -3,12 +3,13 @@ import uuid
 from django.contrib.contenttypes.models import ContentType
 
 
-#------------ functions for file upload -----------------------
+# ------------ functions for file upload -----------------------
 def upload_function_upload(instance, filename):
     print('upload called')
     subfolder = instance.key
     filename = instance.filename
     return "uploads/" + subfolder + "/" + filename
+
 
 def upload_function_results(instance, givenname):
     print(givenname)
@@ -16,8 +17,7 @@ def upload_function_results(instance, givenname):
     filename = "results/" + subfolder + "_results/" + givenname
     return filename
 
-
-#----------------Models--------------------------------------
+# ----------------Models--------------------------------------
 
 #TODO: rename later (in the end)
 class UploadedFile(models.Model):
@@ -36,7 +36,9 @@ class UploadedFile(models.Model):
     job_date = models.DateTimeField(auto_now=True)
     folder_path = models.TextField()
     errors = models.NullBooleanField(null=True, blank=True)
-    job_status = models.TextField(default='0')
+    finished_bins = models.IntegerField(default='0')
+    total_bins = models.IntegerField(default='0')
+
     def get_absolute_url(self):
         return "results/%s/" % self.key
 
@@ -60,12 +62,12 @@ class bin(models.Model):
 class bins_in_UploadedFile(models.Model):
 
     class Meta:
-        unique_together = ('bin', 'UploadedFile') # composite primary key
+        unique_together = ('bin', 'UploadedFile')  # composite primary key
         indexes = [
             models.Index(fields=['bin', 'UploadedFile'])
        ]
 
-    bin = models.ForeignKey(bin)
+    bin = models.ForeignKey(bin, on_delete=models.CASCADE)  # delete bins if we delete the association row
     UploadedFile=models.ForeignKey(UploadedFile)
 
     def __str__(self):
@@ -90,7 +92,7 @@ class enog(models.Model):
 class model(models.Model):
 
     class Meta:
-        unique_together = ('model_name', 'model_train_date') # composite primary key
+        unique_together = ('model_name', 'model_train_date')  # composite primary key
         indexes = [
             models.Index(fields=['model_name', 'model_train_date'])
        ]

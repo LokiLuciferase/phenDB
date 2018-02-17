@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 
-#BASEDIR="/apps/phenDB"
-BASEDIR="/apps/phenDB_devel_LL"
+BASEDIR="/apps/phenDB"
+#BASEDIR="/apps/phenDB_devel_LL"
 #BASEDIR="/apps/phenDB_devel_PP/phenDB"
 
 #DB="phenDB"
@@ -18,10 +18,13 @@ function usage()
     echo -e "\t-h, --help\tDisplay this message and exit"
     echo -e "\t--view-bins\tdisplay bins in database"
     echo -e "\t--view-jobs\tdisplay jobs in database"
-    echo -e "\t--purge\tremove jobs, bins and associated data\n\t\tfrom database, then start chromium and run server"
+    echo -e "\t--purge\tremove jobs, bins and associated data\n\t\tfrom database"
     echo -e "\t--server-detached\tStart django development server in detached mode - log file at $BASEDIR/logs"
     echo -e "\t--start-queue\tActivate redis and python-rq tools if they are not running. Logs at $BASEDIR/logs"
     echo -e "\t--monitor-queue\tRuns a script to display current status of redis queue."
+    echo -e "\t--start\tChecks for running services, then runs start-queue and server-detached."
+    echo -e "\t--stop\tStops queue and development web server gracefully. Pending jobs are saved."
+    echo -e "\t--force-stop\tStops server and queue immediately. All pending jobs are lost."
     echo ""
 }
 
@@ -44,7 +47,7 @@ function server_detached() {
         echo "Either redis-server or python-rq worker are not running. Exiting."
         exit 1
     fi
-    nohup python3 manage.py runserver &>> ${BASEDIR}/logs/django_development_server.log &
+    nohup python3 manage.py runserver 0:80 &>> ${BASEDIR}/logs/django_development_server.log &
 }
 
 function showbins() {
@@ -61,7 +64,11 @@ function showjobs() {
 
 function purge() {
     echo "Purging samples from database..."
-    bash ${BASEDIR}/source/general_scripts/purge_samples_from_db.sh ${DB}
+    mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_bins_in_uploadedfile;"
+    mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_result_enog;"
+    mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_result_model;"
+    mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_bin;"
+    mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_uploadedfile;"
 }
 
 function start_queue() {
@@ -74,21 +81,46 @@ function monitor_queue() {
     python3 ${BASEDIR}/source/general_scripts/monitor_queue.py
 }
 
+function force_stop() {
+    # hard shutdown: kill everything
+    kill $(ps aux | grep "/usr/bin/python3 manage.py runserve[r]" | tr -s " " | cut -f2 -d" ")
+    kill $(pgrep redis-server)
+}
+
+function stop() {
+    # soft shutdown: rq finalizes the most current task and saves any queued tasks for later
+    echo "Shutting down Redis queue and Django Development Server for phenDB..."
+    kill $(ps aux | grep "/usr/bin/python3 manage.py runserve[r]" | tr -s " " | cut -f2 -d" ")
+    kill $(ps aux | grep usr/bin/[r]q | tr -s " " | cut -f2 -d" ")
+    kill $(pgrep redis-server)
+}
+
+function start() {
+    echo "Checking if service is running..."
+    if ! [[ $(pgrep redis-server) = "" ]] || ! [[ $(ps aux | grep "/usr/bin/[r]q") = "" ]]; then
+        echo "Either redis-server or python-rq worker are running."
+        stop
+    fi
+    echo "Starting Redis queue and Django development server..."
+    start_queue
+    server_detached
+    exit 0
+}
+
 if [[ $# -eq 0 ]]; then
-    runserver
+    usage
     exit 0
 fi
 
 while [ "$1" != "" ]; do
     PARAM=`echo $1 | awk -F= '{print $1}'`
-    case $PARAM in
+    case ${PARAM} in
         -h | --help)
             usage
             exit
             ;;
         --purge)
             purge
-            runserver
             ;;
         --view-jobs)
             showjobs
@@ -104,6 +136,15 @@ while [ "$1" != "" ]; do
             ;;
         --monitor-queue)
             monitor_queue
+            ;;
+        --force-stop)
+            force_stop
+            ;;
+        --start)
+            start
+            ;;
+        --stop)
+            stop
             ;;
         *)
             echo "ERROR: unknown parameter \"$PARAM\""

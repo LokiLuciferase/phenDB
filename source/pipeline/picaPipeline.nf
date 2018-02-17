@@ -38,6 +38,8 @@ errorfile.text=""
 // unzip tar.gz files
 process tgz {
 
+    scratch true
+
     input:
     file(tarfile) from input_gzipfiles
 
@@ -58,6 +60,8 @@ process tgz {
 
 // unzip .zip files
 process unzip {
+
+    scratch true
 
     input:
     file(zipfile) from input_barezipfiles
@@ -85,21 +89,22 @@ truly_all_input_files = all_input_files.mix(tgz_unraveled_all.flatten(), zip_unr
 // Passes every fasta file through Biopythons SeqIO to check for corrupted files
 process fasta_sanity_check {
 //todo: output also sequences-only for md5sum?
-    errorStrategy 'ignore'
     tag { binname }
-    maxForks 10
+    errorStrategy 'ignore'
+    maxForks 5
+    scratch true
 
     input:
     file(item) from truly_all_input_files
 
     output:
-    set val(binname), file("sanitychecked.fasta") into fasta_sanitycheck_out
+    set val(binname), file("sanitychecked.fasta") into sanity_check_for_continue, sanity_check_for_count
 
     script:
     binname = item.getName()
     if (!( item.getBaseName() ==~ /^\p{ASCII}+$/ )) {
 
-    asciimess = "WARNING: The filename of ${item.getName()} contains non-ASCII characters.\n" +
+    asciimess = "WARNING: The filename of ${item.getName()} contains non-ASCII characters. " +
                 "The file was dropped from the analysis.\n\n"
     log.info(asciimess)
     errorfile.append(asciimess)
@@ -115,68 +120,63 @@ from Bio.Alphabet import IUPAC
 from Bio import Alphabet
 import sys, os
 import tarfile
+import gzip
 
-inputfasta=""
-if ("${item}".endswith("tar.gz")):
-    os.makedirs("extr")
-    tar = tarfile.open("${item}", "r:gz")
-    for tarinfo in tar:
-        #must not be another directory but a regular file
-        if tarinfo.isreg():
-            tar.extractall(path="extr")
-            tar.close()
-            inputfasta="extr/"+str(os.listdir("extr")[0])
-            
-        else:
-            with open("${errorfile}", "a") as myfile:
-                myfile.write("WARNING: ${binname} is a compressed directory, not a file. It is dropped from further analysis; Nested directories cannot be analyzed! \\n\\n")
-            sys.exit("${binname} is a compressed directory, not a file. Aborting.")
-             
+def parse_FASTA(inputfasta):
+    with open("sanitychecked.fasta","w") as outfile:
+        for read in SeqIO.parse(inputfasta, "fasta", IUPAC.ambiguous_dna):
+            if not Alphabet._verify_alphabet(read.seq):
+                with open("${errorfile}", "a") as myfile:
+                    myfile.write("WARNING: There was an unexpected DNA letter in the sequence of file ${binname}.")
+                    myfile.write(" Allowed letters are G,A,T,C,R,Y,W,S,M,K,H,B,V,D,N.")
+                    myfile.write(" Check the sequence and if the file was properly compressed (only uncompressed or .gz compressed files are allowed). The file was dropped from the analysis.\\n\\n")
+                os.remove("sanitychecked.fasta")
+                os._exit(1)
+                
+            SeqIO.write(read, outfile, "fasta")
+    if os.stat("sanitychecked.fasta").st_size == 0:
+        with open("${errorfile}", "a") as myfile:
+            myfile.write("WARNING: The file ${binname} is empty or not a fasta file and was dropped from the analysis.\\n\\n")
+        os.remove("sanitychecked.fasta")
+        os._exit(1)
 
-elif ("${item}".endswith("tar")):
-    os.makedirs("extr")
-    tar = tarfile.open("${item}", "r:")
-    for tarinfo in tar:
-        if tarinfo.isreg():
-            tar.extractall(path="extr")
-            tar.close()
-            inputfasta="extr/"+str(os.listdir("extr")[0])
-    
-        else:
-            with open("${errorfile}", "a") as myfile:
-                myfile.write("WARNING: ${binname} is a compressed directory, not a file. It is dropped from further analysis; Nested directories cannot be analyzed! \\n\\n")
-            sys.exit("${binname} is a compressed directory, not a file. Aborting.")
+def invalid_gz_error():
+    with open("${errorfile}", "a") as myfile:
+        myfile.write("WARNING: An error occured during parsing ${binname}. The file was dropped from the analysis.\\n\\n")
+    os.remove("sanitychecked.fasta")
+    os._exit(1)
+
+
+if "${item}".endswith(".gz"):
+    try:
+       with gzip.open("${item}","rt") as inputfasta:
+            try:
+                parse_FASTA(inputfasta)
+            except:
+                invalid_gz_error()
+
+    except OSError:
+       with open("${errorfile}", "a") as myfile:
+            myfile.write("WARNING: ${binname} is a compressed directory, not a file, or otherwise an not a valid .gz file. It is dropped from further analysis; Nested directories cannot be analyzed! \\n\\n")
+            sys.exit("${binname} is a compressed directory, not a file, or not a valid .gz file. Aborting.")
 else:
     inputfasta="${item}"
-
-
-with open("sanitychecked.fasta","w") as outfile:
-    for read in SeqIO.parse(inputfasta, "fasta", IUPAC.ambiguous_dna):
-        if not Alphabet._verify_alphabet(read.seq):
-            with open("${errorfile}", "a") as myfile:
-                myfile.write("WARNING: There was an unexpected DNA letter in the sequence of file ${binname}.\\n")
-                myfile.write("Allowed letters are G,A,T,C,R,Y,W,S,M,K,H,B,V,D,N.\\n")
-                myfile.write("The file was dropped from the analysis.\\n\\n")
-            os.remove("sanitychecked.fasta")
-            sys.exit("There was an unexpected letter in the sequence, aborting.")
-            
-        SeqIO.write(read, outfile, "fasta")
-if os.stat("sanitychecked.fasta").st_size == 0:
-    with open("${errorfile}", "a") as myfile:
-        myfile.write("WARNING: The file ${binname} is empty or not a fasta file and was dropped from the analysis.\\n\\n")
-    os.remove("sanitychecked.fasta")
-    sys.exit("The file is empty or not in fasta format, aborting.")
+    try:
+        parse_FASTA(inputfasta)
+    except:
+        invalid_gz_error()
 
 """
 
 }
 
+nr_of_files = sanity_check_for_count.count()
+
 // sanity_check_for_count is later used in update_job_completeness to count the total nr. of bins
-fasta_sanitycheck_out.into { sanity_check_for_continue; sanity_check_for_count }
-sanity_check_for_count.into { sanity_check_for_count1; sanity_check_for_count2 }
 process md5sum {
 
     tag { binname }
+    maxForks 10
 
     input:
     set val(binname), file(item) from sanity_check_for_continue
@@ -192,12 +192,15 @@ process md5sum {
 // todo: job completeness update
 process add_bin_to_db {
 
+    tag { binname }
+    maxForks 10
+
     input:
     set val(binname), val(mdsum), file(item) from md5_out
-    each nr_of_files from sanity_check_for_count1.count()
+    val(nr_of_files)
 
     output:
-    set val(binname), val(mdsum), file(item), stdout, file("reconstructed_hmmer_file.txt"), file("reconstructed_compleconta_file.txt") into bin_to_db_out
+    set val(binname), val(mdsum), file(item), stdout, file("reconstructed_hmmer_file.txt"), file("reconstructed_compleconta_file.txt") into bin_is_in_db, bin_is_not_in_db
 
     tag { binname }
 
@@ -218,6 +221,9 @@ from phenotypePredictionApp.models import *
 
 try:
     parentjob = UploadedFile.objects.get(key="${jobname}")
+    parentjob.total_bins = ${nr_of_files}
+    parentjob.save()
+
 except ObjectDoesNotExist:
     sys.exit("Job not found.")
 
@@ -233,7 +239,13 @@ try:
 
     print("NO", end='')
     
-    # TODO: also update the job completeness here, because then hmmer wont be called
+    # Also update the job completeness here, because then hmmer wont be called
+    current_finished = parentjob.finished_bins
+    total_jobs = parentjob.total_bins
+    if current_finished < total_jobs - 1:
+        parentjob.finished_bins = int(current_finished) + 1
+        parentjob.save()
+
     
 except ObjectDoesNotExist:
     # write impossible Nr. for comple and conta that would cause an error during get_accuracy if not overwritten:
@@ -258,22 +270,18 @@ except IntegrityError:
 
 }
 
-// Do the further checks depending on if the bin is already in the db
-bin_to_db_out.into{bin_is_in_db;bin_is_not_in_db}
-
-
 // call prodigal for every sample in parallel
 // output each result as a set of the sample id and the path to the prodigal outfile
 // only execute prodigal if the been has not already been in our db
 process prodigal {
 
     tag { binname }
-    maxForks 10
+    maxForks 5
 
     memory = "450 MB"
 
     input:
-    set val(binname), val(mdsum), file(item), val(calc_bin_or_not), file(reconstr_hmmer), file(reconst_hmmer) from bin_is_not_in_db
+    set val(binname), val(mdsum), file(sanitychecked), val(calc_bin_or_not), file(reconstr_hmmer), file(reconst_hmmer) from bin_is_not_in_db
 
     output:
     set val(binname), val(mdsum), file("prodigalout.faa") into prodigalout
@@ -283,11 +291,15 @@ process prodigal {
 
     script:
     """
-    prodigal -i ${item} -a prodigalout.faa > /dev/null
+    prodigal -i ${sanitychecked} -a prodigalout.faa > /dev/null
+    rm -f \$(realpath ${sanitychecked})
+    rm ${sanitychecked}
     """
 }
 
 // if the bin has already been in our db:
+
+// todo: Implement check for bacteria here or filter afterwards
 process determine_models_that_need_recalculation {
 
     input:
@@ -295,7 +307,7 @@ process determine_models_that_need_recalculation {
     each model from models
 
     output:
-    set val(binname), val(mdsum), val(model), stdout ,file(reconstr_hmmer), file(reconst_hmmer) into determined_if_model_recalculation_needed
+    set val(binname), val(mdsum), val(model), stdout ,file(reconstr_hmmer), file(reconst_hmmer) into calc_model, dont_calc_model
 
     when:
     calc_bin_or_not == "NO" && model.isDirectory()
@@ -306,10 +318,7 @@ process determine_models_that_need_recalculation {
     #!/usr/bin/env python3
     
     import django
-    import sys
     import os
-    from django.core.exceptions import ObjectDoesNotExist
-    from django.db import IntegrityError
     os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"    
     
     django.setup()
@@ -324,16 +333,14 @@ process determine_models_that_need_recalculation {
     """
 }
 
-determined_if_model_recalculation_needed.into{calc_model; dont_calc_model}
-
 // if the results for this bin and model are up-to-date, we only need to include them in the final output file
-process uptodate_model_to_targz1 {
+process uptodate_model_to_targz {
 
     input:
     set val(binname), val(mdsum), val(model), val(calc_model_or_not), file(reconstr_hmmer), file(reconst_hmmer) from dont_calc_model
 
     output:
-    set val(binname), val(mdsum), val(RULEBOOK), stdout into new_model_to_targz1_out
+    set val(binname), val(mdsum), val(RULEBOOK), stdout into new_model_to_targz_out
     // print YES or NO
     when:
     calc_model_or_not == "NO"
@@ -373,48 +380,34 @@ process uptodate_model_to_targz1 {
     """
 }
 
-process uptodate_model_to_targz2 {
+// split output of last process on tab to get seperate verdict and accuracy fields
+picaout_from_new_model = new_model_to_targz_out.map { l ->
 
-    input:
-    set val(binname), val(mdsum), val(RULEBOOK), val(verdict_and_accuracy) from new_model_to_targz1_out
+    splitted = l[3].split("\t")
+    verdict = splitted[0]
+    accuracy = splitted[1] as float
+    // the print statment in the process "accuracy" includes a newline at the end, this is important for processing further downstream
+    // so this has to be included also here.
+    // todo: include "end="" in the print statement in "accurcy", remove the follwing line and adopt downstream handling
+    accuracy += "\n"
+    return [ l[0], l[1], l[2], verdict, accuracy ]
 
-    output:
-    set val(binname), val(mdsum), val(RULEBOOK), val(verdict), val(accuracy) into picaout_from_new_model //
-
-    exec:
-    splitted=verdict_and_accuracy.split("\t")
-    verdict=splitted[0]
-    accuracy=splitted[1] as float
-    accuracy+="\n"
 }
-
 
 // if the results in our db for this bin and model are outdated, pica needs to be called
-// this process just reformats the input and just calls pica if the value is YES
-// this could be a map statement or a fork statement as well
+// this just reformats the input and just calls accuracy if the value is YES
 
-process old_model_to_accuracy {
+accuracy_in_from_old_model = calc_model.filter{ it[3] == "YES" }.map{ l -> [l[0], l[1], l[2], l[4], l[5]] }
 
-    input:
-    set val(binname), val(mdsum), val(model), val(calc_model_or_not), file(reconstr_hmmer), file(reconst_hmmer) from calc_model
-
-    output:
-    set val(binname), val(mdsum), val(model), file(reconstr_hmmer), file(reconst_hmmer) into accuracy_in_from_old_model
-
-    when:
-    calc_model_or_not == "YES"
-
-    script:
-    """
-    """
-}
 
 // call hmmer daemon for all bins for which prodigal was run (i.e. bins that have not yet been in the db)
 process hmmer {
 
     tag { binname }
+    scratch true
 
     maxForks 1  //do not parallelize!
+    time '10 m'
 
     input:
     set val(binname), val(mdsum), file(item) from prodigalout
@@ -444,12 +437,13 @@ process update_job_completeness {
 
     input:
     set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem) from hmmerout
-    each nr_of_files from sanity_check_for_count2.count()
+    val(nr_of_files)
 
     output:
     set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem) into job_updated_out
+
     script:
-// language=Python
+
 """
 #!/usr/bin/env python3
 
@@ -465,14 +459,10 @@ from phenotypePredictionApp.models import *
 
 try:
     parentjob = UploadedFile.objects.get(key="${jobname}")
-
-    current_status = int(parentjob.job_status) if parentjob.job_status else 0
-    total_valid_count = int(${nr_of_files}) 
-    plusone = int((1 / total_valid_count)*100)
-    
-    if (current_status + plusone < 100):
-        current_status += plusone
-        parentjob.job_status = current_status
+    current_finished = parentjob.finished_bins
+    total_jobs = parentjob.total_bins
+    if current_finished < total_jobs - 1:
+        parentjob.finished_bins = int(current_finished) + 1
         parentjob.save()
     
 except ObjectDoesNotExist:
@@ -503,6 +493,7 @@ process compleconta {
 process pica_bacteria {
 
     tag { binname }
+    scratch true
 
     memory = '500 MB'
 
@@ -510,29 +501,28 @@ process pica_bacteria {
     set val(binname), val(mdsum), file(hmmeritem), val(complecontaitem) from complecontaout
 
     output:
-    set val(binname), val(mdsum), file(hmmeritem), val(complecontaitem), stdout into bacteria_checked  // "YES"= is bacterium
+    set val(binname), val(mdsum), file(hmmeritem), val(complecontaitem), stdout into complecontaout_for_call_accuracy, complecontaout_for_hmmerresults_to_db  // "YES"= is bacterium
 
     script:
-    RULEBOOK = "<enter model name for bacteria here"
-    model = "<enter path to bacteria model here"
-    TEST_MODEL = "$model/${RULEBOOK}.rules"
-
+    RULEBOOK = file(params.archaea_model_path).getBaseName()
+    TEST_MODEL = "${params.archaea_model_path}/${RULEBOOK}.rules"
     """
-    #echo -ne "${binname}\\t" > tempfile.tmp
-    #cut -f2 $hmmeritem | tr "\\n" "\\t" >> tempfile.tmp
-    #test.py -m $TEST_MODEL -t $RULEBOOK -s tempfile.tmp > picaout.result
-    #echo -n \$(cat picaout.result | tail -n1 | cut -f2)
-    echo -n "YES"
+    echo -ne "${binname}\\t" > tempfile.tmp
+    cut -f2 $hmmeritem | tr "\\n" "\\t" >> tempfile.tmp
+    test.py -m $TEST_MODEL -t $RULEBOOK -s tempfile.tmp > picaout.result
+    is_archaea=\$(cat picaout.result | tail -n1 | cut -f2)
+    if [[ \$is_archaea = "YES" ]]; then
+        echo -n "NO"
+    else
+        echo -n "YES"
+    fi
     """
 }
 
-bacteria_checked.into{complecontaout_for_call_accuracy; complecontaout_for_hmmerresults_to_db}
 
 process write_hmmer_results_to_db {
 
     tag { binname }
-
-    // TODO: check if enog.objects.in_bulk() makes sense also here
 
     input:
     set val(binname), val(mdsum), file(hmmeritem), file(complecontaitem), val(is_bacterium) from complecontaout_for_hmmerresults_to_db
@@ -588,28 +578,15 @@ with open("${hmmeritem}", "r") as enogresfile:
 """
 }
 
-process call_accuracy_for_all_models {
+// instantiates an item for each compleconta output item and each model,
+// drops all channel items which are not either bacteria
+// or archea but the assorted model is not contained in the blacklist omit_in_archaea
+accuracy_in = complecontaout_for_call_accuracy
+                .combine(models)
+                .filter{it[4] == "YES" || !(params.omit_in_archaea.contains(it[5].getBaseName()))}
+                .map { l -> [ l[0], l[1], l[5], l[2], l[3] ]}
 
-    tag { "${binname}_${model.getBaseName()}" }
-
-    memory = '10 MB'
-
-    input:
-    set val(binname), val(mdsum), file(hmmeritem), file(complecontaitem), val(is_bacterium) from complecontaout_for_call_accuracy
-    each model from models
-
-    output:
-    set val(binname), val(mdsum), val(model), file(hmmeritem), file(complecontaitem) into accuracy_in
-
-    when:
-    model.isDirectory() && (is_bacterium == "YES" || !(params.omit_in_archaea.contains(model)))
-
-    script:
-    """
-    """
-}
-
-// compute accuracy from compleconta output and model intrinsics .
+// compute accuracy from compleconta output and model intrinsics.
 process accuracy {
 
     tag { "${binname}_${model.getBaseName()}" }
@@ -671,18 +648,19 @@ process accuracy {
 process pica {
 
     tag { "${binname}_${model.getBaseName()}" }
-
+    scratch true
     memory = '800 MB'
 
     input:
     set val(binname), val(mdsum), val(model), file(hmmeritem), val(accuracy) from accuracyout
 
     output:
-    set val(binname), val(mdsum), val(RULEBOOK), stdout, val(accuracy) into picaout  //print decision on stdout, and put stdout into return set
+    set val(binname), val(mdsum), val(RULEBOOK), stdout, val(accuracy) into picaout_db_write, picaout_for_download //print decision on stdout, and put stdout into return set
 
     script:
     RULEBOOK = model.getBaseName()
     TEST_MODEL = "$model/${RULEBOOK}.rules"
+
     """
     echo -ne "${binname}\t" > tempfile.tmp
     cut -f2 $hmmeritem | tr "\n" "\t" >> tempfile.tmp
@@ -691,40 +669,21 @@ process pica {
     """
 }
 
-picaout.into{picaout_db_write; picaout_for_download}
+// replace the verdict of pica with "N/A N/A" if the balanced accuracy is below the treshold
+NA_replaced_for_download = picaout_for_download.mix(picaout_from_new_model).map { l ->
 
-// replace the verdict of pica with "N/A" if the balanced accuracy is below the treshold
-process replace_with_NA {
-    tag { "${binname}_${RULEBOOK}" }
-
-    input:                         // .mix: include the results from bins that were already in the db that used up-to-date-models
-    set val(binname), val(mdsum), val(RULEBOOK), val(verdict_pica_pval), val(accuracy) from picaout_for_download.mix(picaout_from_new_model)
-
-    output:
-    set val(binname), val(mdsum), val(RULEBOOK), stdout, val(accuracy) into NA_replaced_for_download
-
-    script:
     float accuracy_cutoff = params.accuracy_cutoff as float
-    float accuracy_float = accuracy as float
+    float accuracy_float = l[4] as float
 
     if (accuracy_float >= accuracy_cutoff) {
-        """
-        #!/usr/bin/env python3
-        print(str("${verdict_pica_pval}"),end='')
-
-        """
-
+        output = l[3]
+    } else {
+        output = "N/A N/A"
     }
-    else{
-        """
-        #!/usr/bin/env python3
-        print("N/A N/A" ,end='')
-        """
+    return [l[0], l[1], l[2], output, l[4]]
+}
 
-    }
-    }
-
-// merge all results into a file called $id.results and move each file to results folder.
+// merge all results into a file called $id.results.
 outfilechannel = NA_replaced_for_download.collectFile() { item ->
     [ "${item[0]}.results", "${item[2]}\t${item[3]}\t${item[4]}" ]  // use given bin name as filename
 }.collect()
@@ -827,7 +786,7 @@ with open("per_bin_matrix.results.tsv", "w") as outfile2:
 process zip_results {
 
     tag { jobname }
-
+    scratch true
     stageInMode 'copy'  //actually copy in the results so we not only tar symlinks
 
     input:
@@ -840,9 +799,11 @@ process zip_results {
     script:
     """
     mkdir -p ${jobname}/summaries
+    mkdir -p ${jobname}/individual_results
+    cp ${params.description_file} ${jobname}/summaries/PICA_trait_descriptions.txt
     cp ${errorfile} ${jobname}/summaries/invalid_input_files.log.txt
     mv *.results.tsv ${jobname}/summaries
-    mv *.results.txt ${jobname}
+    mv *.results.txt ${jobname}/individual_results
     zip -r ${jobname}.zip ./${jobname}
     rm -rf ${jobname}
     """
@@ -852,14 +813,12 @@ db_written = picaout_db_write.collectFile() { item ->
     [ "${item[1]}.results", "${item[2]}\t${item[3]}\t${item[4]}" ]  // use md5sum as filename
 }
 
-
 process write_pica_result_to_db {
+
+    scratch true
 
     input:
     file(mdsum_file) from db_written
-
-    output:
-    stdout exo
 
     script:
 // language=Python
@@ -919,6 +878,8 @@ result_model.objects.bulk_create(modelresultlist)
 
 process write_zip_to_db {
 
+    scratch true
+
     input:
     file(zip) from zip_to_db
 
@@ -945,7 +906,8 @@ try:
     file = open('${zip}', 'rb')
     djangoFile = File(file)
     obj[0].fileOutput.save('${jobname}.zip', djangoFile, save="True")
-    obj.update(job_status = '100')
+    totalbins = obj[0].total_bins
+    obj.update(finished_bins = totalbins)
 except IntegrityError:
     sys.exit("Exited with integrity error upon adding results to database.")
 """
@@ -961,6 +923,4 @@ workflow.onError {
     println "Writing error report to directory ${outdir}/logs..."
     fatal_error_file = file("${outdir}/logs/errorReport.log")
     fatal_error_file.text = workflow.errorReport
-    // maybe have to set pythonpath too
-    "python3 scripts/set_pipeline_error.py ${jobname}".execute()
 }

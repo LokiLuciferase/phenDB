@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-#BASEDIR="/apps/phenDB"
-BASEDIR="/apps/phenDB_devel_LL"
+BASEDIR="/apps/phenDB"
+#BASEDIR="/apps/phenDB_devel_LL"
 #BASEDIR="/apps/phenDB_devel_PP/phenDB"
 
 mkdir -p ${BASEDIR}/logs
