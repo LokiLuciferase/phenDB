@@ -189,11 +189,13 @@ process md5sum {
     echo -n \$(md5sum ${item} | cut -f1 -d" ")
     """
 }
-// todo: job completeness update
+
+
 process add_bin_to_db {
 
     tag { binname }
     maxForks 10
+    errorStrategy 'ignore'  // if duplicate files in same job, just drop them from pipeline
 
     input:
     set val(binname), val(mdsum), file(item) from md5_out
@@ -201,8 +203,6 @@ process add_bin_to_db {
 
     output:
     set val(binname), val(mdsum), file(item), stdout, file("reconstructed_hmmer_file.txt"), file("reconstructed_compleconta_file.txt") into bin_is_in_db, bin_is_not_in_db
-
-    tag { binname }
 
     script:
 // language=Python

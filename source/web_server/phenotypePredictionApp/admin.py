@@ -8,7 +8,10 @@ from .models import UploadedFile
 class JobDisplay(admin.ModelAdmin):
 
     def no_errors(obj):
-        return not obj.errors
+        if obj.errors == None:
+            return None
+        else:
+            return not obj.errors
 
     no_errors.boolean = True
 
