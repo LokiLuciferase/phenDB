@@ -27,12 +27,12 @@ def clean_up_on_pipeline_fail(keyname, ppath):
     currentjob.save()
 
 
-def remove_temp_files(infolder):
+def remove_temp_files(infolder=None):
 
-    #logfolder = '/apps/phenDB_devel_LL/logs'
     logfolder = '/apps/phenDB/logs'
     shutil.rmtree(os.path.join(logfolder, "work"))
-    shutil.rmtree(infolder)
+    if infolder:
+        shutil.rmtree(infolder)
 
 
 def phenDB_enqueue(ppath, pipeline_path, infolder, outfolder, pica_cutoff, node_offs):
@@ -52,16 +52,18 @@ def phenDB_enqueue(ppath, pipeline_path, infolder, outfolder, pica_cutoff, node_
     with open(os.path.join(outfolder, "logs/nextflow.log"), "w") as logfile:
         pipeline_call = subprocess.Popen(arguments.split(), stdout=logfile, stderr=logfile)
         pipeline_call.wait()
-        remove_temp_files(infolder) # delete upload and temp folder
 
         # if pipeline encounters error, set errors to None in the DB
         key = os.path.basename(infolder)
         if pipeline_call.returncode != 0:
+            remove_temp_files()  # don't delete infolder if failure reason is unknown
             clean_up_on_pipeline_fail(key, ppath)
             raise RuntimeError("Pipeline run has failed. Error status in DB has been updated.")
 
+        remove_temp_files(infolder)
+
         # if no output file has been generated despite no pipeline error
-        # (if error checking consumes all input files):
+        # (= if error checking consumes all input files)
         if not os.path.exists(os.path.join(outfolder, "{k}.zip".format(k=key))):
             clean_up_on_pipeline_fail(key, ppath)
             raise RuntimeError("No input files have passed error checking.")
