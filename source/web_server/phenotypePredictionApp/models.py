@@ -26,6 +26,8 @@ class UploadedFile(models.Model):
         indexes = [
             models.Index(fields=['key'])
         ]
+        verbose_name = 'PhenDB job'
+        verbose_name_plural = 'PhenDB jobs'
 
     key = models.CharField(default=uuid.uuid4(), unique=True, max_length=36)
     filename = models.TextField()
