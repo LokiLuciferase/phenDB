@@ -37,3 +37,15 @@ form {
     display:flex;
     flex-direction:column;
 }
+
+.ui-spinner{
+    display:flex;
+}
+
+#requested_balac {
+    flex:100;
+}
+
+.inputField {
+    max-width:500px;
+}
