@@ -83,7 +83,6 @@ process unzip {
 
 
 // combine raw fasta files and those extracted from archive files
-//all_fasta_input_files = input_files.mix(tgz_unraveled_fasta.flatten(), zip_unraveled_fasta.flatten())
 truly_all_input_files = all_input_files.mix(tgz_unraveled_all.flatten(), zip_unraveled_all.flatten())
 
 // Passes every fasta file through Biopythons SeqIO to check for corrupted files
@@ -103,13 +102,17 @@ process fasta_sanity_check {
     script:
     binname = item.getName()
     if (!( item.getBaseName() ==~ /^\p{ASCII}+$/ )) {
-
-    asciimess = "WARNING: The filename of ${item.getName()} contains non-ASCII characters. " +
-                "The file was dropped from the analysis.\n\n"
-    log.info(asciimess)
-    errorfile.append(asciimess)
+        asciimess = "WARNING: The filename of ${item.getName()} contains non-ASCII characters. " +
+                    "The file was dropped from the analysis.\n\n"
+        log.info(asciimess)
+        errorfile.append(asciimess)
         return //todo: this seems to raise error code 127, which does not make sense. However, it seems to serve the purpose for now
-        log.info("you should not see this")
+    } else if ( item.size() >= params.max_bin_size ) {
+        sizemess = "WARNING: The size of file ${item.getName()} exceeds the maximum processible file size. " +
+                   "The file was dropped from the analysis.\n\n"
+        log.info(sizemess)
+        errorfile.append(sizemess)
+        return
     }
 // language=Python
 """

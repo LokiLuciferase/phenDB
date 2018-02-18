@@ -61,7 +61,7 @@
         <div class="column" id="input_section" title="Your Input" style="margin:10px; display : {{ showInputFormCSS }}" >
             <div class="row" id="description">
                 Upload your FASTA-files (as .fasta or compressed in a tar.gz / zip folder). The fasta files themselves may be compressed as .gz. Nested directories cannot be processed.
-                To get a notification when phenDB is finished, submit your e-mail address (optionally).
+                To get a notification when phenDB is finished, submit your email address (optional).
             </div>
             <div class="row">
                 <div class="column" style="flex:50">
@@ -73,7 +73,7 @@
             </div>
             <div class="row">
                 <div class="column" style="flex:50">
-                    <label for="fileInput"><b>Balanced Accuracy Cutoff</b></label>
+                    <label for="fileInput"><b>Balanced Accuracy Cutoff (0.5 - 1)</b></label>
                 </div>
                 <div class="column" style="flex:50">
                     <input id="requested_balac" name="requested_balac" type="text" value="0.7"></input>
@@ -81,7 +81,7 @@
             </div>
             <div class="row">
                 <div class="column" style="flex:50">
-                    <label for="fileInput"><b>e-Mail (optionally) </b></label>
+                    <label for="fileInput"><b>email (optional) </b></label>
                 </div>
                 <div class="column" style="flex:50">
                     <input id="user_mail" name="user_email" type="email"></input>
@@ -113,18 +113,18 @@
     <br />
     Gene prediction by Prodigal (Hyatt et al., 2010) is run on the DNA sequence of the uploaded metagenomic bins or genomes.<br />
     Hmmer (Eddy et al., 2001) then searches orthologous groups from these protein sequences using the EggNOG DB (Huerta-Cepas et al., 2015).<br />
-    Finally PICA (Feldbauer et al., 2015) uses support-vector-machine based models (calculated from genomes with known phenotypes) and the list of orthologous groups of proteins present in a bin/genome to predict whether the organism possesses a particular trait or not.<br />
-    Currently, there are 44 different models available.<br />
+    Finally PICA (Feldbauer et al., 2015) uses support vector machine (SVM)-based models (calculated from genomes with known phenotypes) and the list of orthologous groups of proteins present in a bin/genome to predict whether the organism possesses a particular trait or not.<br />
+    Currently, predictions for 44 different traits are calculated.<br /><br />
     Please note that PhenDB is still in an early stage of development and for several models we are still working on improving the training data.<br />
     Thus, please take note of the "balanced_accuracy" values ascribed to predictions.<br />
     <br />
     <br />
     <h1>How to Use PhenDB</h1>
     <br />
-    You may either upload a single metagenomic bin/genome in FASTA format(.gz-compressed or uncompressed), or an archive (.tar.gz or .zip) containing several bins/genomes.<br /><br />Please note that a flat filestructure is required in the compressed folder.<br />
-    The current maximum filesize is 1 GB. <br />
+    You may either upload a single metagenomic bin/genome in FASTA format (.gz-compressed or uncompressed), or an archive (.tar.gz or .zip) containing several bins/genomes.<br /><br />Please note that a flat filestructure is required in the compressed folder.<br />
+    The current maximum filesize for upload is 1 GB, the maximum file size per bin is 50 MB.<br />
     Duplicate .fasta files (determined by file content) will be silently dropped from the analysis.<br /><br />
-    Balanced Accuracy Cutoff is confidence measure computed from completeness/contamination of bin, and model power. Predictions with a balanced accuracy below the chosen value (range: 0.5 - 1) are omitted from the result.<br /><br />
+    Balanced Accuracy is a confidence measure computed from completeness/contamination of the uploaded bin and the model's predictive power. Predictions with a balanced accuracy below the chosen cutoff value (range: 0.5 - 1) are omitted from the result.<br /><br />
     After submission, your job is queued and waits for completion of any previously submitted jobs.<br />
     When computation starts, expect about 1-1.5 min of calculation time per bin.<br />
     To receive a notification upon job completion, enter an email address during your submission.<br />
@@ -137,15 +137,14 @@
     <ul>
     <li>the folder individual_results, containing:</li>
         <ul>
-        <li>a .results.txt file for every valid uploaded bin/genome.<br />This file contains the model names, predictions ("YES"/"NO"/"N/A") along with probability and balanced accuracy values.<br />Per default, predictions with a balanced accuracy below 0.5 are displayed as "N/A" instead of a verdict. We are working on an option to let you change this threshold.</li>
+        <li>a .results.txt file for every valid uploaded bin/genome.<br />This file contains the model names, predictions (YES/NO/NA) along with probability and balanced accuracy values.</li>
         </ul>
     <li>the folder "summaries", which contains:</li>
         <ul>
-        <li>"summary_matrix.results.tsv": A summary file that shows for each model how many bins/genomes were predicted as "YES", "NO" or "N/A" for the model</li>
+        <li>"summary_matrix.results.tsv": A summary file that shows for each model how many bins/genomes were predicted as "YES", "NO" or "N/A"</li>
         <li>"per_bin_matrix.results.tsv": A summary file that shows the verdict for each bin and each model as a matrix</li>
-        <li>"per_bin_matrix.results.tsv": A summary file that shows the verdict for each bin and each model as a matrix</li>
-        <li>"invalid_input_files.log.txt": If one or more of your uploaded files were invalid (e.g. not in FASTA format), a warning will appear on the results page to check this file.</li>
-        <li>"PICA_trait_descriptions.txt": Contains the model names and the traits they are testing for. It contains all error messages that occurred due to invalid input files. If all files were correct, the file is empty.</li>
+        <li>"invalid_input_files.log.txt": If one or more of your uploaded files were invalid (e.g. not in FASTA format), a warning will appear to check this file. If all files were correct, this file is empty.</li>
+        <li>"PICA_trait_descriptions.txt": Contains the model names and the traits they are testing for.</li>
         </ul>
     </ul>
     <br />
