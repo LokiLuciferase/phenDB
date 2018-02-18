@@ -39,7 +39,7 @@ form {
 }
 
 .ui-spinner{
-    display:flex;
+    display:flex !important;
 }
 
 #requested_balac {
