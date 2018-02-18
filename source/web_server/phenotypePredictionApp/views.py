@@ -70,7 +70,7 @@ def sendinput(request):
         print("Is valid")
         modelInstance = form.save(commit=False)
         modelInstance.save()
-        StartProcessThread(key).start()
+        StartProcessThread(key, postobj['requested_balac']).start()
         if postobj['user_email'] != '':
             MailNotification(key).start()
     resultObj = UploadedFile.objects.get(key=key)

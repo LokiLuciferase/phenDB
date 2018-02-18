@@ -36,10 +36,10 @@ class UploadedFile(models.Model):
     user_ip = models.TextField(null=True, blank=True)
     user_email = models.TextField(null=True, blank=True)
     job_date = models.DateTimeField(auto_now=True)
-    folder_path = models.TextField()
     errors = models.NullBooleanField(null=True, blank=True)
     finished_bins = models.IntegerField(default='0')
     total_bins = models.IntegerField(default='0')
+    requested_balac = models.FloatField(default='0.5')
 
     def get_absolute_url(self):
         return "results/%s/" % self.key

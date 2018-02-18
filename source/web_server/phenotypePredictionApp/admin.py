@@ -7,6 +7,9 @@ from .models import UploadedFile
 
 class JobDisplay(admin.ModelAdmin):
 
+    def bal_acc_cutoff(obj):
+        return obj.requested_balac
+
     def no_errors(obj):
         if obj.errors == None:
             return None
@@ -33,7 +36,7 @@ class JobDisplay(admin.ModelAdmin):
     link_to_results.allow_tags = True
     actions = None
 
-    list_display = ('job_date', 'user_email', 'user_ip', 'finished_bins', 'total_bins', no_errors, uploaded_file_name, link_to_results)
+    list_display = ('job_date', 'user_email', 'user_ip', 'finished_bins', 'total_bins', bal_acc_cutoff, no_errors, uploaded_file_name, link_to_results)
     list_display_links = None
     search_fields = ('user_email', 'user_ip', 'filename')
 

@@ -36,6 +36,11 @@
                     });
                 {%  endif %}
             $('#input_section').puipanel();
+            $('#requested_balac').puispinner({
+                min: 0.5,
+                max: 1,
+                step: 0.01
+            });
             $('#result_section').puipanel();
             $('#help_section').puipanel({toggleable: true, closable: false, collapsed: true});
             $('#error_message').puigrowl({sticky:true});
@@ -64,6 +69,14 @@
                 </div>
                 <div class="column" style="flex:50">
                     <input id="fileInput" name="fileInput" type="file" accept=".tar.gz, .zip, .fasta, .fna, .fa" required="true" ></input>
+                </div>
+            </div>
+            <div class="row">
+                <div class="column" style="flex:50">
+                    <label for="fileInput"><b>Balanced Accuracy Cutoff</b></label>
+                </div>
+                <div class="column" style="flex:50">
+                    <input id="requested_balac" name="requested_balac" type="text" value="0.7"></input>
                 </div>
             </div>
             <div class="row">
@@ -111,7 +124,8 @@
     You may either upload a single metagenomic bin/genome in FASTA format(.gz-compressed or uncompressed), or an archive (.tar.gz or .zip) containing several bins/genomes.<br /><br />Please note that a flat filestructure is required in the compressed folder.<br />
     The current maximum filesize is 1 GB. <br />
     Duplicate .fasta files (determined by file content) will be silently dropped from the analysis.<br /><br />
-    After your submission, your job is queued and waits for completion of any previously submitted jobs.<br />
+    Balanced Accuracy Cutoff is confidence measure computed from completeness/contamination of bin, and model power. Predictions with a balanced accuracy below the chosen value (range: 0.5 - 1) are omitted from the result.<br /><br />
+    After submission, your job is queued and waits for completion of any previously submitted jobs.<br />
     When computation starts, expect about 1-1.5 min of calculation time per bin.<br />
     To receive a notification upon job completion, enter an email address during your submission.<br />
     Alternatively, you may save the URL to your submission to retrieve your results later.<br />

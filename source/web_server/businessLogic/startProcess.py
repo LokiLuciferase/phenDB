@@ -9,9 +9,10 @@ from businessLogic.enqueue_job import phenDB_enqueue
 
 
 class StartProcessThread(threading.Thread):
-    def __init__(self, keyname):
+    def __init__(self, keyname, req_balac):
         threading.Thread.__init__(self)
         self.keyname = keyname
+        self.req_balac = req_balac
 
     def run(self):
 
@@ -33,7 +34,7 @@ class StartProcessThread(threading.Thread):
         infolder = os.path.join(infolder_base, self.keyname)
 
         # TODO: we should make these parameters settable from the web mask
-        pica_cutoff = "0.5"
+        pica_cutoff = float(self.req_balac)
         node_offs = ""
 
         os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
