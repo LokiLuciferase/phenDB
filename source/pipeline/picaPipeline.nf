@@ -85,6 +85,25 @@ process unzip {
 // combine raw fasta files and those extracted from archive files
 truly_all_input_files = all_input_files.mix(tgz_unraveled_all.flatten(), zip_unraveled_all.flatten())
 
+// check if file names contain only ascii and if file size is OK
+input_files_groovy_checked = truly_all_input_files.map {
+
+    if (!( it.getBaseName() ==~ /^\p{ASCII}+$/ )) {
+        asciimess = "WARNING: The filename of ${it.getName()} contains non-ASCII characters. " +
+                    "The file was dropped from the analysis.\n\n"
+        log.info(asciimess)
+        errorfile.append(asciimess)
+        return
+    } else if ( it.size() > params.max_bin_size ) {
+        sizemess = "WARNING: The size of file ${it.getName()} exceeds the maximum processible file size. " +
+                   "The file was dropped from the analysis.\n\n"
+        log.info(sizemess)
+        errorfile.append(sizemess)
+        return
+    }
+    return it
+}
+
 // Passes every fasta file through Biopythons SeqIO to check for corrupted files
 process fasta_sanity_check {
 //todo: output also sequences-only for md5sum?
@@ -94,27 +113,13 @@ process fasta_sanity_check {
     scratch true
 
     input:
-    file(item) from truly_all_input_files
+    file(item) from input_files_groovy_checked
 
     output:
     set val(binname), file("sanitychecked.fasta") into sanity_check_for_continue, sanity_check_for_count
 
     script:
     binname = item.getName()
-    if (!( item.getBaseName() ==~ /^\p{ASCII}+$/ )) {
-        asciimess = "WARNING: The filename of ${item.getName()} contains non-ASCII characters. " +
-                    "The file was dropped from the analysis.\n\n"
-        log.info(asciimess)
-        errorfile.append(asciimess)
-        return //todo: this seems to raise error code 127, which does not make sense. However, it seems to serve the purpose for now
-    } else if ( item.size() >= params.max_bin_size ) {
-        sizemess = "WARNING: The size of file ${item.getName()} exceeds the maximum processible file size. " +
-                   "The file was dropped from the analysis.\n\n"
-        log.info(sizemess)
-        errorfile.append(sizemess)
-        return
-    }
-// language=Python
 """
 #!/usr/bin/env python
 from Bio import SeqIO
