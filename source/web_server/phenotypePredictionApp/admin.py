@@ -23,7 +23,7 @@ class JobDisplay(admin.ModelAdmin):
 
     def uploaded_file_name(obj):
         if obj.fileInput:
-            return os.path.basename(obj.fileInput)
+            return os.path.basename(str(obj.fileInput))
         return obj.fileInput
 
     def has_add_permissions(self, request):
