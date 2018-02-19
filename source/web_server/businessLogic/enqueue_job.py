@@ -26,13 +26,52 @@ def clean_up_on_pipeline_fail(keyname, ppath):
     assoc_rows.delete()
     currentjob.save()
 
-
+# delete temporary files and uploads after each finished job
 def remove_temp_files(infolder=None):
 
     logfolder = '/apps/phenDB/logs'
     shutil.rmtree(os.path.join(logfolder, "work"))
     if infolder:
         shutil.rmtree(infolder)
+
+# delete user submitted data after days
+def delete_user_data(days):
+
+    import django
+    from django.utils.timezone import make_aware
+    from datetime import datetime, timedelta
+    from time import time
+    import glob
+
+    os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
+    sys.path.append("/apps/phenDB/source/web_server")
+    django.setup()
+    from phenotypePredictionApp.models import UploadedFile, bin, result_enog, result_model
+
+    oldest = datetime.today() - timedelta(days=days)
+
+    # delete UploadedFiles older than oldest; association rows deleted automatically
+    aged_jobs = UploadedFile.objects.filter(job_date__lte=make_aware(oldest))
+    aged_jobs.delete()
+
+    # look for unassociated bins and delete those too
+    orphan_bins = bin.objects.filter(bins_in_uploadedfile=None)
+    orphan_bins.delete()
+
+    # look for unassociated result_enog and result_model
+    orphan_hmmer = result_enog.objects.filter(bin=None)
+    orphan_verdict = result_model.objects.filter(bin=None)
+    orphan_hmmer.delete()
+    orphan_verdict.delete()
+
+    # delete results flat files older than days
+    oldest_unixtime = float(time()) - (timedelta(days=days).total_seconds())
+    result_folders = glob.glob("/apps/phenDB/data/results/*")
+
+    for folder in result_folders:
+        if float(os.path.getmtime(folder)) <= float(oldest_unixtime):
+            shutil.rmtree(folder)
+
 
 
 def phenDB_enqueue(ppath, pipeline_path, infolder, outfolder, pica_cutoff, node_offs):

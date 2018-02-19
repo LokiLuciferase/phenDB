@@ -16,4 +16,4 @@ fi
 nohup redis-server &>> redis_server.log &
 
 # start a rq worker and import from the correct location
-nohup rq worker --path ${BASEDIR}/source/web_server --name phenDB phenDB &>> rq_worker.log &
+nohup rq worker --path ${BASEDIR}/source/web_server --path ${BASEDIR}/source/web_server/businessLogic --name phenDB phenDB &>> rq_worker.log &
