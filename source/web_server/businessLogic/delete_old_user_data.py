@@ -15,5 +15,6 @@ q.enqueue_call(func=delete_user_data,
                args=(days_back,),
                timeout='10m',
                ttl='10m',
-               job_id="db_maintenance_clean_old"
+               job_id="db_maintenance_clean_old",
+               at_front=True
                )
