@@ -53,11 +53,6 @@ From: centos:latest
 	
 %runscript
 	echo "###########################   PhenDB Singularity Container v0.1   #########################"
-    echo "Most of us pass the listless days in these cells on our backs, gazing into the darkness which acts as our ceiling. It is all too easy to succumb to the perpetual oneiric existence this lifestyle offers.
-	The only openings in the cells are a single chest high window on each wall, which allow us to communicate with those in the surrounding cells, and a network of fine cracks that exists on every visible surface. None can say with certainty whether there is anything solid beyond that pitch overhead. To those who seek escape, it seems the only reasonable method is to enter one of the cracks.
-	Some of us have succeeded in projecting ourselves into these tiny spaces and momentarily existing therein. With practice and skill, these moments can be stretched into minutes, then hours, then days. Existence in these spaces between is usually pleasant, but can be terrifying if one loses his head. Most will agree that the worst aspect of passing time there is the always present knowledge of the cell and the body we will return to.
-	There are whispers of cells that house decayed bodies. Some think that these bodies are left by those who have discovered the method to exist permanently beyond. I believe there is a way to escape in the aether space of the cracks and I intend to discover that path and to leave a map for the others to follow."
-	echo -e "\n --Bosse-de-Nage, \"Cells\""
 	echo ""
 	
 	prodigal -h
@@ -74,4 +69,3 @@ From: centos:latest
 %labels
 	
 	Version 0.1
-	Hatemail to: <add_email_here>
