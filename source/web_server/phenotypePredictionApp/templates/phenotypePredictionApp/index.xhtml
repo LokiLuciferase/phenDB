@@ -47,6 +47,17 @@
                 {% if showErrorMessage %}
                     $('#error_message').puigrowl('show', [{severity: '{{ errorSeverityPU }}', summary: '{{ errorSummaryPU }}', detail: '{{ errorMessagePU }}' } ]);
                 {% endif %}
+            $('#queue_info').puidialog({
+                 minimizable: false,
+                 maximizable: false,
+                 resizable: false
+            });
+            $('#queue_show').puibutton({
+                icon: 'fa-external-link-square',
+                click: function() {
+                    $('#queue_info').puidialog('show');
+                }
+            });
             });
         </script>
         <title>PhenDB</title>
@@ -59,6 +70,12 @@
             <img id="phendb_logo" src="{% static 'phenotypePredictionApp/phendb_logo.png' %}" ></img>
         </div>
         <div class="column" id="input_section" title="Your Input" style="margin:10px; display : {{ showInputFormCSS }}" >
+            <div>
+                <button id="queue_show" type="button" style="float:right">Current Queue</button>
+                <div id="queue_info" title="length of queue">
+                The current length of the queue is: {{ queueLen }}
+                </div>
+            </div>
             <div class="row" id="description">
                 Upload your FASTA-files (as .fasta or compressed in a tar.gz / zip folder). The fasta files themselves may be compressed as .gz. Nested directories cannot be processed.
                 To get a notification when phenDB is finished, submit your email address (optional).
