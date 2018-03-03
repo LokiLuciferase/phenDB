@@ -11,8 +11,8 @@ from businessLogic.startProcess import StartProcessThread
 from phenotypePredictionApp.models import UploadedFile
 from pprint import pprint
 from ipware.ip import get_real_ip
-from redis import Redis
-from rq import Queue, get_current_job
+#from redis import Redis
+#from rq import Queue, get_current_job
 import struct
 
 #------------------functions---------------------------------------------
@@ -39,6 +39,12 @@ def get_current_position(keyname):
     except:
         return (None, None)
 
+def getQueueLength():
+    que = Queue('phenDB', connection=Redis())
+    jobs = list(que.jobs)
+    return len(jobs)
+
+
 
 #-------------------Views-------------------------------------------------
 
@@ -49,7 +55,8 @@ def index(request):
                'showNotification' : False,
                'showInputFormCSS': 'block',
                'showProgressBar' : False,
-               'refresh' : False}
+               'refresh' : False
+               'queueLen' : getQueueLength()}
     return HttpResponse(template.render(context, request))
 
 def sendinput(request):
