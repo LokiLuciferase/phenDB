@@ -285,7 +285,6 @@ process prodigal {
 
     tag { binname }
     maxForks 5
-
     memory = "450 MB"
 
     input:
@@ -725,6 +724,7 @@ from phenotypePredictionApp.models import *
 cutoff = "${params.accuracy_cutoff}"
 now = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
 HEADER = "Model_name\\tVerdict\\tProbability\\tBalanced_accuracy\\n"
+ROUND_TO = 2
 
 modelvec = list(set([x.model_name for x in model.objects.filter()]))
 modelvec = sorted(modelvec)
@@ -750,7 +750,13 @@ for name in glob.glob("*.results"):
             binfile.seek(0, 0)
             content = []
             for line in binfile:
-                content.append(line.split())
+                rline = line.split()
+                try:
+                    pval = round(float(rline[2]), ROUND_TO)
+                except ValueError:
+                    pval = rline[2]
+                balac = round(float(rline[3]), ROUND_TO)
+                content.append([rline[0], rline[1], str(pval), str(balac)])
             content = sorted(content, key=lambda x: x[0])
             sortfile.write(HEADER)
             for tup in content:
