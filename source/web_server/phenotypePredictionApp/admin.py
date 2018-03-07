@@ -2,7 +2,7 @@ from django.contrib import admin
 import os
 
 # Register your models here.
-from .models import UploadedFile
+from .models import UploadedFile, model
 
 
 class JobDisplay(admin.ModelAdmin):
@@ -40,7 +40,20 @@ class JobDisplay(admin.ModelAdmin):
     list_display_links = None
     search_fields = ('user_email', 'user_ip', 'filename')
 
+class ModelDisplay(admin.ModelAdmin):
+
+    def has_add_permissions(self, request):
+        return False
+
+    def has_delete_permissions(self, request, obj=None):
+        return False
+
+    list_display = ('model_name', 'model_desc', 'model_train_date')
+    list_display_links = None
+    actions = None
+
 admin.site.site_header = "PhenDB Admin Pages"
 admin.site.site_title = "PhenDB Admin Pages"
 admin.site.index_title = "PhenDB Admin Pages"
 admin.site.register(UploadedFile, JobDisplay)
+admin.site.register(model, ModelDisplay)
