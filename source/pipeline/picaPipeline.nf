@@ -763,7 +763,10 @@ for name in glob.glob("*.results"):
             sline = line.split()
             modelname, verdict = sline[0], sline[1]
             bin_dict[binname][modelname] = verdict
-            countdict[modelname][verdict] += 1
+            try:
+                countdict[modelname][verdict] += 1
+            except KeyError:
+                pass
     
         # sort results file and prepend header
         with open(os.path.join(os.getcwd(), name + ".txt"), "w") as sortfile:
