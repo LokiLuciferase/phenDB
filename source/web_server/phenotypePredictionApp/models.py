@@ -98,6 +98,8 @@ class model(models.Model):
         indexes = [
             models.Index(fields=['model_name', 'model_train_date'])
        ]
+        verbose_name = 'PICA Models'
+        verbose_name_plural = 'PICA Models'
 
     model_name = models.CharField(max_length=64)
     type = models.CharField(max_length=2)
