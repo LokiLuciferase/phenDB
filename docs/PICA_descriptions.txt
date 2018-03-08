@@ -2,6 +2,7 @@ AEROBE: Aerobic respiration
 alkb: Alkane degradation
 ANAEROBE: Anaerobic respiration
 AOB: Ammonia-oxidizing bacteria
+ARCHAEA: Domain membership to Archaea
 ars: Arsenic detoxification
 AUTO: Autotrophic metabolism
 avre: Plant pathogenicity based on AvrE virulence factor

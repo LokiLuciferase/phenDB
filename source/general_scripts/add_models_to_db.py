@@ -109,7 +109,7 @@ if db_enogs:
         try: #check if there is a .type file, if there is, read the description
             with open(PICAMODELFOLDER + "/" + picamodel + "/" + picamodel + ".type", "r") as typefile:
                 for line in typefile:
-                    type=line.rstrip()
+                    type+=line.rstrip()
         except FileNotFoundError:
             type="NA"
 

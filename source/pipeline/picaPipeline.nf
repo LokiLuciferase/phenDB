@@ -314,7 +314,7 @@ process determine_models_that_need_recalculation {
     each model from models
 
     output:
-    set val(binname), val(mdsum), val(model), stdout ,file(reconstr_hmmer), file(reconst_hmmer) into calc_model, dont_calc_model
+    set val(binname), val(mdsum), val(model), stdout, file(reconstr_hmmer), file(reconst_hmmer) into calc_model, dont_calc_model
 
     when:
     calc_bin_or_not == "NO" && model.isDirectory()
@@ -326,16 +326,25 @@ process determine_models_that_need_recalculation {
     
     import django
     import os
-    os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"    
+    os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
     
     django.setup()
     from phenotypePredictionApp.models import *
     
-    try: #if this succeeds, then there is a result for this bin and the newest model version in our db
+    #if this succeeds, then there is a result for this bin and the newest model version in our db
+    try:
         result_model.objects.get(model=model.objects.filter(model_name="${model.getBaseName()}").latest('model_train_date'), bin=bin.objects.get(md5sum="${mdsum}"))
         print("NO", end='')    
     except:
-        print("YES", end='')
+        try:
+            archaea_result = result_model.objects.get(model=model.objects.filter(model_name="ARCHAEA").latest('model_train_date'), bin=bin.objects.get(md5sum="${mdsum}"))
+            use_in_archaea = "${params.use_in_archaea.join(" ")}"
+            if archaea_result.verdict == True and "${model.getBaseName()}" not in use_in_archaea:
+                print("NO", end='')  
+            else:
+                print("YES", end='')   
+        except:
+            print("YES", end='')
 
     """
 }
@@ -367,20 +376,31 @@ process uptodate_model_to_targz {
     
     django.setup()
     from phenotypePredictionApp.models import *
-
-    picaresult=result_model.objects.get(model=model.objects.filter(model_name="${RULEBOOK}").latest('model_train_date'), bin=bin.objects.get(md5sum="${mdsum}"))     
+    
+    verdict = ""
     
     try:
+        archaea_result = result_model.objects.get(model=model.objects.filter(model_name="ARCHAEA").latest('model_train_date'), bin=bin.objects.get(md5sum="${mdsum}"))
+        archaea_vec = "${params.use_in_archaea.join(" ")}"
+        if archaea_result.verdict == True and "${RULEBOOK}" not in archaea_vec:
+            verdict = "NC"
+    except:
+        pass
+
+    if verdict == "NC":
+        pica_pval = "NC"
+        accuracy = "1"
+    else:
+        picaresult=result_model.objects.get(model=model.objects.filter(model_name="${RULEBOOK}").latest('model_train_date'), bin=bin.objects.get(md5sum="${mdsum}"))
         if picaresult.verdict == True:
             verdict="YES"
         elif picaresult.verdict == None:
             verdict = "N/A"
         else:
-            verdict= "NO" 
-    except:
-            verdict="N/A"
-    pica_pval= "N/A" if picaresult.pica_pval == 0.0 else str(picaresult.pica_pval)  
-    accuracy=str(picaresult.accuracy)      
+            verdict= "NO"
+        pica_pval = "N/A" if float(picaresult.pica_pval) == 0.0 else str(picaresult.pica_pval)
+        accuracy = str(picaresult.accuracy)
+        
     write_this=verdict+" "+pica_pval+"\\t"+accuracy    
     print(write_this, end="")        
     

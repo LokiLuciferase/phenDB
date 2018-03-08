@@ -3,13 +3,13 @@
 
 Computational framework:
 -Singularity or Docker container for perfect encapsulation and reproducibility ( )
-- Model "NOB" is broken: NOB.accuracy is totally different format than other accuracy files.
-- optimize write_bin_to_db
+
+Pipeline:
+-fix: archaea results not masked
+-Allow .faa files to be processed (bypass prodigal with ifclause)
+-Allow outputting of .faa files together with prediction
 
 Web server:
--user interface ( ) (FP)
--think about malicious access prevention
--benchmark pipeline on VM using different node settings
 
 Database ( ) (LL):
 -better names for "model" model
@@ -25,16 +25,5 @@ Other stuff:
 
 Output:
 -give information on important missing enogs when NO is predicted
-
-Presentation:
-full specification of:
-    how are enogs entered into database
-    how are models entered
-deliverabels, milestones, responisibilities
-problems, alternatives
-
-job queueing:
-make start script which starts redis-server and rq worker (with good arguments) in background
-look into what makes job return 0 even though pipeline is not yet finished - rq? subprocess?
 
 
