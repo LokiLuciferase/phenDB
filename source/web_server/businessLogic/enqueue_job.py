@@ -21,10 +21,10 @@ def clean_up_on_pipeline_fail(keyname, ppath):
     assoc_rows = bins_in_UploadedFile.objects.filter(UploadedFile=currentjob)
     bins_of_failed = [x.bin for x in assoc_rows]
     for b in bins_of_failed:
-        # TODO: here we could select for bins with only comple=2, conta=2
         b.delete()
     assoc_rows.delete()
     currentjob.save()
+
 
 # delete temporary files and uploads after each finished job
 def remove_temp_files(infolder=None):
@@ -33,6 +33,7 @@ def remove_temp_files(infolder=None):
     shutil.rmtree(os.path.join(logfolder, "work"))
     if infolder:
         shutil.rmtree(infolder)
+
 
 # delete user submitted data after days
 def delete_user_data(days):
@@ -71,7 +72,6 @@ def delete_user_data(days):
     for folder in result_folders:
         if float(os.path.getmtime(folder)) <= float(oldest_unixtime):
             shutil.rmtree(folder)
-
 
 
 def phenDB_enqueue(ppath, pipeline_path, infolder, outfolder, pica_cutoff, node_offs):

@@ -590,7 +590,7 @@ with open("${hmmeritem}", "r") as enogresfile:
 // or archea but the assorted model is not contained in the blacklist omit_in_archaea
 accuracy_in = complecontaout_for_call_accuracy
                 .combine(models)
-                .filter{it[4] == "YES" || !(params.omit_in_archaea.contains(it[5].getBaseName()))}
+                .filter{it[4] == "YES" || params.use_in_archaea.contains(it[5].getBaseName())}
                 .map { l -> [ l[0], l[1], l[5], l[2], l[3] ]}
 
 // compute accuracy from compleconta output and model intrinsics.

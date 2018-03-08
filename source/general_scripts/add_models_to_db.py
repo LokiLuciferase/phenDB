@@ -134,8 +134,9 @@ if db_enogs:
                 print(" \n Saving to database... ")
                 try:
                     model_enog_ranks.objects.bulk_create(enog_rank_list_filled)
-                except: #specifc error here?
+                except Exception as e: #specifc error here?
                     newmodel.delete()
+                    print(e)
                     sys.exit("\n There was a problem when writing enog_ranks-objects to the db")
 
 
@@ -156,6 +157,7 @@ if db_enogs:
             print("writing accuracy entries into db...")
             model_accuracies.objects.bulk_create(acc_list)
 
-        except:  # specifc error here?
+        except Exception as e:  # specifc error here?
             newmodel.delete()
+            print(e)
             sys.exit("\n There was a problem while processing the accuracy file or while writing it to the db ")
