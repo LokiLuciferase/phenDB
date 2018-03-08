@@ -97,8 +97,8 @@ class model(models.Model):
         unique_together = ('model_name', 'model_train_date')  # composite primary key
         indexes = [
             models.Index(fields=['model_name', 'model_train_date'])
-       ]
-        verbose_name = 'PICA Models'
+        ]
+        verbose_name = 'PICA Model'
         verbose_name_plural = 'PICA Models'
 
     model_name = models.CharField(max_length=64)

@@ -723,7 +723,7 @@ from phenotypePredictionApp.models import *
 
 cutoff = "${params.accuracy_cutoff}"
 now = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
-HEADER = "Model_name\\tVerdict\\tProbability\\tBalanced_accuracy\\n"
+HEADER = "Model_name\\tPrediction\\tProbability\\tBalanced_accuracy\\n"
 ROUND_TO = 2
 
 modelvec = list(set([x.model_name for x in model.objects.filter()]))
