@@ -309,6 +309,8 @@ process prodigal {
 // todo: Implement check for bacteria here or filter afterwards
 process determine_models_that_need_recalculation {
 
+    errorStrategy 'ignore'
+
     input:
     set val(binname), val(mdsum), file(item), val(calc_bin_or_not), file(reconstr_hmmer), file(reconst_hmmer) from bin_is_in_db
     each model from models
@@ -340,7 +342,7 @@ process determine_models_that_need_recalculation {
             archaea_result = result_model.objects.get(model=model.objects.filter(model_name="ARCHAEA").latest('model_train_date'), bin=bin.objects.get(md5sum="${mdsum}"))
             use_in_archaea = "${params.use_in_archaea.join(" ")}"
             if archaea_result.verdict == True and "${model.getBaseName()}" not in use_in_archaea:
-                print("NO", end='')  
+                os._exit(1) 
             else:
                 print("YES", end='')   
         except:
@@ -351,6 +353,8 @@ process determine_models_that_need_recalculation {
 
 // if the results for this bin and model are up-to-date, we only need to include them in the final output file
 process uptodate_model_to_targz {
+
+    errorStrategy 'ignore'
 
     input:
     set val(binname), val(mdsum), val(model), val(calc_model_or_not), file(reconstr_hmmer), file(reconst_hmmer) from dont_calc_model
@@ -383,24 +387,20 @@ process uptodate_model_to_targz {
         archaea_result = result_model.objects.get(model=model.objects.filter(model_name="ARCHAEA").latest('model_train_date'), bin=bin.objects.get(md5sum="${mdsum}"))
         archaea_vec = "${params.use_in_archaea.join(" ")}"
         if archaea_result.verdict == True and "${RULEBOOK}" not in archaea_vec:
-            verdict = "NC"
+            os._exit(1)
     except:
         pass
-
-    if verdict == "NC":
-        pica_pval = "NC"
-        accuracy = "1"
-    else:
-        picaresult=result_model.objects.get(model=model.objects.filter(model_name="${RULEBOOK}").latest('model_train_date'), bin=bin.objects.get(md5sum="${mdsum}"))
-        if picaresult.verdict == True:
-            verdict="YES"
-        elif picaresult.verdict == None:
-            verdict = "N/A"
-        else:
-            verdict= "NO"
-        pica_pval = "N/A" if float(picaresult.pica_pval) == 0.0 else str(picaresult.pica_pval)
-        accuracy = str(picaresult.accuracy)
         
+    picaresult=result_model.objects.get(model=model.objects.filter(model_name="${RULEBOOK}").latest('model_train_date'), bin=bin.objects.get(md5sum="${mdsum}"))
+    if picaresult.verdict == True:
+        verdict="YES"
+    elif picaresult.verdict == None:
+        verdict = "N/A"
+    else:
+        verdict= "NO"
+    pica_pval = "N/A" if float(picaresult.pica_pval) == 0.0 else str(picaresult.pica_pval)
+    accuracy = str(picaresult.accuracy)
+    
     write_this=verdict+" "+pica_pval+"\\t"+accuracy    
     print(write_this, end="")        
     
