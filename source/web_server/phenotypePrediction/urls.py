@@ -24,6 +24,6 @@ urlpatterns = [
     url(r'^$', RedirectView.as_view(url='phendb')),
 ]
 
-handler403 = 'phenotypePredictionApp.views.permissionDenied'
-handler404 = 'phenotypePredictionApp.views.pageNotFound'
-handler500 = 'phenotypePredictionApp.views.serverError'
+#handler403 = 'phenotypePredictionApp.views.permissionDenied'
+#handler404 = 'phenotypePredictionApp.views.pageNotFound'
+#handler500 = 'phenotypePredictionApp.views.serverError'
