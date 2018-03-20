@@ -90,8 +90,9 @@ def getResults(request):
     template = loader.get_template('phenotypePredictionApp/index.xhtml')
     templateError = loader.get_template('phenotypePredictionApp/error.xhtml')
     key = getKeyFromUrl(request)
-    obj = UploadedFile.objects.get(key=key)
-    if(obj == None):
+    try:
+        obj = UploadedFile.objects.get(key=key)
+    except UploadedFile.DoesNotExist:
         context = {'errorMessage' : 'The url is invalid. Please note that all results are deleted after 30 days!'}
         return HttpResponse(templateError.render(context, request))
 
