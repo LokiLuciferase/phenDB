@@ -16,9 +16,14 @@ Including another URLconf
 from django.conf.urls import include, url
 from django.contrib import admin
 from django.views.generic.base import RedirectView
+from django.conf.urls import handler403, handler404, handler500
 
 urlpatterns = [
     url(r'^phendb/', include('phenotypePredictionApp.urls')),
     url(r'^admin/', admin.site.urls),
     url(r'^$', RedirectView.as_view(url='phendb')),
 ]
+
+handler403 = 'phenotypePredictionApp.views.permissionDenied'
+handler404 = 'phenotypePredictionApp.views.pageNotFound'
+handler500 = 'phenotypePredictionApp.views.serverError'
