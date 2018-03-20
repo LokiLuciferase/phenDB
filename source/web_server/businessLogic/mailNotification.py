@@ -1,8 +1,10 @@
 from django.core.mail import send_mail
 import time
 import threading
+import subprocess
 from phenotypePrediction.settings import GlobalVariables
 from phenotypePredictionApp.models import *
+from subprocess import Popen, PIPE
 
 
 class MailNotification(threading.Thread):
@@ -27,9 +29,9 @@ class MailNotification(threading.Thread):
             time.sleep(sleepTime)
 
     def __sendMail(self, mailAddress, url):
-        send_mail(
-            'phenDB notification',
-            'Your phenDB results are now available under phen.csb.univie.ac.at' + url + '\n \n This mail was sent automatically. Please do not respond to it.',
-            'webapptest@gmx.de',
-            [mailAddress],
-            fail_silently=True)
+
+        message =  'To:' + mailAddress + '\n Subject: phenDB notification \n From: donotreply@phen.csb.univie.ac.at \n Your phenDB results are now available under phen.csb.univie.ac.at' + url + '\n \n This mail was sent automatically.Please do not respond to it.'
+
+        ps = Popen(["/usr/sbin/sendmail", "-t"], stdin=PIPE, stderr=PIPE)
+
+        ps.stdin.write(message)
