@@ -1,6 +1,7 @@
 from django.core.mail import send_mail
 import time
 import threading
+from django.core.mail import *
 import subprocess
 from phenotypePrediction.settings import GlobalVariables
 from phenotypePredictionApp.models import *
@@ -30,8 +31,21 @@ class MailNotification(threading.Thread):
 
     def __sendMail(self, mailAddress, url):
 
-        message =  'To:' + mailAddress + '\n Subject: phenDB notification \n From: donotreply@phen.csb.univie.ac.at \n Your phenDB results are now available under phen.csb.univie.ac.at' + url + '\n \n This mail was sent automatically.Please do not respond to it.'
+        #message =  'To:' + mailAddress + '\n Subject: phenDB notification \n From: donotreply@phen.csb.univie.ac.at \n Your phenDB results are now available under phen.csb.univie.ac.at' + url + '\n \n This mail was sent automatically.Please do not respond to it.'
 
-        ps = Popen(["/usr/sbin/sendmail", "-t"], stdin=PIPE, stderr=PIPE)
+        ps = Popen(["/usr/sbin/sendmail"] + mailAddress, stdin=PIPE, stderr=PIPE)
 
-        ps.stdin.write(message)
+        message = EmailMessage()
+        message.to = mailAddress
+        message.subject = "phenDB notification"
+        message.body = 'Your phenDB results are now available under phen.csb.univie.ac.at' + url + '\n \n This mail was sent automatically.Please do not respond to it.'
+
+        ps.stdin.write(message.message().as_bytes())
+        (stdout, stderr) = ps.communicate()
+
+        file_log = open(".logmail", "w")
+        file_log.write("stdout:")
+        file_log.write(stdout)
+        file_log.write("stderr:")
+        file_log.write(stderr)
+
