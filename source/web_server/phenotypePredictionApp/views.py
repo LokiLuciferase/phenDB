@@ -88,8 +88,12 @@ accessed = {}
 def getResults(request):
     #TODO: show error on UI not related to sanity-error
     template = loader.get_template('phenotypePredictionApp/index.xhtml')
+    templateError = loader.get_template('phenotypePredictionApp/error.xhtml')
     key = getKeyFromUrl(request)
     obj = UploadedFile.objects.get(key=key)
+    if(obj == None):
+        context = {'errorMessage' : 'The url is invalid. Please note that all results are deleted after 30 days!'}
+        return HttpResponse(templateError.render(context, request))
 
     #errors: when errors from model UploadedFile set to true -> sanity error, when None -> Error in the pipeline
 
