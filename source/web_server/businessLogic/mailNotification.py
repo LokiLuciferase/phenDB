@@ -36,7 +36,6 @@ class MailNotification(threading.Thread):
         ps = Popen(["/usr/sbin/sendmail", mailAddress], stdin=PIPE, stderr=PIPE)
 
         message = EmailMessage()
-        message.to = mailAddress
         message.subject = "phenDB notification"
         message.body = 'Your phenDB results are now available under phen.csb.univie.ac.at' + url + '\n \n This mail was sent automatically.Please do not respond to it.'
 
