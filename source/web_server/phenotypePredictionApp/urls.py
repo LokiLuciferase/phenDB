@@ -1,5 +1,4 @@
-from django.conf.urls import url
-from django.conf.urls import handler403, handler404, handler500
+from django.conf.urls import url, handler403, handler404, handler500
 
 from . import views
 
@@ -11,6 +10,6 @@ urlpatterns = [
     url(r'results/[\S]{36}/download/$', views.fileDownload, name="fileDownload")
 ]
 
-handler403 = 'views.permissionDenied'
-handler404 = 'views.pageNotFound'
-handler500 = 'views.serverError'
+handler403 = 'phenotypePredictionApp.views.permissionDenied'
+handler404 = 'phenotypePredictionApp.views.pageNotFound'
+handler500 = 'phenotypePredictionApp.views.serverError'
