@@ -88,8 +88,13 @@ accessed = {}
 def getResults(request):
     #TODO: show error on UI not related to sanity-error
     template = loader.get_template('phenotypePredictionApp/index.xhtml')
+    templateError = loader.get_template('phenotypePredictionApp/error.xhtml')
     key = getKeyFromUrl(request)
-    obj = UploadedFile.objects.get(key=key)
+    try:
+        obj = UploadedFile.objects.get(key=key)
+    except UploadedFile.DoesNotExist:
+        context = {'errorMessage' : 'The requested page does not exist. Please note that all results are deleted after 30 days!'}
+        return HttpResponse(templateError.render(context, request))
 
     #errors: when errors from model UploadedFile set to true -> sanity error, when None -> Error in the pipeline
 
@@ -182,3 +187,21 @@ def fileDownload(request):
     response = HttpResponse(resFile.fileOutput, content_type='application/tar+gzip')
     response['Content-Disposition'] = 'attachment; filename="{k}.zip"'.format(k=key)
     return response
+
+
+#---------------VIEWS-ERRORS--------------------------------------
+
+def permissionDenied(request):
+    context = {'errorMessage' : 'You do not have permission to access this site'}
+    errorTemplate = loader.get_template('phenotypePredictionApp/error.xhtml')
+    return HttpResponse(errorTemplate.render(context,request))
+
+def pageNotFound(request):
+    context = {'errorMessage' : 'The requested page does not exist'}
+    errorTemplate = loader.get_template('phenotypePredictionApp/error.xhtml')
+    return HttpResponse(errorTemplate.render(context,request))
+
+def serverError(request):
+    context = {'errorMessage': 'Unknown server-error: This should not have happened. We are sorry! Please try later or contact us!'}
+    errorTemplate = loader.get_template('phenotypePredictionApp/error.xhtml')
+    return HttpResponse(errorTemplate.render(context, request))

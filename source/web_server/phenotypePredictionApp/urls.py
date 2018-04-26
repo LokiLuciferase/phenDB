@@ -9,3 +9,4 @@ urlpatterns = [
     url(r'results/[\S]{36}/$', views.getResults, name="getResults"),
     url(r'results/[\S]{36}/download/$', views.fileDownload, name="fileDownload")
 ]
+

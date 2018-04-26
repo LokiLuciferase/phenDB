@@ -632,8 +632,6 @@ process accuracy {
 
     #!/usr/bin/env python3
 
-
-
     import django
     import sys
     import os
@@ -649,15 +647,20 @@ process accuracy {
     # get completeness and contamination
     with open("${complecontaitem}", "r") as ccfile:
         cc = ccfile.readline().split()
-
+    
+    cc = [float(x) for x in cc]
+    for i in range(len(cc)):
+        if cc[i] < 0:
+            cc[i] = 0
+        if cc[i] > 1:
+            cc[i] = 1
+    
     try:
         parentbin = bin.objects.get(md5sum="${mdsum}")
         parentbin.comple = float(cc[0])
         parentbin.conta= float(cc[1])
         parentbin.save()
 
-
-        
     except ObjectDoesNotExist:
         sys.exit("Bin not found.")
     
