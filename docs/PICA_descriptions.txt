@@ -8,7 +8,7 @@ AUTO: Autotrophic metabolism
 avre: Plant pathogenicity based on AvrE virulence factor
 baicd: Secondary bile acids production
 bena: Benzoate degradation via hydroxylation
-bpp: Phytate hydrolisis
+bpp: Phytate hydrolysis
 bsh: glycine and taurine are de-conjugation from bile salts
 buk2: Butyrate-production
 chb: Chitine degradation
