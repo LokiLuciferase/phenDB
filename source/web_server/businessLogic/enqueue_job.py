@@ -56,8 +56,10 @@ def delete_user_data(days):
     aged_jobs.delete()
 
     # look for unassociated bins and delete those too
+    # spare those bins that have been pre-calculated
     orphan_bins = bin.objects.filter(bins_in_uploadedfile=None)
-    orphan_bins.delete()
+    non_precalc_orphans = orphan_bins.exclude(bin_name__icontains="PHENDB_PRECALC")
+    non_precalc_orphans.delete()
 
     # look for unassociated result_enog and result_model
     orphan_hmmer = result_enog.objects.filter(bin=None)
