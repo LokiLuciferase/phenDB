@@ -53,13 +53,13 @@ def delete_user_data(days):
 
     # delete UploadedFiles older than oldest; association rows deleted automatically
     aged_jobs = UploadedFile.objects.filter(job_date__lte=make_aware(oldest))
-    aged_jobs.delete()
+    non_precalc_aged = aged_jobs.exclude(key__icontains="PHENDB_PRECALC")
+    non_precalc_aged.delete()
 
     # look for unassociated bins and delete those too
     # spare those bins that have been pre-calculated
     orphan_bins = bin.objects.filter(bins_in_uploadedfile=None)
-    non_precalc_orphans = orphan_bins.exclude(bin_name__icontains="PHENDB_PRECALC")
-    non_precalc_orphans.delete()
+    orphan_bins.delete()
 
     # look for unassociated result_enog and result_model
     orphan_hmmer = result_enog.objects.filter(bin=None)
@@ -110,3 +110,4 @@ def phenDB_enqueue(ppath, pipeline_path, infolder, outfolder, pica_cutoff, node_
             raise RuntimeError("No input files have passed error checking.")
 
         return pipeline_call.returncode
+
