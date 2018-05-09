@@ -44,6 +44,9 @@ class UploadedFile(models.Model):
     def get_absolute_url(self):
         return "results/%s/" % self.key
 
+# TODO: add taxonomy db taxids and descriptions of species?
+# class taxid(models.Model):
+
 
 class bin(models.Model):
 
@@ -54,6 +57,7 @@ class bin(models.Model):
 
     bin_name = models.TextField()
     md5sum = models.CharField(unique=True, max_length=32)
+    tax_id = models.TextField(null=True, blank=True)
     comple = models.FloatField()
     conta = models.FloatField()
 
@@ -151,6 +155,24 @@ class model_accuracies(models.Model):
                                                                       conta=self.conta,
                                                                       balac=self.mean_balanced_accuracy
                                                                               )
+
+class model_used_genomes(models.Model):
+    class Meta:
+        unique_together = ('model', 'taxid', 'assembly_id')
+        indexes = [
+            models.Index(fields=['model', 'taxid'])
+        ]
+
+    model = models.ForeignKey(model)
+    tax_id = models.TextField()
+    assembly_id = models.TextField()
+    verdict = models.NullBooleanField()
+
+    def __str__(self):
+        return "Taxid {ti} used in model {mod} (counted as {yn})".format(ti=self.taxid,
+                                                                         mod=self.model.model_name,
+                                                                         yn=self.verdict)
+
 
 class result_enog(models.Model):
 
