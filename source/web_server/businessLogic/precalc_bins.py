@@ -15,6 +15,16 @@ infolder = os.path.join(PHENDB_BASEDIR, "data/uploads/PHENDB_PRECALC")
 outfolder = os.path.join(PHENDB_BASEDIR, "data/results/PHENDB_PRECALC")
 pipeline_path = os.path.join(PHENDB_BASEDIR, "source/pipeline/picaPipeline.nf")
 
+os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
+os.environ["PYTHONPATH"] = ppath
+
+# create workfolder
+os.makedirs(outfolder, exist_ok=True)
+
+# create log folder
+logfolder = os.path.join(outfolder, "logs")
+os.makedirs(logfolder)
+
 print("Submitting precalculation job. Bins in folder {inf} will be added to the database.".format(inf=infolder))
 
 q = Queue(PHENDB_QUEUE, connection=Redis())
