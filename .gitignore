@@ -108,3 +108,4 @@ ENV/
 /.idea/inspectionProfiles/Project_Default.xml
 /source/web_server/web_server.iml
 /source/web_server/phenotypePredictionApp/phenDB.sqlite3
+settings.py
