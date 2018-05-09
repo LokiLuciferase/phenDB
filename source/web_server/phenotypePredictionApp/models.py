@@ -158,9 +158,9 @@ class model_accuracies(models.Model):
 
 class model_used_genomes(models.Model):
     class Meta:
-        unique_together = ('model', 'taxid', 'assembly_id')
+        unique_together = ('model', 'tax_id', 'assembly_id')
         indexes = [
-            models.Index(fields=['model', 'taxid'])
+            models.Index(fields=['model', 'tax_id'])
         ]
 
     model = models.ForeignKey(model)
