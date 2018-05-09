@@ -150,7 +150,7 @@ def getResults(request):
     queuePos, queueLen = get_current_position(key)
 
     # write queue length to binary file
-    with open(QUEUELEN_PATH, "wb") as bytefile:
+    with open(os.path.join(PHENDB_BASEDIR, "logs/queuelen"), "wb") as bytefile:
         for times in range(queueLen):
             bytefile.write(struct.pack('x'))
 

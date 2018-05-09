@@ -20,9 +20,9 @@ class StartProcessThread(threading.Thread):
     def run(self):
 
         ppath = PHENDB_BASEDIR + "/source/web_server:$PYTHONPATH"
-        infolder_base = os.path.join(PHENDB_BASEDIR, "/data/uploads")
+        infolder_base = os.path.join(PHENDB_BASEDIR, "data/uploads")
         pipeline_path = os.path.join(PHENDB_BASEDIR, "source/pipeline/picaPipeline.nf")
-        above_workfolder = os.path.join(PHENDB_BASEDIR, "/data/results")
+        above_workfolder = os.path.join(PHENDB_BASEDIR, "data/results")
         infolder = os.path.join(infolder_base, self.keyname)
 
         # TODO: we should make these parameters settable from the web mask
