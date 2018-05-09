@@ -4,12 +4,10 @@ import os
 import threading
 from django.core.mail import *
 import subprocess
-from phenotypePrediction.settings import GlobalVariables
+#from phenotypePrediction.settings import GlobalVariables
 from phenotypePredictionApp.models import *
 from subprocess import Popen, PIPE
 
-PHENDB_BASEDIR = "/apps/phenDB_devel_LL"
-#PHENDB_BASEDIR = "/apps/phenDB"
 
 class MailNotification(threading.Thread):
 

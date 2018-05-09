@@ -2,16 +2,14 @@
 import os
 import os.path
 import threading
-from phenotypePredictionApp.models import UploadedFile
+
 from redis import Redis
 from rq import Queue
+
+from phenotypePredictionApp.models import UploadedFile
+from phenotypePredictionApp.variables import *
 from businessLogic.enqueue_job import phenDB_enqueue
 
-PHENDB_BASEDIR = "/apps/phenDB_devel_LL"
-#PHENDB_BASEDIR = "/apps/phenDB"
-
-PHENDB_QUEUE = "phenDB_devel_LL"
-#PHENDB_QUEUE = "phenDB"
 
 class StartProcessThread(threading.Thread):
     def __init__(self, keyname, req_balac):

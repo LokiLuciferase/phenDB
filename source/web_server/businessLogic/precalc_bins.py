@@ -4,15 +4,11 @@
 #
 import os
 
+from phenotypePredictionApp.variables import *
 from enqueue_job import phenDB_enqueue
 from redis import Redis
 from rq import Queue
 
-PHENDB_BASEDIR = "/apps/phenDB_devel_LL"
-#PHENDB_BASEDIR = "/apps/phenDB"
-
-PHENDB_QUEUE = "phenDB_devel_LL"
-#PHENDB_QUEUE = "phenDB"
 
 ppath = PHENDB_BASEDIR + "/source/web_server:$PYTHONPATH"
 infolder = os.path.join(PHENDB_BASEDIR, "/data/uploads/PHENDB_PRECALC")

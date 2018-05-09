@@ -6,9 +6,8 @@ import os
 import os.path
 import shutil
 import subprocess
+from phenotypePredictionApp.variables import *
 
-PHENDB_BASEDIR = "/apps/phenDB_devel_LL"
-#PHENDB_BASEDIR = "/apps/phenDB"
 
 def clean_up_on_pipeline_fail(keyname, ppath):
 

@@ -3,6 +3,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
 from django.urls import reverse
 from .forms import FileForm
+from .variables import *
 from django.shortcuts import redirect
 from businessLogic.mailNotification import MailNotification
 import uuid
@@ -16,12 +17,6 @@ from rq import Queue, get_current_job
 import struct
 import os
 
-
-PHENDB_BASEDIR = "/apps/phenDB_devel_LL"
-#PHENDB_BASEDIR = "/apps/phenDB"
-
-PHENDB_QUEUE = "phenDB_devel_LL"
-#PHENDB_QUEUE = "phenDB"
 
 #------------------functions---------------------------------------------
 #useful functions, NO views
@@ -155,7 +150,7 @@ def getResults(request):
     queuePos, queueLen = get_current_position(key)
 
     # write queue length to binary file
-    with open(os.path.join(PHENDB_BASEDIR, "/logs/queuelength"), "wb") as bytefile:
+    with open(QUEUELEN_PATH, "wb") as bytefile:
         for times in range(queueLen):
             bytefile.write(struct.pack('x'))
 
