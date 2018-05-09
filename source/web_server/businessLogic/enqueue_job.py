@@ -47,7 +47,7 @@ def delete_user_data(days):
     import glob
 
     os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
-    sys.path.append(os.path.join(PHENDB_BASEDIR, "source", "web_server")
+    sys.path.append(os.path.join(PHENDB_BASEDIR, "source", "web_server"))
     django.setup()
     from phenotypePredictionApp.models import UploadedFile, bin, result_enog, result_model
 
@@ -71,7 +71,7 @@ def delete_user_data(days):
 
     # delete results flat files older than days
     oldest_unixtime = float(time()) - (timedelta(days=days).total_seconds())
-    result_folders = glob.glob(os.path.join(PHENDB_BASEDIR, "data/results/*")
+    result_folders = glob.glob(os.path.join(PHENDB_BASEDIR, "data/results/*"))
 
     for folder in result_folders:
         if float(os.path.getmtime(folder)) <= float(oldest_unixtime):
