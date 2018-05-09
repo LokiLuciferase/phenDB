@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
 
 
-BASEDIR="/apps/phenDB"
-#BASEDIR="/apps/phenDB_devel_LL"
-#BASEDIR="/apps/phenDB_devel_PP/phenDB"
+#BASEDIR="/apps/phenDB"
+BASEDIR="/apps/phenDB_devel_LL"
 
 #DB="phenDB"
-DB="phenDB_devel_LL"
-#DB="phenDB_devel_PP"
+#DB="phenDB_devel_LL"
+DB="phenDB_devel_new"
 
 
 function usage()
@@ -28,17 +27,17 @@ function usage()
     echo ""
 }
 
-function runserver() {
-    echo "Starting web server and opening a browser window..."
-    cd ${BASEDIR}/source/web_server
-
-    if [[ $(pgrep redis-server) = "" ]] || [[ $(ps aux | grep "/usr/bin/[r]q") = "" ]]; then
-        echo "Either redis-server or python-rq worker are not running. Exiting."
-        exit 1
-    fi
-    nohup chromium-browser http://127.0.0.1:8000/phendb &> /dev/null &
-    python3 manage.py runserver
-}
+#function runserver() {
+#    echo "Starting web server and opening a browser window..."
+#    cd ${BASEDIR}/source/web_server
+#
+#    if [[ $(pgrep redis-server) = "" ]] || [[ $(ps aux | grep "/usr/bin/[r]q") = "" ]]; then
+#        echo "Either redis-server or python-rq worker are not running. Exiting."
+#        exit 1
+#    fi
+#    nohup chromium-browser http://127.0.0.1:8000/phendb &> /dev/null &
+#    python3 manage.py runserver
+#}
 
 function server_detached() {
     echo "Starting web server as daemon..."
@@ -47,7 +46,7 @@ function server_detached() {
         echo "Either redis-server or python-rq worker are not running. Exiting."
         exit 1
     fi
-    nohup python3 manage.py runserver 0:80 &>> ${BASEDIR}/logs/django_development_server.log &
+    nohup python3 manage.py runserver 0:81 &>> ${BASEDIR}/logs/django_development_server.log &
 }
 
 function showbins() {
@@ -62,50 +61,50 @@ function showjobs() {
     echo ""
 }
 
-function purge() {
-    echo "Purging samples from database..."
-    mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_bins_in_uploadedfile;"
-    mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_result_enog;"
-    mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_result_model;"
-    mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_bin;"
-    mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_uploadedfile;"
-}
+#function purge() {
+#    echo "Purging samples from database..."
+#    mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_bins_in_uploadedfile;"
+#    mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_result_enog;"
+#    mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_result_model;"
+#    mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_bin;"
+#    mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_uploadedfile;"
+#}
 
-function start_queue() {
-    echo "Starting queueing tools: redis and python-rq..."
-    bash ${BASEDIR}/source/general_scripts/run_redis.sh
-}
+#function start_queue() {
+#    echo "Starting queueing tools: redis and python-rq..."
+#    bash ${BASEDIR}/source/general_scripts/run_redis.sh
+#}
 
-function monitor_queue() {
-    echo "Running the redis monitoring script..."
-    python3 ${BASEDIR}/source/general_scripts/monitor_queue.py
-}
+#function monitor_queue() {
+#    echo "Running the redis monitoring script..."
+#    python3 ${BASEDIR}/source/general_scripts/monitor_queue.py
+#}
 
-function force_stop() {
-    # hard shutdown: kill everything
-    kill $(ps aux | grep "/usr/bin/python3 manage.py runserve[r]" | tr -s " " | cut -f2 -d" ")
-    kill $(pgrep redis-server)
-}
+#function force_stop() {
+#    # hard shutdown: kill everything
+#    kill $(ps aux | grep "/usr/bin/python3 manage.py runserve[r]" | tr -s " " | cut -f2 -d" ")
+#    kill $(pgrep redis-server)
+#}
 
-function stop() {
-    # soft shutdown: rq finalizes the most current task and saves any queued tasks for later
-    echo "Shutting down Redis queue and Django Development Server for phenDB..."
-    kill $(ps aux | grep "/usr/bin/python3 manage.py runserve[r]" | tr -s " " | cut -f2 -d" ")
-    kill $(ps aux | grep usr/bin/[r]q | tr -s " " | cut -f2 -d" ")
-    kill $(pgrep redis-server)
-}
+#function stop() {
+#    # soft shutdown: rq finalizes the most current task and saves any queued tasks for later
+#    echo "Shutting down Redis queue and Django Development Server for phenDB..."
+#    kill $(ps aux | grep "/usr/bin/python3 manage.py runserve[r]" | tr -s " " | cut -f2 -d" ")
+#    kill $(ps aux | grep usr/bin/[r]q | tr -s " " | cut -f2 -d" ")
+#    kill $(pgrep redis-server)
+#}
 
-function start() {
-    echo "Checking if service is running..."
-    if ! [[ $(pgrep redis-server) = "" ]] || ! [[ $(ps aux | grep "/usr/bin/[r]q") = "" ]]; then
-        echo "Either redis-server or python-rq worker are running."
-        stop
-    fi
-    echo "Starting Redis queue and Django development server..."
-    start_queue
-    server_detached
-    exit 0
-}
+#function start() {
+#    echo "Checking if service is running..."
+#    if ! [[ $(pgrep redis-server) = "" ]] || ! [[ $(ps aux | grep "/usr/bin/[r]q") = "" ]]; then
+#        echo "Either redis-server or python-rq worker are running."
+#        stop
+#    fi
+#    echo "Starting Redis queue and Django development server..."
+#    start_queue
+#    server_detached
+#    exit 0
+#}
 
 if [[ $# -eq 0 ]]; then
     usage

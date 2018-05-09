@@ -1,5 +1,6 @@
 from django.core.mail import send_mail
 import time
+import os
 import threading
 from django.core.mail import *
 import subprocess
@@ -7,6 +8,8 @@ from phenotypePrediction.settings import GlobalVariables
 from phenotypePredictionApp.models import *
 from subprocess import Popen, PIPE
 
+PHENDB_BASEDIR = "/apps/phenDB_devel_LL"
+#PHENDB_BASEDIR = "/apps/phenDB"
 
 class MailNotification(threading.Thread):
 
@@ -46,9 +49,8 @@ class MailNotification(threading.Thread):
         print(stdout)
         print(stderr)
 
-        file_log = open("/apps/phenDB/logs/logmail.txt", "w")
+        file_log = open(os.path.join(PHENDB_BASEDIR, "logs/logmail.txt"), "w")
         file_log.write("stdout:")
         file_log.write(stdout)
         file_log.write("stderr:")
         file_log.write(stderr)
-

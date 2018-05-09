@@ -7,6 +7,8 @@ import os.path
 import shutil
 import subprocess
 
+PHENDB_BASEDIR = "/apps/phenDB_devel_LL"
+#PHENDB_BASEDIR = "/apps/phenDB"
 
 def clean_up_on_pipeline_fail(keyname, ppath):
 
@@ -29,7 +31,7 @@ def clean_up_on_pipeline_fail(keyname, ppath):
 # delete temporary files and uploads after each finished job
 def remove_temp_files(infolder=None):
 
-    logfolder = '/apps/phenDB/logs'
+    logfolder = os.path.join(PHENDB_BASEDIR, 'logs')
     shutil.rmtree(os.path.join(logfolder, "work"))
     if infolder:
         shutil.rmtree(infolder)
@@ -45,7 +47,7 @@ def delete_user_data(days):
     import glob
 
     os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
-    sys.path.append("/apps/phenDB/source/web_server")
+    sys.path.append(os.path.join(PHENDB_BASEDIR, "source", "web_server")
     django.setup()
     from phenotypePredictionApp.models import UploadedFile, bin, result_enog, result_model
 
@@ -69,7 +71,7 @@ def delete_user_data(days):
 
     # delete results flat files older than days
     oldest_unixtime = float(time()) - (timedelta(days=days).total_seconds())
-    result_folders = glob.glob("/apps/phenDB/data/results/*")
+    result_folders = glob.glob(os.path.join(PHENDB_BASEDIR, "data/results/*")
 
     for folder in result_folders:
         if float(os.path.getmtime(folder)) <= float(oldest_unixtime):
@@ -110,4 +112,3 @@ def phenDB_enqueue(ppath, pipeline_path, infolder, outfolder, pica_cutoff, node_
             raise RuntimeError("No input files have passed error checking.")
 
         return pipeline_call.returncode
-

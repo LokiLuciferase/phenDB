@@ -7,6 +7,11 @@ from redis import Redis
 from rq import Queue
 from businessLogic.enqueue_job import phenDB_enqueue
 
+PHENDB_BASEDIR = "/apps/phenDB_devel_LL"
+#PHENDB_BASEDIR = "/apps/phenDB"
+
+PHENDB_QUEUE = "phenDB_devel_LL"
+#PHENDB_QUEUE = "phenDB"
 
 class StartProcessThread(threading.Thread):
     def __init__(self, keyname, req_balac):
@@ -16,21 +21,10 @@ class StartProcessThread(threading.Thread):
 
     def run(self):
 
-        ppath = "/apps/phenDB/source/web_server:$PYTHONPATH"
-        infolder_base = "/apps/phenDB/data/uploads"
-        pipeline_path = "/apps/phenDB/source/pipeline/picaPipeline.nf"
-        above_workfolder = "/apps/phenDB/data/results"
-
-        # ppath = "/apps/phenDB_devel_LL/source/web_server:$PYTHONPATH"
-        # pipeline_path = "/apps/phenDB_devel_LL/source/pipeline/picaPipeline.nf"
-        # infolder_base = "/apps/phenDB_devel_LL/data/uploads"
-        # above_workfolder = "/apps/phenDB_devel_LL/data/results"
-
-        # ppath = "/apps/phenDB_devel_PP/phenDB/source/web_server:$PYTHONPATH"
-        # infolder_base = "/apps/phenDB_devel_PP/phenDB/data/uploads"
-        # pipeline_path = "/apps/phenDB_devel_PP/phenDB/source/pipeline/picaPipeline.nf"
-        # above_workfolder = "/apps/phenDB_devel_PP/data/results"
-
+        ppath = PHENDB_BASEDIR + "/source/web_server:$PYTHONPATH"
+        infolder_base = os.path.join(PHENDB_BASEDIR, "/data/uploads")
+        pipeline_path = os.path.join(PHENDB_BASEDIR, "source/pipeline/picaPipeline.nf")
+        above_workfolder = os.path.join(PHENDB_BASEDIR, "/data/results")
         infolder = os.path.join(infolder_base, self.keyname)
 
         # TODO: we should make these parameters settable from the web mask
@@ -49,7 +43,7 @@ class StartProcessThread(threading.Thread):
         os.makedirs(logfolder)
 
         # add the function call to the redis queue
-        q = Queue('phenDB', connection=Redis())
+        q = Queue(PHENDB_QUEUE, connection=Redis())
         pipeline_errorcode = q.enqueue_call(func=phenDB_enqueue,
                                       args=(ppath, pipeline_path, infolder, outfolder, pica_cutoff, node_offs),
                                       timeout='48h',

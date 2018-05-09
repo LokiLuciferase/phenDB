@@ -14,6 +14,14 @@ from ipware.ip import get_real_ip
 from redis import Redis
 from rq import Queue, get_current_job
 import struct
+import os
+
+
+PHENDB_BASEDIR = "/apps/phenDB_devel_LL"
+#PHENDB_BASEDIR = "/apps/phenDB"
+
+PHENDB_QUEUE = "phenDB_devel_LL"
+#PHENDB_QUEUE = "phenDB"
 
 #------------------functions---------------------------------------------
 #useful functions, NO views
@@ -30,7 +38,7 @@ def getKeyFromUrl(request):
 
 def get_current_position(keyname):
     try:
-        que = Queue('phenDB', connection=Redis())
+        que = Queue(PHENDB_QUEUE, connection=Redis())
         jobs = list(que.jobs)
         for index, job in enumerate(jobs):
             if job.id == keyname:
@@ -40,10 +48,9 @@ def get_current_position(keyname):
         return (None, None)
 
 def getQueueLength():
-    que = Queue('phenDB', connection=Redis())
+    que = Queue(PHENDB_QUEUE, connection=Redis())
     jobs = list(que.jobs)
     return len(jobs)
-
 
 
 #-------------------Views-------------------------------------------------
@@ -148,7 +155,7 @@ def getResults(request):
     queuePos, queueLen = get_current_position(key)
 
     # write queue length to binary file
-    with open("/apps/phenDB/logs/queuelength", "wb") as bytefile:
+    with open(os.path.join(PHENDB_BASEDIR, "/logs/queuelength"), "wb") as bytefile:
         for times in range(queueLen):
             bytefile.write(struct.pack('x'))
 

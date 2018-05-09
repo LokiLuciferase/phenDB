@@ -6,11 +6,14 @@ from enqueue_job import delete_user_data
 from redis import Redis
 from rq import Queue
 
+PHENDB_QUEUE = "phenDB_devel_LL"
+#PHENDB_QUEUE = "phenDB"
+
 # enqueue a call to delete_user_data() into the redis queue
 # which deletes all user data older than days_back
 days_back = 30
 
-q = Queue('phenDB', connection=Redis())
+q = Queue(PHENDB_QUEUE, connection=Redis())
 q.enqueue_call(func=delete_user_data,
                args=(days_back,),
                timeout='10m',
