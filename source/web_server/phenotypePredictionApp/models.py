@@ -164,7 +164,7 @@ class model_used_genomes(models.Model):
         ]
 
     model = models.ForeignKey(model)
-    tax_id = models.TextField()
+    tax_id = models.CharField(max_length=10)
     assembly_id = models.TextField()
     verdict = models.NullBooleanField()
 
