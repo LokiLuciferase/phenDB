@@ -11,9 +11,9 @@ from rq import Queue
 
 
 ppath = PHENDB_BASEDIR + "/source/web_server:$PYTHONPATH"
-infolder = os.path.join(PHENDB_BASEDIR, "/data/uploads/PHENDB_PRECALC")
-outfolder = os.path.join(PHENDB_BASEDIR, "/data/results/PHENDB_PRECALC")
-pipeline_path = os.path.join(PHENDB_BASEDIR, "/source/pipeline/picaPipeline.nf")
+infolder = os.path.join(PHENDB_BASEDIR, "data/uploads/PHENDB_PRECALC")
+outfolder = os.path.join(PHENDB_BASEDIR, "data/results/PHENDB_PRECALC")
+pipeline_path = os.path.join(PHENDB_BASEDIR, "source/pipeline/picaPipeline.nf")
 
 print("Submitting precalculation job. Bins in folder {inf} will be added to the database.".format(inf=infolder))
 
