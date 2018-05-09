@@ -12,7 +12,7 @@ from rq import Queue
 
 ppath = PHENDB_BASEDIR + "/source/web_server:$PYTHONPATH"
 infolder = os.path.join(PHENDB_BASEDIR, "data/uploads/PHENDB_PRECALC")
-outfolder = os.path.join(PHENDB_BASEDIR, "data/results/PHENDB_PRECALC")
+outfolder = os.path.join(PHENDB_BASEDIR, "data/results/PHENDB_PRECALC_results")
 pipeline_path = os.path.join(PHENDB_BASEDIR, "source/pipeline/picaPipeline.nf")
 
 os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
@@ -23,7 +23,7 @@ os.makedirs(outfolder, exist_ok=True)
 
 # create log folder
 logfolder = os.path.join(outfolder, "logs")
-os.makedirs(logfolder)
+os.makedirs(logfolder, exist_ok=True)
 
 print("Submitting precalculation job. Bins in folder {inf} will be added to the database.".format(inf=infolder))
 
