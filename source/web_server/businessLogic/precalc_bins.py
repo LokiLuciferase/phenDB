@@ -20,7 +20,6 @@ os.environ["PYTHONPATH"] = ppath
 
 # create workfolder
 os.makedirs(outfolder, exist_ok=True)
-
 # create log folder
 logfolder = os.path.join(outfolder, "logs")
 os.makedirs(logfolder, exist_ok=True)
