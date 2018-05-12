@@ -121,7 +121,8 @@ process fasta_sanity_check {
     script:
     binname = item.getName()
 """
-#!/usr/bin/env python
+#!/usr/bin/env python3
+
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.Alphabet import IUPAC
