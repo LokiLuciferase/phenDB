@@ -131,6 +131,8 @@ import sys, os
 import tarfile
 import gzip
 
+full_prot_ab = Alphabet._consensus_alphabet([IUPAC.extended_protein, HasStopCodon(IUPAC.protein)])
+
 def parse_FASTA(inputfasta):
     isdna = True
     isprotein = True
@@ -147,7 +149,7 @@ def parse_FASTA(inputfasta):
 
     with open("sanitychecked.fasta","w") as outfile:
         for read in SeqIO.parse(inputfasta, "fasta", IUPAC.extended_protein):
-            if not Alphabet._verify_alphabet(read.seq):
+            if not full_prot_ab._verify_alphabet(read.seq):
                 isprotein = False
                 break
             SeqIO.write(read, outfile, "fasta")
@@ -155,7 +157,7 @@ def parse_FASTA(inputfasta):
         print("protein", end="")
         return
 
-    if os.stat("sanitychecked.fasta").st_size == 0 or (not isdna and not isprotein):
+    if (not isdna and not isprotein) or os.stat("sanitychecked.fasta").st_size == 0:
         with open("${errorfile}", "a") as myfile:
             myfile.write("WARNING: The file ${binname} is empty or not a valid fasta file and was dropped from the analysis.\\n\\n")
         os.remove("sanitychecked.fasta")
