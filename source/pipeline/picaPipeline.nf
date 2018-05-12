@@ -454,7 +454,7 @@ process hmmer {
     time '10 m'
 
     input:
-    set set val(binname), val(mdsum), file(item), val(seqtype), val(calc_bin_or_not), file(reconstr_hmmer), file(reconst_hmmer) from all_protein_files
+    set val(binname), val(mdsum), file(item), val(seqtype), val(calc_bin_or_not), file(reconstr_hmmer), file(reconst_hmmer) from all_protein_files
 
     output:
     set val(binname), val(mdsum), file("hmmer.out"), file(item) into hmmerout
