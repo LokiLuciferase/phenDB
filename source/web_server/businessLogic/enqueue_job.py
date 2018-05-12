@@ -30,6 +30,8 @@ def clean_up_on_pipeline_fail(keyname, ppath):
 # delete temporary files and uploads after each finished job
 def remove_temp_files(infolder=None):
 
+    if PHENDB_DEBUG:
+        return
     logfolder = os.path.join(PHENDB_BASEDIR, 'logs')
     shutil.rmtree(os.path.join(logfolder, "work"))
     if infolder:
