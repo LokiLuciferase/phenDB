@@ -125,7 +125,7 @@ process fasta_sanity_check {
 
 from Bio import SeqIO
 from Bio.Seq import Seq
-from Bio.Alphabet import IUPAC
+from Bio.Alphabet import IUPAC, HasStopCodon
 from Bio import Alphabet
 import sys, os
 import tarfile
