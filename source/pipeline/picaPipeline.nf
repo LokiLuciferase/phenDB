@@ -148,8 +148,8 @@ def parse_FASTA(inputfasta):
         return
 
     with open("sanitychecked.fasta","w") as outfile:
-        for read in SeqIO.parse(inputfasta, "fasta", IUPAC.extended_protein):
-            if not full_prot_ab._verify_alphabet(read.seq):
+        for read in SeqIO.parse(inputfasta, "fasta", full_prot_ab):
+            if not Alphabet._verify_alphabet(read.seq):
                 isprotein = False
                 break
             SeqIO.write(read, outfile, "fasta")
