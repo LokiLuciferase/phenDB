@@ -120,12 +120,12 @@ def getResults(request):
         showResultCSS = 'block'
         showProgressBar = False
         refresh = False
-        if(obj.errors == None):
+        if(obj.error_type == "UNKNOWN"):
             showErrorMessage = True
             errorSeverityPU = 'error'
             errorSummaryPU = 'Unknown Error'
             errorMessagePU = 'An unknown internal error has occurred.'
-        elif(obj.errors == True):
+        elif(obj.error_type == "INPUT"):
             showErrorMessage = True
             errorSeverityPU = 'warn'
             errorSummaryPU = 'Invalid Input File(s)'
@@ -133,17 +133,24 @@ def getResults(request):
     else:
         numAccessed = 0
         showResultCSS = 'none'
-        if(obj.errors == False or obj.errors == True):
+        if(obj.error_type in ("INPUT", "")):
             showProgressBar = True
             refresh = True
             showErrorMessage = False
-        elif (obj.errors == None):
+        elif (obj.error_type == "UNKNOWN"):
             refresh = False
             showErrorMessage = True
             showProgressBar = False
             errorSeverityPU = 'error'
             errorSummaryPU = 'Unknown Error'
             errorMessagePU = 'An unknown internal error has occurred.'
+        elif (obj.error_type == "ALL_DROPPED"):
+            refresh = False
+            showErrorMessage = True
+            showProgressBar = False
+            errorSeverityPU = 'error'
+            errorSummaryPU = 'No Valid Input Files'
+            errorMessagePU = 'None of the uploaded files were valid input files for PhenDB.'
 
 
     #position in queue

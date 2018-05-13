@@ -945,6 +945,7 @@ process write_zip_to_db {
 
     script:
     errors_occurred = errorfile.isEmpty() ? "False" : "True"
+    errtype = errors_occurred ? "INPUT" : ""
 // language=Python
 """
 #!/usr/bin/env python3
@@ -962,7 +963,7 @@ from phenotypePredictionApp.models import UploadedFile
 
 try:
     obj = UploadedFile.objects.filter(key='${jobname}')
-    obj.update(errors = ${errors_occurred})
+    obj.update(errors=${errors_occurred}, error_type="${errtype}")
     file = open('${zip}', 'rb')
     djangoFile = File(file)
     obj[0].fileOutput.save('${jobname}.zip', djangoFile, save="True")

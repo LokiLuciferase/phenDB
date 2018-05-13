@@ -9,7 +9,7 @@ import subprocess
 from phenotypePredictionApp.variables import *
 
 
-def clean_up_on_pipeline_fail(keyname, ppath):
+def clean_up_on_pipeline_fail(keyname, ppath, failtype):
 
     import django
     os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
@@ -18,6 +18,7 @@ def clean_up_on_pipeline_fail(keyname, ppath):
     from phenotypePredictionApp.models import UploadedFile, bins_in_UploadedFile
     currentjob = UploadedFile.objects.get(key=keyname)
     currentjob.errors = None  # set error for website
+    currentjob.error_type = failtype
     # delete bins belonging to failed job
     assoc_rows = bins_in_UploadedFile.objects.filter(UploadedFile=currentjob)
     bins_of_failed = [x.bin for x in assoc_rows]
@@ -101,7 +102,7 @@ def phenDB_enqueue(ppath, pipeline_path, infolder, outfolder, pica_cutoff, node_
         key = os.path.basename(infolder)
         if pipeline_call.returncode != 0:
             remove_temp_files()  # don't delete infolder if failure reason is unknown
-            clean_up_on_pipeline_fail(key, ppath)
+            clean_up_on_pipeline_fail(key, ppath, failtype="UNKNOWN")
             raise RuntimeError("Pipeline run has failed. Error status in DB has been updated.")
 
         remove_temp_files(infolder)
@@ -109,7 +110,7 @@ def phenDB_enqueue(ppath, pipeline_path, infolder, outfolder, pica_cutoff, node_
         # if no output file has been generated despite no pipeline error
         # (= if error checking consumes all input files)
         if not os.path.exists(os.path.join(outfolder, "{k}.zip".format(k=key))):
-            clean_up_on_pipeline_fail(key, ppath)
+            clean_up_on_pipeline_fail(key, ppath, failtype="ALL_DROPPED")
             raise RuntimeError("No input files have passed error checking.")
 
         return pipeline_call.returncode

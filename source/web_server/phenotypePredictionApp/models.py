@@ -37,6 +37,7 @@ class UploadedFile(models.Model):
     user_email = models.TextField(null=True, blank=True)
     job_date = models.DateTimeField(auto_now=True)
     errors = models.NullBooleanField(null=True, blank=True)
+    error_type = models.TextField(default="")
     finished_bins = models.IntegerField(default='0')
     total_bins = models.IntegerField(default='0')
     requested_balac = models.FloatField(default='0.5')

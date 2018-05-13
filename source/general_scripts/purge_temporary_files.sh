@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-# BASEDIR="/apps/phenDB"
-BASEDIR="/apps/phenDB_devel_LL"
+source variables.sh
 
 cd ${BASEDIR}/logs
 
