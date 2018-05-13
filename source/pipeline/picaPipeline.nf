@@ -108,7 +108,7 @@ input_files_groovy_checked = truly_all_input_files.map {
 process fasta_sanity_check {
 //todo: output also sequences-only for md5sum?
     tag { binname }
-    //errorStrategy 'ignore'  //TODO: Debug setting: disable error ignoring
+    errorStrategy 'ignore'
     maxForks 5
     scratch true
 
