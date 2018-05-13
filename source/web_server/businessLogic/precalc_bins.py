@@ -44,11 +44,11 @@ print("Submitting precalculation job. Bins in folder {inf} will be added to the 
 
 q = Queue(PHENDB_QUEUE, connection=Redis())
 pipeline_call = q.enqueue_call(func=phenDB_enqueue,
-                                    args=(ppath, pipeline_path, infolder, outfolder, 0.5, ""),
-                                    timeout='72h',
-                                    ttl='72h',
-                                    job_id="PHENDB_PRECALC"
-                                    )
+                               args=(ppath, pipeline_path, infolder, outfolder, 0.5, ""),
+                               timeout='72h',
+                               ttl='72h',
+                               job_id="PHENDB_PRECALC"
+                               )
 while pipeline_call.result == None:
     sleep(10)
 

@@ -2,7 +2,7 @@
 
 
 #BASEDIR="/apps/phenDB"
-BASEDIR="/apps/phenDB_devel_LL_new"
+BASEDIR="/apps/phenDB_devel_LL"
 
 #DB="phenDB"
 #DB="phenDB_devel_LL"
