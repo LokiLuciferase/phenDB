@@ -61,14 +61,14 @@ function showjobs() {
     echo ""
 }
 
-#function purge() {
-#    echo "Purging samples from database..."
-#    mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_bins_in_uploadedfile;"
-#    mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_result_enog;"
-#    mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_result_model;"
-#    mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_bin;"
-#    mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_uploadedfile;"
-#}
+function purge() {
+   echo "Purging samples from database..."
+   mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_bins_in_uploadedfile;"
+   mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_result_enog;"
+   mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_result_model;"
+   mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_bin;"
+   mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_uploadedfile;"
+}
 
 #function start_queue() {
 #    echo "Starting queueing tools: redis and python-rq..."

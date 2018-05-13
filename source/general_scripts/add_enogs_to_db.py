@@ -19,7 +19,7 @@ for annot in ENOG_files:
         counter = 0
         for line in f:
             line = line.split("\t")
-            enoglist.append(enog(enog_name=line[1], enog_descr=line[5].rstrip() ))
+            enoglist.append(enog(enog_name=line[1], enog_descr=line[5].rstrip()))
             counter += 1
             sys.stdout.write('\r')
             sys.stdout.write("Adding enog nr. ")
