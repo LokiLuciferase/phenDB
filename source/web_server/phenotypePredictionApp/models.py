@@ -55,6 +55,8 @@ class bin(models.Model):
         indexes = [
             models.Index(fields=['md5sum'])
         ]
+        verbose_name = 'PhenDB bin'
+        verbose_name_plural = 'PhenDB bins'
 
     bin_name = models.TextField()
     md5sum = models.CharField(unique=True, max_length=32)
