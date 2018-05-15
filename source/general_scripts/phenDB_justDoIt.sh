@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
-#set -e
-#source /apps/phenDB/source/general_scripts/variables.sh
+
+
 BASEDIR="/apps/phenDB"
+#BASEDIR="/apps/phenDB_devel_LL"
+#BASEDIR="/apps/phenDB_devel_PP/phenDB"
+
+#DB="phenDB"
 DB="phenDB_devel_LL"
+#DB="phenDB_devel_PP"
+
 
 function usage()
 {
@@ -16,10 +22,22 @@ function usage()
     echo -e "\t--server-detached\tStart django development server in detached mode - log file at $BASEDIR/logs"
     echo -e "\t--start-queue\tActivate redis and python-rq tools if they are not running. Logs at $BASEDIR/logs"
     echo -e "\t--monitor-queue\tRuns a script to display current status of redis queue."
-    echo -e "\t--start\tChecks for running services, then runs start-queue."
+    echo -e "\t--start\tChecks for running services, then runs start-queue and server-detached."
     echo -e "\t--stop\tStops queue and development web server gracefully. Pending jobs are saved."
     echo -e "\t--force-stop\tStops server and queue immediately. All pending jobs are lost."
     echo ""
+}
+
+function runserver() {
+    echo "Starting web server and opening a browser window..."
+    cd ${BASEDIR}/source/web_server
+
+    if [[ $(pgrep redis-server) = "" ]] || [[ $(ps aux | grep "/usr/bin/[r]q") = "" ]]; then
+        echo "Either redis-server or python-rq worker are not running. Exiting."
+        exit 1
+    fi
+    nohup chromium-browser http://127.0.0.1:8000/phendb &> /dev/null &
+    python3 manage.py runserver
 }
 
 function server_detached() {
@@ -83,8 +101,9 @@ function start() {
         echo "Either redis-server or python-rq worker are running."
         stop
     fi
-    echo "Starting Redis queue and rq worker..."
+    echo "Starting Redis queue and Django development server..."
     start_queue
+    server_detached
     exit 0
 }
 
