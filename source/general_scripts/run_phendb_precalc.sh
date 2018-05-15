@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+set -e
 source variables.sh
 
 export DJANGO_SETTINGS_MODULE="phenotypePrediction.settings"

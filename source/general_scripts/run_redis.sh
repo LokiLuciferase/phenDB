@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+set -e
 source variables.sh
 
 mkdir -p ${BASEDIR}/logs
