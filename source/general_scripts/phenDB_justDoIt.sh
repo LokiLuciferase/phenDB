@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-set -e
-source variables.sh
+#set -e
+#source /apps/phenDB/source/general_scripts/variables.sh
+BASEDIR="/apps/phenDB"
+DB="phenDB_devel_LL"
 
 function usage()
 {
@@ -14,7 +16,7 @@ function usage()
     echo -e "\t--server-detached\tStart django development server in detached mode - log file at $BASEDIR/logs"
     echo -e "\t--start-queue\tActivate redis and python-rq tools if they are not running. Logs at $BASEDIR/logs"
     echo -e "\t--monitor-queue\tRuns a script to display current status of redis queue."
-    echo -e "\t--start\tChecks for running services, then runs start-queue and server-detached."
+    echo -e "\t--start\tChecks for running services, then runs start-queue."
     echo -e "\t--stop\tStops queue and development web server gracefully. Pending jobs are saved."
     echo -e "\t--force-stop\tStops server and queue immediately. All pending jobs are lost."
     echo ""
@@ -81,9 +83,8 @@ function start() {
         echo "Either redis-server or python-rq worker are running."
         stop
     fi
-    echo "Starting Redis queue and Django development server..."
+    echo "Starting Redis queue and rq worker..."
     start_queue
-    server_detached
     exit 0
 }
 

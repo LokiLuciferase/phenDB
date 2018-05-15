@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-set -e
-source variables.sh
+#set -e
+BASEDIR="/apps/PhenDB"
 
 mkdir -p ${BASEDIR}/logs
 cd ${BASEDIR}/logs
