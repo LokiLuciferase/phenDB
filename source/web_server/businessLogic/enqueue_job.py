@@ -6,9 +6,10 @@ import os
 import os.path
 import shutil
 import subprocess
+from phenotypePredictionApp.variables import *
 
 
-def clean_up_on_pipeline_fail(keyname, ppath):
+def clean_up_on_pipeline_fail(keyname, ppath, failtype):
 
     import django
     os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
@@ -17,6 +18,7 @@ def clean_up_on_pipeline_fail(keyname, ppath):
     from phenotypePredictionApp.models import UploadedFile, bins_in_UploadedFile
     currentjob = UploadedFile.objects.get(key=keyname)
     currentjob.errors = None  # set error for website
+    currentjob.error_type = failtype
     # delete bins belonging to failed job
     assoc_rows = bins_in_UploadedFile.objects.filter(UploadedFile=currentjob)
     bins_of_failed = [x.bin for x in assoc_rows]
@@ -29,7 +31,9 @@ def clean_up_on_pipeline_fail(keyname, ppath):
 # delete temporary files and uploads after each finished job
 def remove_temp_files(infolder=None):
 
-    logfolder = '/apps/phenDB/logs'
+    if PHENDB_DEBUG:
+        return
+    logfolder = os.path.join(PHENDB_BASEDIR, 'logs')
     shutil.rmtree(os.path.join(logfolder, "work"))
     if infolder:
         shutil.rmtree(infolder)
@@ -45,7 +49,7 @@ def delete_user_data(days):
     import glob
 
     os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
-    sys.path.append("/apps/phenDB/source/web_server")
+    sys.path.append(os.path.join(PHENDB_BASEDIR, "source", "web_server"))
     django.setup()
     from phenotypePredictionApp.models import UploadedFile, bin, result_enog, result_model
 
@@ -53,9 +57,11 @@ def delete_user_data(days):
 
     # delete UploadedFiles older than oldest; association rows deleted automatically
     aged_jobs = UploadedFile.objects.filter(job_date__lte=make_aware(oldest))
-    aged_jobs.delete()
+    non_precalc_aged = aged_jobs.exclude(key__icontains="PHENDB_PRECALC")
+    non_precalc_aged.delete()
 
     # look for unassociated bins and delete those too
+    # spare those bins that have been pre-calculated
     orphan_bins = bin.objects.filter(bins_in_uploadedfile=None)
     orphan_bins.delete()
 
@@ -67,7 +73,7 @@ def delete_user_data(days):
 
     # delete results flat files older than days
     oldest_unixtime = float(time()) - (timedelta(days=days).total_seconds())
-    result_folders = glob.glob("/apps/phenDB/data/results/*")
+    result_folders = glob.glob(os.path.join(PHENDB_BASEDIR, "data/results/*"))
 
     for folder in result_folders:
         if float(os.path.getmtime(folder)) <= float(oldest_unixtime):
@@ -96,7 +102,7 @@ def phenDB_enqueue(ppath, pipeline_path, infolder, outfolder, pica_cutoff, node_
         key = os.path.basename(infolder)
         if pipeline_call.returncode != 0:
             remove_temp_files()  # don't delete infolder if failure reason is unknown
-            clean_up_on_pipeline_fail(key, ppath)
+            clean_up_on_pipeline_fail(key, ppath, failtype="UNKNOWN")
             raise RuntimeError("Pipeline run has failed. Error status in DB has been updated.")
 
         remove_temp_files(infolder)
@@ -104,7 +110,7 @@ def phenDB_enqueue(ppath, pipeline_path, infolder, outfolder, pica_cutoff, node_
         # if no output file has been generated despite no pipeline error
         # (= if error checking consumes all input files)
         if not os.path.exists(os.path.join(outfolder, "{k}.zip".format(k=key))):
-            clean_up_on_pipeline_fail(key, ppath)
+            clean_up_on_pipeline_fail(key, ppath, failtype="ALL_DROPPED")
             raise RuntimeError("No input files have passed error checking.")
 
         return pipeline_call.returncode

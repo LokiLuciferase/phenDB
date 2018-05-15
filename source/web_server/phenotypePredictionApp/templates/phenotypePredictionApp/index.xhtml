@@ -138,15 +138,18 @@
     <br />
     <h1>How to Use PhenDB</h1>
     <br />
-    You may either upload a single metagenomic bin/genome in FASTA format (.gz-compressed or uncompressed), or an archive (.tar.gz or .zip) containing several bins/genomes.<br /><br />Please note that a flat filestructure is required in the compressed folder.<br />
+    You may either upload a single metagenomic bin/genome in FASTA format (.gz-compressed or uncompressed), or an archive (.tar.gz or .zip) containing several bins/genomes.<br />
+    Alternatively, files and archives of files containing a proteome of a metagenomic bin (again in FASTA format) may be uploaded.<br /><br />
+    Please note that a flat filestructure is required in the compressed folder.<br />
     The current maximum filesize for upload is 1 GB, the maximum file size per bin is 30 MB.<br />
-    Duplicate .fasta files (determined by file content) will be silently dropped from the analysis.<br /><br />
+    Duplicate sequence files (determined by file content) will be silently dropped from the analysis.<br />
+    Empty sequence files will be silently dropped from the analysis.<br /><br />
     Balanced Accuracy is a confidence measure computed from completeness/contamination of the uploaded bin and the model's predictive power. Predictions with a balanced accuracy below the chosen cutoff value (range: 0.5 - 1) are omitted from the result.<br /><br />
     After submission, your job is queued and waits for completion of any previously submitted jobs.<br />
     When computation starts, expect about 1-1.5 min of calculation time per bin.<br />
     To receive a notification upon job completion, enter an email address during your submission.<br />
     Alternatively, you may save the URL to your submission to retrieve your results later.<br />
-    Results are stored by PhenDB for 30 days.<br />
+    Results are stored by PhenDB for 30 days - after which all user-uploaded data and associated results are deleted.<br />
     <br />
     <br />
     <h1>Output</h1>

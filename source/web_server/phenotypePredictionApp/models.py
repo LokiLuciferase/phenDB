@@ -37,12 +37,16 @@ class UploadedFile(models.Model):
     user_email = models.TextField(null=True, blank=True)
     job_date = models.DateTimeField(auto_now=True)
     errors = models.NullBooleanField(null=True, blank=True)
+    error_type = models.TextField(default="")
     finished_bins = models.IntegerField(default='0')
     total_bins = models.IntegerField(default='0')
     requested_balac = models.FloatField(default='0.5')
 
     def get_absolute_url(self):
         return "results/%s/" % self.key
+
+# TODO: add taxonomy db taxids and descriptions of species?
+# class taxid(models.Model):
 
 
 class bin(models.Model):
@@ -51,9 +55,12 @@ class bin(models.Model):
         indexes = [
             models.Index(fields=['md5sum'])
         ]
+        verbose_name = 'PhenDB bin'
+        verbose_name_plural = 'PhenDB bins'
 
     bin_name = models.TextField()
     md5sum = models.CharField(unique=True, max_length=32)
+    tax_id = models.TextField(null=True, blank=True)
     comple = models.FloatField()
     conta = models.FloatField()
 
@@ -151,6 +158,24 @@ class model_accuracies(models.Model):
                                                                       conta=self.conta,
                                                                       balac=self.mean_balanced_accuracy
                                                                               )
+
+class model_used_genomes(models.Model):
+    class Meta:
+        unique_together = ('model', 'tax_id', 'assembly_id')
+        indexes = [
+            models.Index(fields=['model', 'tax_id'])
+        ]
+
+    model = models.ForeignKey(model)
+    tax_id = models.CharField(max_length=10)
+    assembly_id = models.TextField()
+    verdict = models.NullBooleanField()
+
+    def __str__(self):
+        return "Taxid {ti} used in model {mod} (counted as {yn})".format(ti=self.taxid,
+                                                                         mod=self.model.model_name,
+                                                                         yn=self.verdict)
+
 
 class result_enog(models.Model):
 

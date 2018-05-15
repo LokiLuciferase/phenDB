@@ -3,6 +3,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
 from django.urls import reverse
 from .forms import FileForm
+from .variables import *
 from django.shortcuts import redirect
 from businessLogic.mailNotification import MailNotification
 import uuid
@@ -14,6 +15,8 @@ from ipware.ip import get_real_ip
 from redis import Redis
 from rq import Queue, get_current_job
 import struct
+import os
+
 
 #------------------functions---------------------------------------------
 #useful functions, NO views
@@ -30,7 +33,7 @@ def getKeyFromUrl(request):
 
 def get_current_position(keyname):
     try:
-        que = Queue('phenDB', connection=Redis())
+        que = Queue(PHENDB_QUEUE, connection=Redis())
         jobs = list(que.jobs)
         for index, job in enumerate(jobs):
             if job.id == keyname:
@@ -40,10 +43,9 @@ def get_current_position(keyname):
         return (None, None)
 
 def getQueueLength():
-    que = Queue('phenDB', connection=Redis())
+    que = Queue(PHENDB_QUEUE, connection=Redis())
     jobs = list(que.jobs)
     return len(jobs)
-
 
 
 #-------------------Views-------------------------------------------------
@@ -118,12 +120,12 @@ def getResults(request):
         showResultCSS = 'block'
         showProgressBar = False
         refresh = False
-        if(obj.errors == None):
+        if(obj.error_type == "UNKNOWN"):
             showErrorMessage = True
             errorSeverityPU = 'error'
             errorSummaryPU = 'Unknown Error'
             errorMessagePU = 'An unknown internal error has occurred.'
-        elif(obj.errors == True):
+        elif(obj.error_type == "INPUT"):
             showErrorMessage = True
             errorSeverityPU = 'warn'
             errorSummaryPU = 'Invalid Input File(s)'
@@ -131,24 +133,31 @@ def getResults(request):
     else:
         numAccessed = 0
         showResultCSS = 'none'
-        if(obj.errors == False or obj.errors == True):
+        if(obj.error_type in ("INPUT", "")):
             showProgressBar = True
             refresh = True
             showErrorMessage = False
-        elif (obj.errors == None):
+        elif (obj.error_type == "UNKNOWN"):
             refresh = False
             showErrorMessage = True
             showProgressBar = False
             errorSeverityPU = 'error'
             errorSummaryPU = 'Unknown Error'
             errorMessagePU = 'An unknown internal error has occurred.'
+        elif (obj.error_type == "ALL_DROPPED"):
+            refresh = False
+            showErrorMessage = True
+            showProgressBar = False
+            errorSeverityPU = 'error'
+            errorSummaryPU = 'No Valid Input Files'
+            errorMessagePU = 'None of the uploaded files were valid input files for PhenDB.'
 
 
     #position in queue
     queuePos, queueLen = get_current_position(key)
 
     # write queue length to binary file
-    with open("/apps/phenDB/logs/queuelength", "wb") as bytefile:
+    with open(os.path.join(PHENDB_BASEDIR, "logs/queuelen"), "wb") as bytefile:
         for times in range(queueLen):
             bytefile.write(struct.pack('x'))
 

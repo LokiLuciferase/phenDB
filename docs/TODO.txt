@@ -4,8 +4,8 @@
 Computational framework:
 -Singularity or Docker container for perfect encapsulation and reproducibility ( )
 
+
 Pipeline:
--fix: archaea results not masked
 -Allow .faa files to be processed (bypass prodigal with ifclause)
 -Allow outputting of .faa files together with prediction
 
