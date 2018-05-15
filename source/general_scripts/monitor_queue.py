@@ -7,8 +7,7 @@ from rq import Queue, get_failed_queue
 from rq.worker import Worker
 from pprint import pprint
 
-PHENDB_QUEUE = "phenDB_devel_LL"
-#PHENDB_QUEUE = "phenDB"
+PHENDB_QUEUE = "phenDB"
 
 rconn = Redis()
 workers = Worker.all(connection=rconn)

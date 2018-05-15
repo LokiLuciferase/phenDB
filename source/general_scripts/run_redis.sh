@@ -7,7 +7,7 @@ cd ${BASEDIR}/logs
 
 # start a redis server and write to log
 #FIXME: should already run due to production server
-#nohup redis-server &>> redis_server.log &
+nohup redis-server &>> redis_server.log &
 
 sleep 5
 while [[ $(pgrep redis-server) = "" ]]
@@ -16,6 +16,4 @@ while [[ $(pgrep redis-server) = "" ]]
     done
 
 # start a rq worker and import from the correct location
-#nohup rq worker --path ${BASEDIR}/source/web_server --path ${BASEDIR}/source/web_server/businessLogic --name phenDB phenDB &>> rq_worker.log &
-
-nohup rq worker --path ${BASEDIR}/source/web_server --path ${BASEDIR}/source/web_server/businessLogic --name phenDB_devel_LL phenDB_devel_LL &>> rq_worker.log &
+nohup rq worker --path ${BASEDIR}/source/web_server --path ${BASEDIR}/source/web_server/businessLogic --name phenDB phenDB &>> rq_worker.log &
