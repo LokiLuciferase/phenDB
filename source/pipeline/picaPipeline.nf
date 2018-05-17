@@ -667,7 +667,7 @@ process accuracy {
 
     # get completeness and contamination
     with open("${complecontaitem}", "r") as ccfile:
-        comple, conta, strainhet, taxid, tname, trank = ccfile.readline().split()
+        comple, conta, strainhet, taxid, tname, trank = ccfile.readline().split("\t")
 
     cc = [float(x) for x in [comple, conta, strainhet]]
     for i in range(len(cc)):
