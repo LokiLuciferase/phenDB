@@ -46,6 +46,7 @@ class UploadedFile(models.Model):
         return "results/%s/" % self.key
 
 # TODO: add taxonomy db taxids and descriptions of species?
+# TODO: migrate devel_new DB
 # class taxid(models.Model):
 
 
@@ -61,8 +62,12 @@ class bin(models.Model):
     bin_name = models.TextField()
     md5sum = models.CharField(unique=True, max_length=32)
     tax_id = models.TextField(null=True, blank=True)
+    taxon_name = models.TextField(default="")
+    taxon_rank = models.TextField(default="")
     comple = models.FloatField()
     conta = models.FloatField()
+    strainhet = models.FloatField()
+
 
     def __str__(self):
         return "File name: {fn}".format(fn=self.bin_name)

@@ -530,7 +530,7 @@ process compleconta {
     set val(binname), val(mdsum), file(hmmeritem), file("complecontaitem.txt") into complecontaout
 
     """
-    compleconta.py $prodigalitem $hmmeritem | tail -1 > complecontaitem.txt
+    compleconta_taxonomy.py $prodigalitem $hmmeritem | tail -1 > complecontaitem.txt
     """
 }
 
@@ -633,6 +633,7 @@ accuracy_in = complecontaout_for_call_accuracy
                 .filter{it[4] == "YES" || params.use_in_archaea.contains(it[5].getBaseName())}
                 .map { l -> [ l[0], l[1], l[5], l[2], l[3] ]}
 
+//TODO: switch to compleconta_taxonomy
 // compute accuracy from compleconta output and model intrinsics.
 process accuracy {
 
@@ -666,9 +667,9 @@ process accuracy {
 
     # get completeness and contamination
     with open("${complecontaitem}", "r") as ccfile:
-        cc = ccfile.readline().split()
+        comple, conta, strainhet, taxid, tname, trank = ccfile.readline().split()
 
-    cc = [float(x) for x in cc]
+    cc = [float(x) for x in [comple, conta, strainhet]]
     for i in range(len(cc)):
         if cc[i] < 0:
             cc[i] = 0
@@ -678,7 +679,12 @@ process accuracy {
     try:
         parentbin = bin.objects.get(md5sum="${mdsum}")
         parentbin.comple = float(cc[0])
-        parentbin.conta= float(cc[1])
+        parentbin.conta = float(cc[1])
+        parentbin.strainhet = float(cc[2])
+        parentbin.tax_id = taxid
+        parentbin.taxon_name = tname
+        parentbin.taxon_rank = trank
+
         parentbin.save()
 
     except ObjectDoesNotExist:
