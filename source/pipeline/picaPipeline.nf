@@ -269,7 +269,7 @@ try:
 
 except ObjectDoesNotExist:
     # write impossible Nr. for comple and conta that would cause an error during get_accuracy if not overwritten:
-    thisbin = bin(bin_name="${binname}", md5sum="${mdsum}", comple=2, conta=2)
+    thisbin = bin(bin_name="${binname}", md5sum="${mdsum}", comple=2, conta=2, strainhet=2)
     thisbin.save()
     print("YES", end='')
 
