@@ -951,7 +951,7 @@ process write_zip_to_db {
 
     script:
     errors_occurred = errorfile.isEmpty() ? "False" : "True"
-    errtype = errors_occurred ? "INPUT" : ""
+    errtype = errorfile.isEmpty() ? "" : "INPUT"
 // language=Python
 """
 #!/usr/bin/env python3
