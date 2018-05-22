@@ -633,7 +633,7 @@ accuracy_in = complecontaout_for_call_accuracy
                 .filter{it[4] == "YES" || params.use_in_archaea.contains(it[5].getBaseName())}
                 .map { l -> [ l[0], l[1], l[5], l[2], l[3] ]}
 
-//TODO: switch to compleconta_taxonomy
+
 // compute accuracy from compleconta output and model intrinsics.
 process accuracy {
 
@@ -666,8 +666,12 @@ process accuracy {
         return round(round(x / a) * a, -int(math.floor(math.log10(a))))
 
     # get completeness and contamination
-    with open("${complecontaitem}", "r") as ccfile:
-        comple, conta, strainhet, taxid, tname, trank = ccfile.readline().split("\t")
+    try:
+        with open("${complecontaitem}", "r") as ccfile:
+            comple, conta, strainhet, taxid, tname, trank = ccfile.readline().split("\t")
+    except ValueError:
+        raise ValueError
+        #comple, conta, strainhet, taxid, tname, trank = [0 for x in range(6)]
 
     cc = [float(x) for x in [comple, conta, strainhet]]
     for i in range(len(cc)):
