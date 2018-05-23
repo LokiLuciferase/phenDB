@@ -173,6 +173,8 @@ def getResults(request):
         uuid = getKeyFromUrl(request)
         all_bins = bins_in_UploadedFile.objects.get(uuid)
         pprint(all_bins)
+    except:
+        print("printing all bins of request did not work")
 
     context = {'result' : 'download/',
                'showResultCSS' : showResultCSS,
