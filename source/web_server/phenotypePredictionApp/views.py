@@ -15,6 +15,7 @@ from ipware.ip import get_real_ip
 from redis import Redis
 from rq import Queue, get_current_job
 import struct
+import traceback
 import os
 
 
@@ -175,7 +176,7 @@ def getResults(request):
         all_bins = bins_in_UploadedFile.objects.get(uuid)
         pprint(all_bins)
     except:
-        pass
+        print(traceback.format_exc())
 
     context = {'result' : 'download/',
                'showResultCSS' : showResultCSS,
