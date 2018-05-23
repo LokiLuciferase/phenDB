@@ -9,7 +9,7 @@ from businessLogic.mailNotification import MailNotification
 import uuid
 from django.core.urlresolvers import resolve
 from businessLogic.startProcess import StartProcessThread
-from phenotypePredictionApp.models import UploadedFile
+from phenotypePredictionApp.models import UploadedFile, result_model, bins_in_UploadedFile
 from pprint import pprint
 from ipware.ip import get_real_ip
 from redis import Redis
@@ -169,6 +169,10 @@ def getResults(request):
         refresh = False
         showProgressBar = False
 
+    try:
+        uuid = getKeyFromUrl(request)
+        all_bins = bins_in_UploadedFile.objects.get(uuid)
+        pprint(all_bins)
 
     context = {'result' : 'download/',
                'showResultCSS' : showResultCSS,
