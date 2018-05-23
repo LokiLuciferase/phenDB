@@ -173,7 +173,7 @@ def getResults(request):
     try:
         uuid = getKeyFromUrl(request)
         print("uuid " + uuid)
-        all_bins = bins_in_UploadedFile.objects.get(uuid)
+        all_bins = bins_in_UploadedFile.objects.get(UploadedFile=uuid)
         pprint(all_bins)
     except:
         print(traceback.format_exc())
