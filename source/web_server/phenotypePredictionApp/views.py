@@ -171,10 +171,11 @@ def getResults(request):
 
     try:
         uuid = getKeyFromUrl(request)
+        print("uuid " + uuid)
         all_bins = bins_in_UploadedFile.objects.get(uuid)
         pprint(all_bins)
     except:
-        print("printing all bins of request did not work")
+        pass
 
     context = {'result' : 'download/',
                'showResultCSS' : showResultCSS,
@@ -192,7 +193,7 @@ def getResults(request):
                'queuePos' : queuePos + 1,
                'queueLen' : queueLen}
 
-    pprint(context)
+    #pprint(context)
 
     return HttpResponse(template.render(context, request))
 
