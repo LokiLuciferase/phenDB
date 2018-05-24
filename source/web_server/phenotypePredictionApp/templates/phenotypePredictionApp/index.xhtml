@@ -184,7 +184,7 @@
     <table id="example" class="display" width="100%"></table>
     <script type="text/javascript">
 
-        var resultsListJS = json_to_list({{ resultsList|jsonify | safe}})
+        var resultsListJS = {{ resultsList|jsonify | safe}}
 
         $(document).ready(function() {
             $('#example').DataTable( {
