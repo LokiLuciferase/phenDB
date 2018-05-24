@@ -236,7 +236,7 @@
 
     {%  for key, value in resultDic.items %}
         var key = "{{ key }}";
-        var value = {{ value | safe }}
+        //var value = {{ value | safe }}
         console.log({{ key }})
     {% endfor %}
 
