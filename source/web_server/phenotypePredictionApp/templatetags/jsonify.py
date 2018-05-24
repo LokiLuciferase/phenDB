@@ -13,6 +13,6 @@ def jsonify(object):
         #for singleObj in object:
             #singleObj.bin.bin_name
         return serialize('json', testList)
-    return json.dumps(object)
+    return serialize('json', testList)
 
 register.filter('jsonify', jsonify)
