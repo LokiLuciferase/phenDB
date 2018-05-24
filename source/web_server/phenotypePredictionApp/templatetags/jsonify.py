@@ -12,7 +12,7 @@ def jsonify(object):
     if isinstance(object, QuerySet):
         #for singleObj in object:
             #singleObj.bin.bin_name
-        return serialize('json', testDir)
-    return serialize('json', testDir)
+        return json.dumps(testDir)
+    return json.dumps(testDir)
 
 register.filter('jsonify', jsonify)
