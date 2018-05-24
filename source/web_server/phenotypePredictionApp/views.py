@@ -177,8 +177,9 @@ def getResults(request):
         print(type(all_bins))
         for bin_obj in all_bins:
             print(type(bin_obj))
-            result = result_model.objects.get(bin=bin_obj.bin)
-            print(result)
+            results = result_model.objects.filter(bin=bin_obj.bin)
+            for single_result in results:
+                print(single_result)
     except:
         print(traceback.format_exc())
 
