@@ -14,5 +14,5 @@ def jsonify(object):
     if isinstance(object, QuerySet):
         #for singleObj in object:
             #singleObj.bin.bin_name
-        return serialize(object)
+        return serialize('json', object)
     return serialize(object)
