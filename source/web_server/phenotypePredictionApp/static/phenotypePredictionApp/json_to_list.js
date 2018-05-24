@@ -1,4 +1,4 @@
-all_keys;
+var all_keys;
 
 function json_to_datatable_input(json_obj) {
     var all_data = [];
