@@ -9,9 +9,8 @@ register = Library()
 
 @register.filter(is_safe=True)
 def jsonify(object):
-    testDir = ["A", "1"]
     if isinstance(object, QuerySet):
         #for singleObj in object:
             #singleObj.bin.bin_name
-        return json.dumps(testDir)
-    return json.dumps(testDir)
+        return json.dumps(object)
+    return json.dumps(object)
