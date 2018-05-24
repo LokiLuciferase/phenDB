@@ -174,9 +174,9 @@ def getResults(request):
         uuid = getKeyFromUrl(request)
         uploadedFile = UploadedFile.objects.get(key=uuid)
         all_bins = bins_in_UploadedFile.objects.get(UploadedFile=uploadedFile)
-        print(type(all_bins))
-        print(all_bins.bin.bin_name)
-        print(all_bins.bin)
+        for bin_obj in all_bins:
+            result = result_model.objects.get(bin=bin_obj)
+            print(result)
     except:
         print(traceback.format_exc())
 
