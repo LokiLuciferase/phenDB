@@ -184,11 +184,19 @@
     <table id="example" class="display" width="100%"></table>
     <script type="text/javascript">
 
-        var resultsListJS = json_to_list({{ resultsList|jsonify | safe}});
+        var [resultsListJSKeys, resultsListJSValues] = json_to_list({{ resultsList|jsonify | safe}});
 
         $(document).ready(function() {
             $('#example').DataTable( {
-                data: resultsListJS,
+                data: resultsListJSValues,
+                columns: [
+                    { title: "bin_name" },
+                    { title: "model" },
+                    { title: "classification" },
+                    { title: "verdict" },
+                    { title: "pica p-value" },
+                    { title: "accuracy" }
+                ]
             } );
         } );
 
