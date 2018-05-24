@@ -70,7 +70,8 @@ class bin(models.Model):
 
 
     def __str__(self):
-        return "File name: {fn}".format(fn=self.bin_name)
+        return self.bin_name + " " + self.md5sum + " " + self.tax_id + " " + self.taxon_name + " " + self.taxon_rank + " " + self.comple + " " + self.conta + " " + self.strainhet
+        #return "File name: {fn}".format(fn=self.bin_name)
 
 
 class bins_in_UploadedFile(models.Model):
