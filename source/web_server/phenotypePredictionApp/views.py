@@ -188,6 +188,7 @@ def getResults(request):
     except:
         print(traceback.format_exc())
 
+    print("len resultsDic " + len(resultsDic))
     context = {'result' : 'download/',
                'showResultCSS' : showResultCSS,
                'showNotification' : True if numAccessed == 1 else False,
