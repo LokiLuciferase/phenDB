@@ -73,6 +73,9 @@ class bin(models.Model):
         return str(self.bin_name) + " " + str(self.md5sum) + " " + str(self.tax_id) + " " + str(self.taxon_name) + " " + str(self.taxon_rank) + " " + str(self.comple) + " " + str(self.conta) + " " + str(self.strainhet)
         #return "File name: {fn}".format(fn=self.bin_name)
 
+    def natural_key(self):
+        return (self.bin_name)
+
 
 class bins_in_UploadedFile(models.Model):
 
@@ -123,6 +126,9 @@ class model(models.Model):
         return "Name: {mid}\t Description: {md}\tDate of Training: {mtd} \t " \
                "Type= {type}".format(mid=self.model_name,md=self.model_desc, mtd=str(self.model_train_date),
                                          type=self.type)
+
+    def natural_key(self):
+        return (self.model_name)
 
 
 class model_enog_ranks(models.Model):
