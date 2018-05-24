@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
         "http://www.w3.org/TR/html4/strict.dtd">
 
-<html>
+<html xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
 
     <head>
         {% load static %}
@@ -235,7 +235,10 @@
     } );
 
     {%  for key, value in resultDic.items %}
+        var key = "{{ key }}";
+        var value = {{ value | safe }}
         console.log({{ key }})
+        console.log(value)
     {% endfor %}
 
     </script>
