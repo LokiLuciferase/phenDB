@@ -94,7 +94,7 @@ def getResults(request):
     templateError = loader.get_template('phenotypePredictionApp/error.xhtml')
     key = getKeyFromUrl(request)
     try:
-        obj = UploadedFile.objects.get(key=key)
+        obj_uploadedFile = UploadedFile.objects.get(key=key)
     except UploadedFile.DoesNotExist:
         context = {'errorMessage' : 'The requested page does not exist. Please note that all results are deleted after 30 days!'}
         return HttpResponse(templateError.render(context, request))
@@ -110,8 +110,9 @@ def getResults(request):
     errorMessagePU = None
     queuePos = None
     queueLen = None
+    resultsDic = {}
 
-    if obj.finished_bins == obj.total_bins and obj.total_bins != 0:
+    if obj_uploadedFile.finished_bins == obj_uploadedFile.total_bins and obj_uploadedFile.total_bins != 0:
         try:
             numAccessed = accessed[key]
         except:
@@ -121,31 +122,35 @@ def getResults(request):
         showResultCSS = 'block'
         showProgressBar = False
         refresh = False
-        if(obj.error_type == "UNKNOWN"):
+        if(obj_uploadedFile.error_type == "UNKNOWN"):
             showErrorMessage = True
             errorSeverityPU = 'error'
             errorSummaryPU = 'Unknown Error'
             errorMessagePU = 'An unknown internal error has occurred.'
-        elif(obj.error_type == "INPUT"):
+        elif(obj_uploadedFile.error_type == "INPUT"):
             showErrorMessage = True
             errorSeverityPU = 'warn'
             errorSummaryPU = 'Invalid Input File(s)'
             errorMessagePU = 'Please check the invalid_input_files.log file.'
+        #results to display in UI
+        all_bins = bins_in_UploadedFile.objects.filter(UploadedFile=obj_uploadedFile)
+        for bin_obj in all_bins:
+            resultsDic[bin_obj.bin.bin_name] = result_model.objects.filter(bin=bin_obj.bin)
     else:
         numAccessed = 0
         showResultCSS = 'none'
-        if(obj.error_type in ("INPUT", "")):
+        if(obj_uploadedFile.error_type in ("INPUT", "")):
             showProgressBar = True
             refresh = True
             showErrorMessage = False
-        elif (obj.error_type == "UNKNOWN"):
+        elif (obj_uploadedFile.error_type == "UNKNOWN"):
             refresh = False
             showErrorMessage = True
             showProgressBar = False
             errorSeverityPU = 'error'
             errorSummaryPU = 'Unknown Error'
             errorMessagePU = 'An unknown internal error has occurred.'
-        elif (obj.error_type == "ALL_DROPPED"):
+        elif (obj_uploadedFile.error_type == "ALL_DROPPED"):
             refresh = False
             showErrorMessage = True
             showProgressBar = False
@@ -187,9 +192,9 @@ def getResults(request):
                'showResultCSS' : showResultCSS,
                'showNotification' : True if numAccessed == 1 else False,
                'showProgressBar' : showProgressBar,
-               'progress' : (obj.finished_bins * 1.0 / obj.total_bins) * 100 if (obj.total_bins!=0 and obj.finished_bins != 0) else 0.001,
-               'finished_bins' : str(obj.finished_bins),
-               'total_bins' : str(obj.total_bins),
+               'progress' : (obj_uploadedFile.finished_bins * 1.0 / obj_uploadedFile.total_bins) * 100 if (obj_uploadedFile.total_bins!=0 and obj_uploadedFile.finished_bins != 0) else 0.001,
+               'finished_bins' : str(obj_uploadedFile.finished_bins),
+               'total_bins' : str(obj_uploadedFile.total_bins),
                'refresh' : refresh,
                'showInputFormCSS': 'none',
                'showErrorMessage': showErrorMessage,
@@ -197,7 +202,8 @@ def getResults(request):
                'errorSummaryPU' : errorSummaryPU,
                'errorMessagePU' : errorMessagePU,
                'queuePos' : queuePos + 1,
-               'queueLen' : queueLen}
+               'queueLen' : queueLen,
+               'resultDic' : resultsDic}
 
     #pprint(context)
 

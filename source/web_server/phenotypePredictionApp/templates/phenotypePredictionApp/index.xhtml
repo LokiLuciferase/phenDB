@@ -19,6 +19,13 @@
         <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js" />
         <script type="text/javascript">
             $(document).ready(function() {
+                {%  for key, value in resultDic.items %}
+                    console.log({{ key }} + " " + {{ value }})
+                {% endfor %}
+            });
+        </script>
+        <script type="text/javascript">
+            $(document).ready(function() {
              $('#overlay').puidialog({
                  closable: false,
                  minimizable: false,
