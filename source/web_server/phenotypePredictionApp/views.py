@@ -175,19 +175,6 @@ def getResults(request):
         refresh = False
         showProgressBar = False
 
-    try:
-        uuid = getKeyFromUrl(request)
-        uploadedFile = UploadedFile.objects.get(key=uuid)
-        all_bins = bins_in_UploadedFile.objects.filter(UploadedFile=uploadedFile)
-        print(type(all_bins))
-        for bin_obj in all_bins:
-            print(type(bin_obj))
-            results = result_model.objects.filter(bin=bin_obj.bin)
-            for single_result in results:
-                print(single_result)
-    except:
-        print(traceback.format_exc())
-
     print("len resultsDic " + str(len(resultsDic)))
     context = {'result' : 'download/',
                'showResultCSS' : showResultCSS,
