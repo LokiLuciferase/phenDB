@@ -7,6 +7,7 @@ from django.template import Library
 
 register = Library()
 
+@register.filter(is_safe=True)
 def jsonify(object):
     testDir = {"A" : "1"}
     if isinstance(object, QuerySet):
@@ -14,5 +15,3 @@ def jsonify(object):
             #singleObj.bin.bin_name
         return json.dumps(testDir)
     return json.dumps(testDir)
-
-register.filter('jsonify', jsonify)
