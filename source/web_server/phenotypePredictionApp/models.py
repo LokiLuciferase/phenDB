@@ -70,7 +70,7 @@ class bin(models.Model):
 
 
     def __str__(self):
-        return self.bin_name + " " + self.md5sum + " " + self.tax_id + " " + self.taxon_name + " " + self.taxon_rank + " " + self.comple + " " + self.conta + " " + self.strainhet
+        return str(self.bin_name) + " " + str(self.md5sum) + " " + str(self.tax_id) + " " + str(self.taxon_name) + " " + str(self.taxon_rank) + " " + str(self.comple) + " " + str(self.conta) + " " + str(self.strainhet)
         #return "File name: {fn}".format(fn=self.bin_name)
 
 
