@@ -3,9 +3,9 @@ function json_to_datatable_input(json_obj) {
     var all_data = [];
     var titles = []
 
+    console.log(json_obj[0].fields)
     var all_keys = Object.keys(json_obj[0].fields);
     for(var key in all_keys) {
-        console.log(key)
         let dicTmp = {title : key};
         titles.push(dicTmp);
     }
