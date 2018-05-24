@@ -15,4 +15,4 @@ def jsonify(object):
         #for singleObj in object:
             #singleObj.bin.bin_name
         return serialize('json', object)
-    return serialize('json', object, use_natural_keys=True)
+    return serialize('json', object, use_natural_foreign_keys=True)
