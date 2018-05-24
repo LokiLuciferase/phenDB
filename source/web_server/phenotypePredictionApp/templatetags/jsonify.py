@@ -8,8 +8,11 @@ from django.template import Library
 register = Library()
 
 def jsonify(object):
+    testList = ["1", "2", "3"]
     if isinstance(object, QuerySet):
-        return serialize('json', object)
+        #for singleObj in object:
+            #singleObj.bin.bin_name
+        return serialize('json', testList)
     return json.dumps(object)
 
 register.filter('jsonify', jsonify)

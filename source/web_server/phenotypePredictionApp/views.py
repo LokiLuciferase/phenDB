@@ -175,7 +175,7 @@ def getResults(request):
         refresh = False
         showProgressBar = False
 
-    print("len resultsDic " + str(len(resultsDic)))
+    print("len resultsDic " + str(len(resultsList)))
     context = {'result' : 'download/',
                'showResultCSS' : showResultCSS,
                'showNotification' : True if numAccessed == 1 else False,
