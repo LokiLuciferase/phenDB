@@ -173,7 +173,7 @@ def getResults(request):
     try:
         uuid = getKeyFromUrl(request)
         uploadedFile = UploadedFile.objects.get(key=uuid)
-        all_bins = bins_in_UploadedFile.objects.get(UploadedFile=uploadedFile)
+        all_bins = bins_in_UploadedFile.objects.filter(UploadedFile=uploadedFile)
         for bin_obj in all_bins:
             result = result_model.objects.get(bin=bin_obj)
             print(result)
