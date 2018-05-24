@@ -110,7 +110,7 @@ def getResults(request):
     errorMessagePU = None
     queuePos = None
     queueLen = None
-    resultsDic = {}
+    resultsList = []
 
     if obj_uploadedFile.finished_bins == obj_uploadedFile.total_bins and obj_uploadedFile.total_bins != 0:
         try:
@@ -135,7 +135,7 @@ def getResults(request):
         #results to display in UI
         all_bins = bins_in_UploadedFile.objects.filter(UploadedFile=obj_uploadedFile)
         for bin_obj in all_bins:
-            resultsDic[bin_obj.bin.bin_name] = result_model.objects.filter(bin=bin_obj.bin)
+            resultsList.add(result_model.objects.filter(bin=bin_obj.bin))
     else:
         numAccessed = 0
         showResultCSS = 'none'
@@ -191,7 +191,7 @@ def getResults(request):
                'errorMessagePU' : errorMessagePU,
                'queuePos' : queuePos + 1,
                'queueLen' : queueLen,
-               'resultDic' : resultsDic}
+               'resultsList' : resultsList}
 
     #pprint(context)
 
