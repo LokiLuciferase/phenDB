@@ -236,7 +236,7 @@
 
     {%  for key, value in resultDic.items %}
         var key = "{{ key }}";
-        var model_name = "{{  value.model }}"
+        var model_name = "{{  value.0.model }}"
         console.log(key + model_name)
     {% endfor %}
 
