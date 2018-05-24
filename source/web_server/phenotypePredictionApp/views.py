@@ -135,7 +135,7 @@ def getResults(request):
         #results to display in UI
         all_bins = bins_in_UploadedFile.objects.filter(UploadedFile=obj_uploadedFile)
         for bin_obj in all_bins:
-            resultsList.add(result_model.objects.filter(bin=bin_obj.bin))
+            resultsList.append(result_model.objects.filter(bin=bin_obj.bin))
     else:
         numAccessed = 0
         showResultCSS = 'none'
