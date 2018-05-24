@@ -9,6 +9,8 @@ register = Library()
 
 @register.filter(is_safe=True)
 def jsonify(object):
+    print("filter type object: " + type(object))
+    print("filter size object: " + len(object))
     if isinstance(object, QuerySet):
         #for singleObj in object:
             #singleObj.bin.bin_name
