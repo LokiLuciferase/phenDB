@@ -130,7 +130,7 @@
 
     <div style="display: {{ showResultCSS }}" id="result_figures" title="Results as tables">
         <div id="dt_results">
-            <input id="dt_results_model_filter" name="dt_results_model_filter"></input>
+            <input id="dt_results_model_filter"></input>
             <table id="dt_results_table" width="100%" style="display: {{ showResultCSS }}"></table>
         </div>
     </div>
@@ -213,7 +213,11 @@
                 multiple: true,
                 minQueryLength: 0,
             });
-        })
+            $(document).puitooltip();
+            document.getElementById('#dt_results_model_filter').title = model_names.toString();
+        });
+
+
 
 
     </script>
