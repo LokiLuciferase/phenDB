@@ -34,7 +34,7 @@ function all_models_to_list(json_obj) {
 function list_to_tooltip(list_obj) {
     var tooltip = "";
     for(var i=0; i<list_obj.length; i++) {
-        tooltip += list_obj[i] + '\n';
+        tooltip += "<div>" + list_obj[i] + "</div>";
     }
     return tooltip;
 }
