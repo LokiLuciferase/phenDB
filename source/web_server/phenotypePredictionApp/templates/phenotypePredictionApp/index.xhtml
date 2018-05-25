@@ -46,6 +46,7 @@
                 step: 0.01
             });
             $('#result_section').puipanel();
+            $('#result_figures').puipanel({toggleable:true, colsable:false, collapsed:false});
             $('#help_section').puipanel({toggleable: true, closable: false, collapsed: true});
             $('#error_message').puigrowl({sticky:true});
                 {% if showErrorMessage %}
@@ -127,6 +128,13 @@
         <div id="error_message"></div>
     </form>
 
+    <div style="display: {{ showResultCSS }}" id="result_figures" title="Results as tables">
+        <div id="dt_results">
+            <select id="dt_results_model_filter" name="model" />
+            <table id="dt_results_table" width="100%" style="display: {{ showResultCSS }}"></table>
+        </div>
+    </div>
+
     <div style="text-align:justify; text-justify:inter-word; margin:10px; display:{{ showInputFormCSS }}"  id="help_section" title="Help">
     <h4>PhenDB is an automated pipeline for the prediction of microbial phenotypes based on comparative genomics.</h4>
     <br />
@@ -181,18 +189,20 @@
     Huerta-Cepas, Jaime, et al. "eggNOG 4.5: a hierarchical orthology framework with improved functional annotations for eukaryotic, prokaryotic and viral sequences." Nucleic acids research 44.D1 (2015): D286-D293.<br />
     Feldbauer, Roman, et al. "Prediction of microbial phenotypes based on comparative genomics." BMC bioinformatics 16.14 (2015): S1.<br />
     </div>
-    <table id="example" class="display" width="100%"></table>
     <script type="text/javascript">
 
         var [resultsListJSTitles, resultsListJSValues] = json_to_datatable_input({{ resultsList|jsonify | safe}});
 
         $(document).ready(function() {
-            $('#example').DataTable( {
+            $('#dt_results_table').DataTable( {
                 data: resultsListJSValues,
                 columns: resultsListJSTitles
             } );
         } );
 
+        $('#dt_results_model_filter').puidropdown({
+            filter: true
+        });
 
     </script>
 
