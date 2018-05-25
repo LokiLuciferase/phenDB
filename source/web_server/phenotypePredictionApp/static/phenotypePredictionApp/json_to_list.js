@@ -32,9 +32,17 @@ function all_models_to_list(json_obj) {
 
 //TODO: put in other file
 function list_to_tooltip(list_obj) {
-    var tooltip = "";
+    var tooltip = "<table>";
     for(var i=0; i<list_obj.length; i++) {
-        tooltip += "<div>" + list_obj[i] + "</div>";
+        tooltip += "<tr>";
+            for(var a=0; a<3; a++) {
+                tooltip += "<td>";
+                tooltip += list_obj[i];
+                tooltip += "</td>";
+                ++i;
+            }
+        tooltip += "</tr>";
     }
+    tooltip += "</table>";
     return tooltip;
 }
