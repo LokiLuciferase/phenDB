@@ -17,9 +17,3 @@ function resultList_to_datatable_input(json_obj) {
     return [titles, all_data];
 }
 
-
-function extract_models_from_resultList(json_obj) {
-
-}
-
-
