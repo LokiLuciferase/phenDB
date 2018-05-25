@@ -213,8 +213,11 @@
                 multiple: true,
                 minQueryLength: 0,
             });
-            $(document).puitooltip();
-            document.getElementById('dt_results_model_filter').title = list_to_tooltip(model_names);
+            $('#dt_results_model_filter').puitooltip({
+                showEvent: 'focus',
+                at: 'left bottom',
+                content:list_to_tooltip(model_names)
+            });
         });
 
 
