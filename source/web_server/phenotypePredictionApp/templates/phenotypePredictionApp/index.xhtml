@@ -193,18 +193,20 @@
 
         var [resultsListJSTitles, resultsListJSValues] = resultList_to_datatable_input({{ resultsList|jsonify | safe}});
 
-        var [model_names, types, model_descriptions] = all_models_to_list({{ all_models|jsonify | safe }});
+        var [model_names, model_descriptions] = all_models_to_list({{ all_models|jsonify | safe }});
 
         $(document).ready(function() {
             $('#dt_results_table').DataTable( {
                 data: resultsListJSValues,
-                columns: resultsListJSTitles
+                columns: resultsListJSTitles,
+                searching: false
             } );
         } );
 
-        $('#dt_results_model_filter').puidropdown({
-            filter: true,
-            data: model_names,
+        $('#dt_results_model_filter').puiautocomplete({
+            completeSource: model_names,
+            multiple: true,
+            dropdown: true,
         });
 
     </script>

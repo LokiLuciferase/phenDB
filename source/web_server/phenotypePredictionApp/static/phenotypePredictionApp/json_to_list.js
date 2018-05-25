@@ -20,14 +20,12 @@ function resultList_to_datatable_input(json_obj) {
 //WARNING: This code could break if the Django model is changed
 function all_models_to_list(json_obj) {
     var model_names = [];
-    var types = [];
     var model_descriptions = [];
     for(var i=0; i<json_obj.length; i++) {
         var row = Object.values(json_obj[i].fields);
         if(model_names.indexOf(row[0]) != -1) continue;
         model_names.push(row[0]);
-        types.push(row[1]);
         model_descriptions.push(row[2]);
     }
-    return [model_names, types, model_descriptions];
+    return [model_names, model_descriptions];
 }
