@@ -210,8 +210,8 @@
         $(document).ready(function() {
             $('#dt_results_model_filter').puiautocomplete({
                 completeSource: model_names,
-                dropdown: true,
                 multiple: true,
+                minQueryLength: 0,
             });
         })
 
