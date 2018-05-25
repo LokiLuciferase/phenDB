@@ -29,3 +29,12 @@ function all_models_to_list(json_obj) {
     }
     return [model_names, model_descriptions];
 }
+
+//TODO: put in other file
+function list_to_tooltip(list_obj) {
+    var tooltip = "";
+    for(var i=0; i<list_obj.length; i++) {
+        tooltip += list_obj[i] + '\n';
+    }
+    return tooltip;
+}
