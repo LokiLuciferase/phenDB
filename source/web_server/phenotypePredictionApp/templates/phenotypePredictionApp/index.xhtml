@@ -193,7 +193,7 @@
 
         var [resultsListJSTitles, resultsListJSValues] = resultList_to_datatable_input({{ resultsList|jsonify | safe}});
 
-        var [model_names, types, model_descriptions, model_train_dates] = all_models_to_list({{ all_models|jsonify | safe }});
+        var [model_names, types, model_descriptions] = all_models_to_list({{ all_models|jsonify | safe }});
 
         $(document).ready(function() {
             $('#dt_results_table').DataTable( {

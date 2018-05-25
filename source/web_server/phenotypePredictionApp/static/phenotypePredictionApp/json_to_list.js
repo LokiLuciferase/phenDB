@@ -4,12 +4,12 @@ function resultList_to_datatable_input(json_obj) {
     var titles = [];
 
     var all_keys = Object.keys(json_obj[0].fields);
-    for(let i=0; i<all_keys.length; i++) {
-        let dicTmp = {title : all_keys[i]};
+    for(var i=0; i<all_keys.length; i++) {
+        var dicTmp = {title : all_keys[i]};
         titles.push(dicTmp);
     }
 
-    for (let i=0; i<json_obj.length; i++) {
+    for (var i=0; i<json_obj.length; i++) {
         var sub_arr = Object.values(json_obj[i].fields);
         all_data.push(sub_arr);
     }
@@ -19,16 +19,15 @@ function resultList_to_datatable_input(json_obj) {
 
 //WARNING: This code could break if the Django model is changed
 function all_models_to_list(json_obj) {
-    var model_names = new Set();
-    var types = new Set();
-    var model_descriptions = new Set();
-    var model_train_dates = new Set();
-    for(let i=0; i<json_obj.length; i++) {
+    var model_names = [];
+    var types = [];
+    var model_descriptions = [];
+    for(var i=0; i<json_obj.length; i++) {
         var row = Object.values(json_obj[i].fields);
-        model_names.add(row[0]);
-        types.add(row[1]);
-        model_descriptions.add(row[2]);
-        model_train_dates.add(row[3]);
+        if(model_names.indexOf(row[0]) != -1) continue;
+        model_names.push(row[0]);
+        types.push(row[1]);
+        model_descriptions.push(row[2]);
     }
-    return [model_names, types, model_descriptions, model_train_dates];
+    return [model_names, types, model_descriptions];
 }
