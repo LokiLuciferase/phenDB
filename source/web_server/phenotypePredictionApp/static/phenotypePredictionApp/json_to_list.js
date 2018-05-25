@@ -1,5 +1,5 @@
 
-function json_to_datatable_input(json_obj) {
+function resultList_to_datatable_input(json_obj) {
     var all_data = [];
     var titles = [];
 
@@ -16,3 +16,10 @@ function json_to_datatable_input(json_obj) {
 
     return [titles, all_data];
 }
+
+
+function extract_models_from_resultList(json_obj) {
+
+}
+
+

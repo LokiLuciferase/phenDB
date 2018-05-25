@@ -191,7 +191,9 @@
     </div>
     <script type="text/javascript">
 
-        var [resultsListJSTitles, resultsListJSValues] = json_to_datatable_input({{ resultsList|jsonify | safe}});
+        var resultListJS = {{ resultsList|jsonify | safe}};
+
+        var [resultsListJSTitles, resultsListJSValues] = resultList_to_datatable_input(resultListJS);
 
         $(document).ready(function() {
             $('#dt_results_table').DataTable( {
@@ -201,7 +203,8 @@
         } );
 
         $('#dt_results_model_filter').puidropdown({
-            filter: true
+            filter: true,
+            data:
         });
 
     </script>
