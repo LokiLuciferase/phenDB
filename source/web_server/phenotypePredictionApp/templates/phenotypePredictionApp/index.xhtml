@@ -131,6 +131,10 @@
     <div style="display: {{ showResultCSS }}" id="result_figures" title="Results as tables">
         <div id="dt_results">
             <input id="dt_results_model_filter"></input>
+            <button id="dt_results_model_filter_info"></button>
+            <div id="dt_results_model_filter_info_text">
+                TEST
+            </div>
             <table id="dt_results_table" width="100%" style="display: {{ showResultCSS }}"></table>
         </div>
     </div>
@@ -213,10 +217,16 @@
                 multiple: true,
                 minQueryLength: 0,
             });
-            $('#dt_results_model_filter').puitooltip({
+            /* $('#dt_results_model_filter').puitooltip({
                 showEvent: 'focus',
                 at: 'right',
                 content:list_to_tooltip(model_names)
+            }); */
+            $('#dt_results_model_filter_info').puibutton({
+                icon: 'fa-external-link-square',
+                click: function() {
+                    $('#dlg').puidialog('show');
+                }
             });
         });
 
