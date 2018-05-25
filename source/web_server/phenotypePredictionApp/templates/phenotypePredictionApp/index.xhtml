@@ -197,7 +197,7 @@
 
         var models_arr = all_models_to_list({{ all_models|jsonify | safe }});
         var model_names = models_arr[0];
-        var model_descriptions = model_descriptions[1];
+        var model_descriptions = models_arr[1];
 
         $(document).ready(function() {
             $('#dt_results_table').DataTable( {
