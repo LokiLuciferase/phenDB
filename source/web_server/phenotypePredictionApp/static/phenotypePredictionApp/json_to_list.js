@@ -35,7 +35,7 @@ function list_to_tooltip(list_obj) {
     var tooltip = "<table>";
     for(var i=0; i<list_obj.length; i++) {
         tooltip += "<tr>";
-            for(var a=0; a<3; a++) {
+            for(var a=0; a<2; a++) {
                 tooltip += "<td>";
                 tooltip += list_obj[i];
                 tooltip += "</td>";
