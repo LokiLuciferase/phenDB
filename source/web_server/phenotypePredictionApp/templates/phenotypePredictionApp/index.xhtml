@@ -130,7 +130,7 @@
 
     <div style="display: {{ showResultCSS }}" id="result_figures" title="Results as tables">
         <div id="dt_results">
-            <input type="text" id="dt_results_model_filter" name="model"></input>
+            <input id="dt_results_model_filter" name="dt_results_model_filter"></input>
             <table id="dt_results_table" width="100%" style="display: {{ showResultCSS }}"></table>
         </div>
     </div>
@@ -191,9 +191,13 @@
     </div>
     <script type="text/javascript">
 
-        var [resultsListJSTitles, resultsListJSValues] = resultList_to_datatable_input({{ resultsList|jsonify | safe}});
+        var resultsList_arr = resultList_to_datatable_input({{ resultsList|jsonify | safe}});
+        var resultsListJSTitles = resultsList_arr[0];
+        var resultsListJSValues = resultsList_arr[1];
 
-        var [model_names, model_descriptions] = all_models_to_list({{ all_models|jsonify | safe }});
+        var models_arr = all_models_to_list({{ all_models|jsonify | safe }});
+        var model_names = models_arr[0];
+        var model_descriptions = model_descriptions[1];
 
         $(document).ready(function() {
             $('#dt_results_table').DataTable( {
@@ -206,8 +210,8 @@
         $(document).ready(function() {
             $('#dt_results_model_filter').puiautocomplete({
                 completeSource: model_names,
-                multiple: true,
-                dropdown: true
+                //multiple: true,
+                dropdown: true,
             });
         })
 
