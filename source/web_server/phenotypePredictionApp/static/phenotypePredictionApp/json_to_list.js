@@ -42,9 +42,9 @@ function models_to_infotext(titles, descriptions) {
             infotable += "<td>";
             infotable += descriptions[i];
             infotable += "</td>";
-            infotable += "</tr>";
             ++i;
         }
+        infotable += "</tr>";
     }
     infotable += "</table>";
     return infotable;
