@@ -240,10 +240,12 @@
             });
             var table = $('#dt_results_table').DataTable();
             $('#dt_results_model_filter').keyup(function() {
+                var all_items = this.getElementsByTagName("li");
                 table
                     .columns(2)
-                    .search(this.value)
+                    .search(all_items)
                     .draw();
+                console.log('filter fkt called');
             })
         });
 
