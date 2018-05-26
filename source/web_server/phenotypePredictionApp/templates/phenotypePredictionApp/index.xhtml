@@ -246,7 +246,7 @@
                 var all_items = Array.prototype.slice.call(all_items_htmlcoll);
                 var search_expr = all_items.map(x => x.innerText).join("|");
                 dataTable
-                    .columns(2)
+                    .columns(1)
                     .search(search_expr)
                     .draw();
                 console.log('filter fkt called');
