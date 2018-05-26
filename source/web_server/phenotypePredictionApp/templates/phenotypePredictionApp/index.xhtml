@@ -209,6 +209,8 @@
             } );
         } );
 
+        var item_searchfield;
+
         $(document).ready(function() {
             document.getElementById('dt_results_model_filter_info_text').innerHTML = models_to_infotext(model_names, model_descriptions);
             $('#dt_results_model_filter_info_text').puidialog({
@@ -222,7 +224,7 @@
                 select: function(event, items) {
                     console.log(items);
                     console.log(items.text());
-                    console.log(this.value);
+                    item_searchfield = items;
                 }
             });
             /* $('#dt_results_model_filter').puitooltip({
