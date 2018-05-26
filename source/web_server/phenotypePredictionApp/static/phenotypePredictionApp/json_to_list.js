@@ -36,10 +36,10 @@ function models_to_infotext(titles, descriptions) {
     for(var i=0; i<titles.length; i++) {
         infotable += "<tr>";
         for(var a=0; a<2; a++) {
-            infotable += "<td>";
+            infotable += "<td class='table_info_box'>";
             infotable += titles[i];
             infotable += "</td>";
-            infotable += "<td>";
+            infotable += "<td class='table_info_box'>";
             if(descriptions[i].length == 0) infotable += "no description available";
             else infotable += "description: " + descriptions[i];
             infotable += "</td>";
