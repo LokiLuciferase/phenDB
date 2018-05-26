@@ -210,7 +210,7 @@
         } );
 
         $(document).ready(function() {
-            document.getElementById('dt_results_model_filter_info_text').textContent += models_to_infotext(model_names, model_descriptions);
+            document.getElementById('dt_results_model_filter_info_text').innerHTML = models_to_infotext(model_names, model_descriptions);
             $('#dt_results_model_filter_info_text').puidialog({
                 title: "PICA models",
             });
