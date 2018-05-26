@@ -201,11 +201,13 @@
         var model_names = models_arr[0];
         var model_descriptions = models_arr[1];
 
+        var dataTable;
+
         $(document).ready(function() {
-            $('#dt_results_table').DataTable( {
-                data: resultsListJSValues,
-                columns: resultsListJSTitles,
-                searching: false
+            dataTable = $('#dt_results_table').DataTable( {
+                            data: resultsListJSValues,
+                            columns: resultsListJSTitles,
+                            searching: false
             } );
         } );
 
@@ -238,12 +240,12 @@
                     $('#dt_results_model_filter_info_text').puidialog('show');
                 }
             });
-            var table = $('#dt_results_table').DataTable();
+
             $('#dt_results_model_filter').on('focusin focusout', function() {
                 var all_items_htmlcoll = this.parentElement.parentElement.getElementsByTagName('li');
                 var all_items = Array.prototype.slice.call(all_items_htmlcoll);
                 var search_expr = all_items.map(x => x.innerText).join("|");
-                table
+                dataTable
                     .columns(2)
                     .search(search_expr)
                     .draw();
