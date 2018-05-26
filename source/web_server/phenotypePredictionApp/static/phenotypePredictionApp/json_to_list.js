@@ -35,13 +35,16 @@ function models_to_infotext(titles, descriptions) {
     var infotable = "<table>";
     for(var i=0; i<titles.length; i++) {
         infotable += "<tr>";
-        infotable += "<td>";
-        infotable += titles[i];
-        infotable += "</td>";
-        infotable += "<td>";
-        infotable += descriptions[i];
-        infotable += "</td>";
-        infotable += "</tr>";
+        for(var a=0; a<2; a++) {
+            infotable += "<td>";
+            infotable += titles[i];
+            infotable += "</td>";
+            infotable += "<td>";
+            infotable += descriptions[i];
+            infotable += "</td>";
+            infotable += "</tr>";
+            ++i;
+        }
     }
     infotable += "</table>";
     return infotable;
