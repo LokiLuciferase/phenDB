@@ -213,6 +213,7 @@
             document.getElementById('dt_results_model_filter_info_text').innerHTML = models_to_infotext(model_names, model_descriptions);
             $('#dt_results_model_filter_info_text').puidialog({
                 title: "PICA models",
+                resizable: false,
             });
             $('#dt_results_model_filter').puiautocomplete({
                 completeSource: model_names,

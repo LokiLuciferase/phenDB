@@ -40,7 +40,8 @@ function models_to_infotext(titles, descriptions) {
             infotable += titles[i];
             infotable += "</td>";
             infotable += "<td>";
-            infotable += descriptions[i];
+            if(descriptions[i].length == 0) infotable += "no description available";
+            else infotable += "description: " + descriptions[i];
             infotable += "</td>";
             ++i;
         }
