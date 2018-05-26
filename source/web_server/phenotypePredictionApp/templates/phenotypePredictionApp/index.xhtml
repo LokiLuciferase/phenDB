@@ -219,7 +219,10 @@
             $('#dt_results_model_filter').puiautocomplete({
                 completeSource: model_names,
                 multiple: true,
-                minQueryLength: 0,
+                select: function(event, items) {
+                    console.log(items);
+                    console.log(items.text());
+                }
             });
             /* $('#dt_results_model_filter').puitooltip({
                 showEvent: 'focus',
