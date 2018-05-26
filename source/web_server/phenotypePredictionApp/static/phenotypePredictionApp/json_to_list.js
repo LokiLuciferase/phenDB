@@ -31,18 +31,18 @@ function all_models_to_list(json_obj) {
 }
 
 //TODO: put in other file
-function list_to_tooltip(list_obj) {
-    var tooltip = "<table>";
-    for(var i=0; i<list_obj.length; i++) {
-        tooltip += "<tr>";
-            for(var a=0; a<2; a++) {
-                tooltip += "<td>";
-                tooltip += list_obj[i];
-                tooltip += "</td>";
-                ++i;
-            }
-        tooltip += "</tr>";
+function models_to_infotext(titles, descriptions) {
+    var infotable = "<table>";
+    for(var i=0; i<titles.length; i++) {
+        infotable += "<tr>";
+        infotable += "<td>";
+        infotable += titles[i];
+        infotable += "</td>";
+        infotable += "<td>";
+        infotable += descriptions[i];
+        infotable += "</td>";
+        infotable += "</tr>";
     }
-    tooltip += "</table>";
-    return tooltip;
+    infotable += "</table>";
+    return infotable;
 }

@@ -132,9 +132,7 @@
         <div id="dt_results">
             <input id="dt_results_model_filter"></input>
             <button id="dt_results_model_filter_info"></button>
-            <div id="dt_results_model_filter_info_text">
-                TEST
-            </div>
+            <div id="dt_results_model_filter_info_text"></div>
             <table id="dt_results_table" width="100%" style="display: {{ showResultCSS }}"></table>
         </div>
     </div>
@@ -212,7 +210,10 @@
         } );
 
         $(document).ready(function() {
-            $('#dt_results_model_filter_info_text').puidialog();
+            document.getElementById('dt_results_model_filter_info_text').textContent += models_to_infotext(model_names, model_descriptions);
+            $('#dt_results_model_filter_info_text').puidialog({
+                title: "PICA models",
+            });
             $('#dt_results_model_filter').puiautocomplete({
                 completeSource: model_names,
                 multiple: true,
