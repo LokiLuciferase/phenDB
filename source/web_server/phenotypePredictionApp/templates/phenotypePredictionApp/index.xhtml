@@ -244,10 +244,10 @@
             $('#dt_results_model_filter').on('focusin focusout', function() {
                 var all_items_htmlcoll = this.parentElement.parentElement.getElementsByTagName('li');
                 var all_items = Array.prototype.slice.call(all_items_htmlcoll);
-                var search_expr = all_items.map(x => x.innerText).join("|");
+                var search_expr = all_items.map(x => x.innerText).filter(x => x.length > 0).join(" | ");
                 dataTable
                     .columns(1)
-                    .search(search_expr)
+                    .search(search_expr, true, false, true)
                     .draw();
                 console.log('filter fkt called');
                 console.log(search_expr);
