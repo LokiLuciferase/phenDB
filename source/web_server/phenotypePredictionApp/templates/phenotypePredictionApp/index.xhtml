@@ -240,7 +240,7 @@
             });
             var table = $('#dt_results_table').DataTable();
             $('#dt_results_model_filter').on('focusin focusout', function() {
-                var all_items = this.getElementsByTagName("li");
+                var all_items = this.parentElement.parentElement.getElementsByTagName('li');
                 table
                     .columns(2)
                     .search(all_items)
