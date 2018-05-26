@@ -232,6 +232,13 @@
                     $('#dt_results_model_filter_info_text').puidialog('show');
                 }
             });
+            var table = $('#dt_results_table').DataTable();
+            $('#dt_results_model_filter').keyup(function() {
+                table
+                    .columns(2)
+                    .search(this.value)
+                    .draw();
+            })
         });
 
 
