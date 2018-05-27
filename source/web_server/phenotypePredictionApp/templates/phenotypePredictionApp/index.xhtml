@@ -69,40 +69,20 @@
     </head>
 
     <body>
+    {% include "phenotypePredictionApp/pu-popups.xhtml" %}
+    <div id="title">
+            <img id="phendb_logo" src="{% static 'phenotypePredictionApp/phendb_logo.png' %}" ></img>
+    </div>
     <form enctype="multipart/form-data" action="{% url 'phenotypePredictionApp:sendinput' %}" method="post">
         {% csrf_token %}
-        <div id="title">
-            <img id="phendb_logo" src="{% static 'phenotypePredictionApp/phendb_logo.png' %}" ></img>
-        </div>
 
         {% include "phenotypePredictionApp/inputsection.xhtml" %}
 
-        <div id="result_download" title="Your results" style="margin:10px; display:{{ showResultCSS }}">
-            RESULTS:
-            <a href="{{ result }}"> Download your results </a>
-        </div>
-        <div id="overlay" title="Processing...">
-            Your files are processed by phenDB. The site will be automatically reloaded. You can save the URL to view your results later.
-            <div id="progressbar" ></div>
-        </div>
-        <div id="error_message"></div>
+        {% include "phenotypePredictionApp/resultdownloadsection.xhtml" %}
+
     </form>
 
-    <div style="display: {{ showResultCSS }}" id="result_figures" title="Results as tables">
-        <div id="dt_results">
-            <div class="row" id="dt_results_model_filter_wrapper">
-                <div class="column" id="dt_result_model_filter_name"></div>
-                <div class="column">
-                    <input id="dt_results_model_filter"></input>
-                </div>
-                <div class="column">
-                    <button id="dt_results_model_filter_info">info</button>
-                </div>
-                <div id="dt_results_model_filter_info_text"></div>
-            </div>
-            <table id="dt_results_table" width="100%" style="display: {{ showResultCSS }}"></table>
-        </div>
-    </div>
+    {% include "phenotypePredictionApp/result_figures.xhtml" %}
 
     {% include "phenotypePredictionApp/helpsection.xhtml" %}
 
