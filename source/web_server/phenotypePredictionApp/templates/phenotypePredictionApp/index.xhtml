@@ -45,8 +45,8 @@
                 max: 1,
                 step: 0.01
             });
-            $('#result_section').puipanel();
-            $('#result_figures').puipanel({toggleable:true, colsable:false, collapsed:false});
+            $('#result_download').puipanel();
+            $('#result_figures').puipanel({toggleable:true, closable:false, collapsed:false});
             $('#help_section').puipanel({toggleable: true, closable: false, collapsed: true});
             $('#error_message').puigrowl({sticky:true});
                 {% if showErrorMessage %}
