@@ -13,8 +13,19 @@ function resultList_to_datatable_input(json_obj) {
         var sub_arr = Object.values(json_obj[i].fields);
         all_data.push(sub_arr);
     }
-
+    __roundNumbers(all_data, [3,4], 2);
     return [titles, all_data];
+}
+
+function __roundNumbers(all_data, columns, precision) {
+    for(var i=0; i<all_data.length; i++) {
+        for(var a=0; a<columns.length; a++) {
+            var col = columns[a];
+            var precision_factor = 10*precision;
+            var value_rounded = Math.round(all_data[i][col] * precision_factor)/precision_factor;
+            all_data[i][col] = value_rounded;
+        }
+    }
 }
 
 //WARNING: This code could break if the Django model is changed
