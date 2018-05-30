@@ -19,6 +19,7 @@
         <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css"></link>
         <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
         <script type="text/javascript" src="{% static "phenotypePredictionApp/json_to_list.js" %}"></script>
+    <script type="text/javascript" src="{% static "phenotypePredictionApp/result_figures.js" %}"></script>
         <script type="text/javascript">
             $(document).ready(function() {
              $('#overlay').puidialog({
@@ -85,72 +86,6 @@
     {% include "phenotypePredictionApp/result_figures.xhtml" %}
 
     {% include "phenotypePredictionApp/helpsection.xhtml" %}
-
-    <script type="text/javascript">
-
-        var resultsList_arr = resultList_to_datatable_input({{ resultsList|jsonify | safe}});
-        var resultsListJSTitles = resultsList_arr[0];
-        var resultsListJSValues = resultsList_arr[1];
-
-        var models_arr = all_models_to_list({{ all_models|jsonify | safe }});
-        var model_names = models_arr[0];
-        var model_descriptions = models_arr[1];
-
-        var dataTable;
-
-        $('#dt_result_model_filter_name').innerHTML =  resultsListJSTitles[1].title;
-
-        $(document).ready(function() {
-            dataTable = $('#dt_results_table').DataTable( {
-                            data: resultsListJSValues,
-                            columns: resultsListJSTitles,
-                            searching: true
-            } );
-        } );
-
-        var item_searchfield;
-
-        $(document).ready(function() {
-            document.getElementById('dt_results_model_filter_info_text').innerHTML = models_to_infotext(model_names, model_descriptions);
-            $('#dt_results_model_filter_info_text').puidialog({
-                title: "PICA models",
-                resizable: false,
-                width: "auto",
-                responsive: true
-            });
-            $('#dt_results_model_filter').puiautocomplete({
-                completeSource: model_names,
-                multiple: true,
-                select: function(event, items) {
-                    console.log(items);
-                    console.log(items.text());
-                    item_searchfield = items;
-                }
-            });
-            $('#dt_results_model_filter_info').puibutton({
-                icon: 'fa-external-link-square',
-                click: function() {
-                    $('#dt_results_model_filter_info_text').puidialog('show');
-                }
-            });
-
-            $('#dt_results_model_filter').on('focusin focusout', function() {
-                var all_items_htmlcoll = this.parentElement.parentElement.getElementsByTagName('li');
-                var all_items = Array.prototype.slice.call(all_items_htmlcoll);
-                var search_expr = all_items.map(x => x.innerText).filter(x => x.length > 0).map(x => '^' + x + '$').join("|");
-                dataTable
-                    .columns(1)
-                    .search(search_expr, true, false, true)
-                    .draw();
-                console.log('filter fkt called');
-                console.log(search_expr);
-            });
-        });
-
-
-
-
-    </script>
 
         <script type="text/javascript">
 

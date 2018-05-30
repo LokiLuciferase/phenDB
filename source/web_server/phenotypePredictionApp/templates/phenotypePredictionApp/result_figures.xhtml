@@ -1,7 +1,18 @@
 <div style="display: {{ showResultCSS }}; margin:10px 10px 10px 10px; " id="result_figures" title="Results as tables">
         <div id="dt_results">
             <div style="padding-bottom: 30px" class="row" id="dt_results_model_filter_wrapper">
-                <div class="column" id="dt_result_model_filter_name"></div>
+                <div class="column" style="padding-right:10px" id="dt_result_model_filter_name"></div>
+                <script>
+                    $(document).ready(function() {
+                        var resultsList_arr = resultList_to_datatable_input({{ resultsList|jsonify | safe}});
+                        var resultsListJSTitles = resultsList_arr[0];
+                        var resultsListJSValues = resultsList_arr[1];
+                        var models_arr = all_models_to_list({{ all_models|jsonify | safe }});
+                        var model_names = models_arr[0];
+                        var model_descriptions = models_arr[1];
+                        initialize_result_figures(resultsListJSTitles, resultsListJSValues, model_names, model_descriptions);
+                    });
+                </script>
                 <div class="column">
                     <input id="dt_results_model_filter"></input>
                 </div>
