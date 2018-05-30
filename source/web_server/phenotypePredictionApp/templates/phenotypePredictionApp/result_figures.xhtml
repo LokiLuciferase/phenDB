@@ -35,7 +35,7 @@
 <script type="text/javascript">
                     $(document).ready(function() {
                         var resultListJson = {{ resultsList|jsonify | safe}};
-                        if(resultListJson != null) {
+                        if(resultListJson.length != 0) {
                             console.log("is not null");
                             console.log(resultListJson);
                             var resultsList_arr = resultList_to_datatable_input(resultListJson);
