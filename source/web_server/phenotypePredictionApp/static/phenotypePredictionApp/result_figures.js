@@ -4,6 +4,7 @@
         __initialize_pica_models_autocomplete(model_names, dataTable);
         __initialize_bins_autocomplete(bins, dataTable);
         __initialize_pval_cutoff_spinner(dataTable);
+        __initialize_accuracy_cutoff_spinner(dataTable);
     }
 
     function __initialize_data_table(resultsListJSValues, resultsListJSTitles) {
@@ -80,6 +81,26 @@
             }
         );
         $('#dt_results_pval_filter').keyup(function() {
+            dataTable.draw();
+        });
+    }
+
+    function __initialize_accuracy_cutoff_spinner(dataTable) {
+        $.fn.dataTable.ext.search.push(
+            function( settings, data, dataIndex ) {
+                var min = parseFloat( $('#dt_results_accuracy_filter').val(), 10 );
+                var verdict = parseFloat( data[3] ) || 0;
+
+                if  ( isNaN( min ) ||
+                    ( isNaN( min ) && verdict <= max ) ||
+                    ( min <= verdict) )
+                {
+                    return true;
+                }
+                return false;
+            }
+        );
+        $('#dt_results_accuracy_filter').keyup(function() {
             dataTable.draw();
         });
     }
