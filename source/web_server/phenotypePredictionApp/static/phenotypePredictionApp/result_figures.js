@@ -72,3 +72,23 @@
                     .draw();
             });
         }
+
+        function __initialize_verdict_cutoff_spinner(dataTable) {
+            $.fn.dataTable.ext.search.push(
+                function( settings, data, dataIndex ) {
+                    var min = parseInt( $('#min').val(), 10 );
+                    var verdict = parseFloat( data[3] ) || 0;
+
+                    if  ( isNaN( min ) ||
+                        ( isNaN( min ) && verdict <= max ) ||
+                        ( min <= age) )
+                    {
+                        return true;
+                    }
+                    return false;
+                }
+            );
+            $('#dt_results_verdict_filter').keyup(function() {
+                dataTable.draw();
+            })
+        }
