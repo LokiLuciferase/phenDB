@@ -8,11 +8,11 @@
 
         //var dataTable;
 
-        function initialize_result_figures(resultsListJSTitles, resultsListJSValues, model_names, model_descriptions) {
+        function initialize_result_figures(resultsListJSTitles, resultsListJSValues, model_names, model_descriptions, bins) {
             var dataTable =  __initialize_data_table(resultsListJSValues, resultsListJSTitles);
             __initialize_pica_models_info(model_names, model_descriptions);
             __initialize_pica_models_autocomplete(model_names, dataTable);
-
+            __initialize_bins_autocomplete(bins, dataTable);
         }
 
         function __initialize_data_table(resultsListJSValues, resultsListJSTitles) {
@@ -52,6 +52,22 @@
                 var search_expr = all_items.map(x => x.innerText).filter(x => x.length > 0).map(x => '^' + x + '$').join("|");
                 dataTable
                     .columns(1)
+                    .search(search_expr, true, false, true)
+                    .draw();
+            });
+        }
+
+        function __initialize_bins_autocomplete(bins, dataTable) {
+             $('#dt_results_bin_filter').puiautocomplete({
+                completeSource: bins,
+                multiple: true,
+            });
+            $('#dt_results_bin_filter').on('focusin focusout keyup', function() {
+                var all_items_htmlcoll = this.parentElement.parentElement.getElementsByTagName('li');
+                var all_items = Array.prototype.slice.call(all_items_htmlcoll);
+                var search_expr = all_items.map(x => x.innerText).filter(x => x.length > 0).map(x => '^' + x + '$').join("|");
+                dataTable
+                    .columns(0)
                     .search(search_expr, true, false, true)
                     .draw();
             });
