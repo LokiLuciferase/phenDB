@@ -11,7 +11,8 @@
         var dataTable = $('#dt_results_table').DataTable( {
                         data: resultsListJSValues,
                         columns: resultsListJSTitles,
-                        searching: true
+                        searching: true,
+                        'dom' : '<tp>',
         } );
         return dataTable;
     }
