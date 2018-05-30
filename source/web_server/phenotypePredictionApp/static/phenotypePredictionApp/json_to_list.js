@@ -24,7 +24,7 @@ function __roundNumbers(all_data, columns, precision) {
             var precision_factor = 10*precision;
             var value_rounded = Math.round(all_data[i][col] * precision_factor)/precision_factor;
             var value__rounded_fixed_decimal = Number.parseFloat(value_rounded).toFixed(precision);
-            all_data[i][col] = value_rounded;
+            all_data[i][col] = value__rounded_fixed_decimal;
         }
     }
 }
