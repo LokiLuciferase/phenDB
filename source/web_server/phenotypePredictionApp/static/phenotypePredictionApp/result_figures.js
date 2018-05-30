@@ -11,9 +11,9 @@
         $('#dt_result_model_filter_name').innerHTML =  "filter " + resultsListJSTitles[1].title;
 
         function initialize_result_figures(resultsListJSTitles, resultsListJSValues, model_names, model_descriptions) {
-            __initialize_data_table(resultsListJSValues, resultsListJSTitles);
+            var dataTable =  __initialize_data_table(resultsListJSValues, resultsListJSTitles);
             __initialize_pica_models_info(model_names, model_descriptions);
-            __initialize_pica_models_autocomplete();
+            __initialize_pica_models_autocomplete(model_names, dataTable);
 
         }
 
@@ -23,6 +23,7 @@
                             columns: resultsListJSTitles,
                             searching: true
             } );
+            return dataTable;
         }
 
         function __initialize_pica_models_info(model_names, model_descriptions) {
@@ -35,7 +36,7 @@
             });
         }
 
-        function __initialize_pica_models_autocomplete(model_names) {
+        function __initialize_pica_models_autocomplete(model_names, dataTable) {
              $('#dt_results_model_filter').puiautocomplete({
                 completeSource: model_names,
                 multiple: true,
