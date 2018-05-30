@@ -12,7 +12,7 @@
                         data: resultsListJSValues,
                         columns: resultsListJSTitles,
                         searching: true,
-                        'dom' : '<tp>',
+                        'dom' : '<lpt>',
         } );
         return dataTable;
     }
