@@ -21,11 +21,12 @@
         </div>
 </div>
 <script type="text/javascript">
-                    var resultsListJSValues; //TODO: change to local
+                    var bins; //TODO: change to local
                     $(document).ready(function() {
                         var resultsList_arr = resultList_to_datatable_input({{ resultsList|jsonify | safe}});
                         var resultsListJSTitles = resultsList_arr[0];
                         resultsListJSValues = resultsList_arr[1];
+                        bins = getAllBins(resultsListJSValues)
                         var models_arr = all_models_to_list({{ all_models|jsonify | safe }});
                         var model_names = models_arr[0];
                         var model_descriptions = models_arr[1];

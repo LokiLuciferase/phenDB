@@ -63,6 +63,10 @@ function models_to_infotext(titles, descriptions) {
     return infotable;
 }
 
-function getAllBins(json_obj) {
-    json_obj
+function getAllBins(resultsListJSValues) {
+    var bins = resultsListJSValues.map(x => x[0]);
+    var unique_bins = bins.filter(function(value, position) {
+        return bins.indexOf(value) == position;
+    });
+    return unique_bins;
 }
