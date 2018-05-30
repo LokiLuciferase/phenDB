@@ -8,8 +8,6 @@
 
         //var dataTable;
 
-        $('#dt_result_model_filter_name').innerHTML =  "filter " + resultsListJSTitles[1].title;
-
         function initialize_result_figures(resultsListJSTitles, resultsListJSValues, model_names, model_descriptions) {
             var dataTable =  __initialize_data_table(resultsListJSValues, resultsListJSTitles);
             __initialize_pica_models_info(model_names, model_descriptions);

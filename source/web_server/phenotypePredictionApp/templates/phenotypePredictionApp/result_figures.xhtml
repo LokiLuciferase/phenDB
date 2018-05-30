@@ -2,7 +2,7 @@
 <div style="display: {{ showResultCSS }}; margin:10px 10px 10px 10px; " id="result_figures" title="Results as tables">
         <div id="dt_results">
             <div style="padding-bottom: 30px" class="row" id="dt_results_model_filter_wrapper">
-                <div class="column" style="padding-right:10px" id="dt_result_model_filter_name"></div>
+                <div class="column" style="padding-right:10px" id="dt_result_model_filter_name">Filter Models</div>
                 <div class="column">
                     <input id="dt_results_model_filter"></input>
                 </div>
@@ -10,6 +10,12 @@
                     <button style="height:100%" id="dt_results_model_filter_info">info</button>
                 </div>
                 <div id="dt_results_model_filter_info_text"></div>
+            </div>
+            <div style="padding-bottom: 30px" class="row" id="dt_results_bin_filter_wrapper">
+                <div class="column" style="padding-right:10px" id="dt_result_bin_filter_name">Filter Bins</div>
+                <div class="column">
+                    <input id="dt_results_bin_filter"></input>
+                </div>
             </div>
             <table id="dt_results_table" width="100%" style="display: {{ showResultCSS }}"></table>
         </div>
