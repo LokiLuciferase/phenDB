@@ -84,8 +84,10 @@
                         ( isNaN( min ) && verdict <= max ) ||
                         ( min <= verdict) )
                     {
+                        console.log('output cutoff true')
                         return true;
                     }
+                    console.log('output cutoff false')
                     return false;
                 }
             );
