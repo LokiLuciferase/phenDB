@@ -62,3 +62,7 @@ function models_to_infotext(titles, descriptions) {
     infotable += "</table>";
     return infotable;
 }
+
+function getAllBins(json_obj) {
+    json_obj
+}
