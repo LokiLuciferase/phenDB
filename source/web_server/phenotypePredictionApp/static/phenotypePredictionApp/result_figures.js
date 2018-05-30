@@ -13,6 +13,7 @@
             __initialize_pica_models_info(model_names, model_descriptions);
             __initialize_pica_models_autocomplete(model_names, dataTable);
             __initialize_bins_autocomplete(bins, dataTable);
+            __initialize_verdict_cutoff_spinner(dataTable);
         }
 
         function __initialize_data_table(resultsListJSValues, resultsListJSTitles) {
