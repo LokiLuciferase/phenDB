@@ -34,7 +34,9 @@
 </div>
 <script type="text/javascript">
                     $(document).ready(function() {
-                        var resultsList_arr = resultList_to_datatable_input({{ resultsList|jsonify | safe}});
+                        var resultListJson = {{ resultsList|jsonify | safe}};
+                        if(resultListJson == null) return;
+                        var resultsList_arr = resultList_to_datatable_input(resultListJson);
                         var resultsListJSTitles = resultsList_arr[0];
                         var resultsListJSValues = resultsList_arr[1];
                         var bins = getAllBins(resultsListJSValues)
