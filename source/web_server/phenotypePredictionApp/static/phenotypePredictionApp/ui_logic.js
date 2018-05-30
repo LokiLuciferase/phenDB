@@ -42,7 +42,6 @@ function all_models_to_list(json_obj) {
     return [model_names, model_descriptions];
 }
 
-//TODO: put in other file
 function models_to_infotext(titles, descriptions) {
     var infotable = "<table>";
     for(var i=0; i<titles.length; i++) {
