@@ -48,7 +48,7 @@
                 }
             });
 
-            $('#dt_results_model_filter').on('focusin focusout', function() {
+            $('#dt_results_model_filter').on('focusin focusout keyup', function() {
                 var all_items_htmlcoll = this.parentElement.parentElement.getElementsByTagName('li');
                 var all_items = Array.prototype.slice.call(all_items_htmlcoll);
                 var search_expr = all_items.map(x => x.innerText).filter(x => x.length > 0).map(x => '^' + x + '$').join("|");
