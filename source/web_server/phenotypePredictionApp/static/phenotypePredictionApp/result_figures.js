@@ -89,7 +89,7 @@
         $.fn.dataTable.ext.search.push(
             function( settings, data, dataIndex ) {
                 var min = parseFloat( $('#dt_results_accuracy_filter').val(), 10 );
-                var verdict = parseFloat( data[3] ) || 0;
+                var verdict = parseFloat( data[4] ) || 0;
 
                 if  ( isNaN( min ) ||
                     ( isNaN( min ) && verdict <= max ) ||
