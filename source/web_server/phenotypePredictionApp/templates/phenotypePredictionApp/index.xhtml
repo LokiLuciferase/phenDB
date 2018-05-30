@@ -19,7 +19,7 @@
         <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css"></link>
         <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
         <script type="text/javascript" src="{% static "phenotypePredictionApp/json_to_list.js" %}"></script>
-    <script type="text/javascript" src="{% static "phenotypePredictionApp/result_figures.js" %}"></script>
+        <script type="text/javascript" src="{% static "phenotypePredictionApp/result_figures.js" %}"></script>
         <script type="text/javascript">
             $(document).ready(function() {
              $('#overlay').puidialog({
@@ -86,6 +86,18 @@
     {% include "phenotypePredictionApp/result_figures.xhtml" %}
 
     {% include "phenotypePredictionApp/helpsection.xhtml" %}
+
+    <script type="text/javascript">
+                    $(document).ready(function() {
+                        var resultsList_arr = resultList_to_datatable_input({{ resultsList|jsonify | safe}});
+                        var resultsListJSTitles = resultsList_arr[0];
+                        var resultsListJSValues = resultsList_arr[1];
+                        var models_arr = all_models_to_list({{ all_models|jsonify | safe }});
+                        var model_names = models_arr[0];
+                        var model_descriptions = models_arr[1];
+                        initialize_result_figures(resultsListJSTitles, resultsListJSValues, model_names, model_descriptions);
+                    });
+    </script>
 
         <script type="text/javascript">
 
