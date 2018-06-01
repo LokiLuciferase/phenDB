@@ -12,7 +12,7 @@
                         data: resultsListJSValues,
                         columns: resultsListJSTitles,
                         searching: true,
-                        'dom' : '<ltp>',
+                        'dom' : '<ltp>', //controls which parts of the datatable should be rendered and in which order (e.g. paging control)
         } );
         return dataTable;
     }
@@ -42,6 +42,7 @@
         $('#dt_results_model_filter').on('focusin focusout keyup', function() {
             var all_items_htmlcoll = this.parentElement.parentElement.getElementsByTagName('li');
             var all_items = Array.prototype.slice.call(all_items_htmlcoll);
+            //makes a collection of the raw text, removes empty entries and builds a regex string out of this collection
             var search_expr = all_items.map(x => x.textContent).filter(x => x.length > 0).map(x => '^' + x + '$').join("|");
             dataTable
                 .columns(1)
@@ -58,6 +59,7 @@
         $('#dt_results_bin_filter').on('focusin focusout keyup', function() {
             var all_items_htmlcoll = this.parentElement.parentElement.getElementsByTagName('li');
             var all_items = Array.prototype.slice.call(all_items_htmlcoll);
+            //makes a collection of the raw text, removes empty entries and builds a regex string out of this collection
             var search_expr = all_items.map(x => x.textContent).filter(x => x.length > 0).map(x => '^' + x + '$').join("|");
             dataTable
                 .columns(0)
@@ -67,14 +69,14 @@
     }
 
     function __initialize_pval_cutoff_spinner(dataTable) {
+        //custom filtering function
         $.fn.dataTable.ext.search.push(
             function( settings, data, dataIndex ) {
                 var min = parseFloat( $('#dt_results_pval_filter').val(), 10 );
-                var verdict = parseFloat( data[3] ) || 0;
+                var value = parseFloat( data[3] ) || 0;
 
                 if  ( isNaN( min ) ||
-                    ( isNaN( min ) && verdict <= max ) ||
-                    ( min <= verdict) )
+                    ( min <= value) )
                 {
                     return true;
                 }
@@ -87,14 +89,14 @@
     }
 
     function __initialize_accuracy_cutoff_spinner(dataTable) {
+        //custom filtering function
         $.fn.dataTable.ext.search.push(
             function( settings, data, dataIndex ) {
                 var min = parseFloat( $('#dt_results_accuracy_filter').val(), 10 );
-                var verdict = parseFloat( data[4] ) || 0;
+                var value = parseFloat( data[4] ) || 0;
 
                 if  ( isNaN( min ) ||
-                    ( isNaN( min ) && verdict <= max ) ||
-                    ( min <= verdict) )
+                    ( min <= value) )
                 {
                     return true;
                 }
