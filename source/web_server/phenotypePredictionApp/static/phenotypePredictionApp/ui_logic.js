@@ -17,6 +17,7 @@ function resultList_to_datatable_input(json_obj) {
     return [titles, all_data];
 }
 
+//columns -> column to be considered for rounding in data array, function will not return anything, but modify all_data matrix
 function __roundNumbers(all_data, columns, precision) {
     for(var i=0; i<all_data.length; i++) {
         for(var a=0; a<columns.length; a++) {
