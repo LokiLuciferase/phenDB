@@ -21,7 +21,7 @@ function __roundNumbers(all_data, columns, precision) {
     for(var i=0; i<all_data.length; i++) {
         for(var a=0; a<columns.length; a++) {
             var col = columns[a];
-            var precision_factor = 10*precision;
+            var precision_factor = Math.pow(10, precision);
             var value_rounded = Math.round(all_data[i][col] * precision_factor)/precision_factor;
             var value__rounded_fixed_decimal = Number.parseFloat(value_rounded).toFixed(precision);
             all_data[i][col] = value__rounded_fixed_decimal;
