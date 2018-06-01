@@ -49,3 +49,7 @@ form {
 .inputField {
     max-width:500px;
 }
+
+.table_info_box {
+    text-align: center;
+}

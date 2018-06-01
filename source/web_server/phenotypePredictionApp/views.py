@@ -3,18 +3,19 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
 from django.urls import reverse
 from .forms import FileForm
-from .variables import *
+from .variables import PHENDB_BASEDIR, PHENDB_QUEUE, PHENDB_DEBUG
 from django.shortcuts import redirect
 from businessLogic.mailNotification import MailNotification
 import uuid
 from django.core.urlresolvers import resolve
 from businessLogic.startProcess import StartProcessThread
-from phenotypePredictionApp.models import UploadedFile
+from phenotypePredictionApp.models import Job, PicaResult, BinInJob, PicaModel
 from pprint import pprint
 from ipware.ip import get_real_ip
 from redis import Redis
 from rq import Queue, get_current_job
 import struct
+import traceback
 import os
 
 
@@ -82,7 +83,7 @@ def sendinput(request):
         StartProcessThread(key, postobj['requested_balac']).start()
         if postobj['user_email'] != '':
             MailNotification(key).start()
-    resultObj = UploadedFile.objects.get(key=key)
+    resultObj = Job.objects.get(key=key)
     return redirect(resultObj)
 
 accessed = {}
@@ -93,12 +94,12 @@ def getResults(request):
     templateError = loader.get_template('phenotypePredictionApp/error.xhtml')
     key = getKeyFromUrl(request)
     try:
-        obj = UploadedFile.objects.get(key=key)
-    except UploadedFile.DoesNotExist:
+        obj = Job.objects.get(key=key)
+    except Job.DoesNotExist:
         context = {'errorMessage' : 'The requested page does not exist. Please note that all results are deleted after 30 days!'}
         return HttpResponse(templateError.render(context, request))
 
-    #errors: when errors from model UploadedFile set to true -> sanity error, when None -> Error in the pipeline
+    #errors: when errors from model Job set to true -> sanity error, when None -> Error in the pipeline
 
     showResultCSS = ''
     showProgressBar = None
@@ -109,6 +110,7 @@ def getResults(request):
     errorMessagePU = None
     queuePos = None
     queueLen = None
+    resultsList = []
 
     if obj.finished_bins == obj.total_bins and obj.total_bins != 0:
         try:
@@ -130,6 +132,10 @@ def getResults(request):
             errorSeverityPU = 'warn'
             errorSummaryPU = 'Invalid Input File(s)'
             errorMessagePU = 'Please check the invalid_input_files.log file.'
+        #results to display in UI
+        all_bins = BinInJob.objects.filter(job=obj)
+        for bin_obj in all_bins:
+            resultsList += PicaResult.objects.filter(bin=bin_obj.bin)
     else:
         numAccessed = 0
         showResultCSS = 'none'
@@ -169,7 +175,7 @@ def getResults(request):
         refresh = False
         showProgressBar = False
 
-
+    print("len resultsDic " + str(len(resultsList)))
     context = {'result' : 'download/',
                'showResultCSS' : showResultCSS,
                'showNotification' : True if numAccessed == 1 else False,
@@ -184,15 +190,17 @@ def getResults(request):
                'errorSummaryPU' : errorSummaryPU,
                'errorMessagePU' : errorMessagePU,
                'queuePos' : queuePos + 1,
-               'queueLen' : queueLen}
+               'queueLen' : queueLen,
+               'resultsList' : resultsList,
+               'all_models' : PicaModel.objects.all}
 
-    pprint(context)
+    #pprint(context)
 
     return HttpResponse(template.render(context, request))
 
 def fileDownload(request):
     key = getKeyFromUrl(request)
-    resFile = UploadedFile.objects.get(key = key)
+    resFile = Job.objects.get(key=key)
     response = HttpResponse(resFile.fileOutput, content_type='application/tar+gzip')
     response['Content-Disposition'] = 'attachment; filename="{k}.zip"'.format(k=key)
     return response

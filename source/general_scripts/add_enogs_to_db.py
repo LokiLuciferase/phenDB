@@ -3,7 +3,7 @@ import django
 from django.utils import timezone
 import gzip
 import sys
-os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
+
 django.setup()
 from phenotypePredictionApp.models import *
 
@@ -19,7 +19,7 @@ for annot in ENOG_files:
         counter = 0
         for line in f:
             line = line.split("\t")
-            enoglist.append(enog(enog_name=line[1], enog_descr=line[5].rstrip()))
+            enoglist.append(Enog(enog_name=line[1], enog_descr=line[5].rstrip()))
             counter += 1
             sys.stdout.write('\r')
             sys.stdout.write("Adding enog nr. ")
@@ -27,4 +27,4 @@ for annot in ENOG_files:
             sys.stdout.flush()
 
 print("\n writing enogs to db...")
-enog.objects.bulk_create(enoglist)
+Enog.objects.bulk_create(enoglist)

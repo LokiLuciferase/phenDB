@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-set -e
-source variables.sh
+
+source "/apps/phenDB_devel_LL/source/general_scripts/variables.sh"
 
 function usage()
 {
@@ -20,35 +20,13 @@ function usage()
     echo ""
 }
 
-function server_detached() {
-    echo "Starting web server as daemon..."
-    cd ${BASEDIR}/source/web_server
-    if [[ $(pgrep redis-server) = "" ]] || [[ $(ps aux | grep "/usr/bin/[r]q") = "" ]]; then
-        echo "Either redis-server or python-rq worker are not running. Exiting."
-        exit 1
-    fi
-    nohup python3 manage.py runserver 0:81 &>> ${BASEDIR}/logs/django_development_server.log &
-}
-
-function showbins() {
-    echo "Viewing table 'bin' from database, then exiting..."
-    mysql -u root -e "use $DB; select * from phenotypePredictionApp_bin;"
-    echo ""
-}
-
-function showjobs() {
-    echo "Viewing table 'UploadedFile' from database, then exiting..."
-    mysql -u root -e "use $DB; select * from phenotypePredictionApp_uploadedfile;"
-    echo ""
-}
-
 function purge() {
    echo "Purging samples from database..."
-   mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_bins_in_uploadedfile;"
-   mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_result_enog;"
-   mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_result_model;"
+   mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_bininjob;"
+   mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_hmmerresult;"
+   mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_picaresult;"
    mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_bin;"
-   mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_uploadedfile;"
+   mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_job;"
 }
 
 function start_queue() {
@@ -81,9 +59,8 @@ function start() {
        echo "Either redis-server or python-rq worker are running."
        stop
    fi
-   echo "Starting Redis queue and Django development server..."
+   echo "Starting Redis queue..."
    start_queue
-   server_detached
    exit 0
 }
 
@@ -101,15 +78,6 @@ while [ "$1" != "" ]; do
             ;;
         --purge)
             purge
-            ;;
-        --view-jobs)
-            showjobs
-            ;;
-        --view-bins)
-            showbins
-            ;;
-        --server-detached)
-            server_detached
             ;;
         --start-queue)
             start_queue

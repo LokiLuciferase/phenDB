@@ -1,20 +1,25 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
         "http://www.w3.org/TR/html4/strict.dtd">
 
-<html>
+<html xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
 
     <head>
         {% load static %}
-        <link rel="stylesheet" type="text/css" href="{% static "phenotypePredictionApp/layout.css" %}" />
-        <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
-        <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/primeui/4.1.15/primeui.min.css" />
+        {% load jsonify %}
+        <link rel="stylesheet" type="text/css" href="{% static "phenotypePredictionApp/layout.css" %}"></link>
+        <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"></link>
+        <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"></link>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/primeui/4.1.15/primeui.min.css"></link>
         <script type="text/javascript" src="https://code.jquery.com/jquery-3.1.1.js"></script>
         <script type="text/javascript" src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/primeui/4.1.15/primeui.min.js"></script>
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/x-tag/1.5.11/x-tag-core.min.js"></script>
         <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/primeui@4.1.15/primeelements.js"></script>
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.3.0/mustache.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css"></link>
+        <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+        <script type="text/javascript" src="{% static "phenotypePredictionApp/ui_logic.js" %}"></script>
+        <script type="text/javascript" src="{% static "phenotypePredictionApp/result_figures.js" %}"></script>
         <script type="text/javascript">
             $(document).ready(function() {
              $('#overlay').puidialog({
@@ -41,7 +46,8 @@
                 max: 1,
                 step: 0.01
             });
-            $('#result_section').puipanel();
+            $('#result_download').puipanel();
+            $('#result_figures').puipanel({toggleable:true, closable:false, collapsed:false});
             $('#help_section').puipanel({toggleable: true, closable: false, collapsed: true});
             $('#error_message').puigrowl({sticky:true});
                 {% if showErrorMessage %}
@@ -58,127 +64,33 @@
                     $('#queue_info').puidialog('show');
                 }
             });
+            $('#dt_results_pval_filter').puispinner({step:0.05});
+            $('#dt_results_accuracy_filter').puispinner({step:0.05});
             });
         </script>
         <title>PhenDB</title>
     </head>
 
     <body>
+    {% include "phenotypePredictionApp/pu-popups.xhtml" %}
+    <div id="title">
+            <img id="phendb_logo" src="{% static 'phenotypePredictionApp/phendb_logo.png' %}" ></img>
+    </div>
     <form enctype="multipart/form-data" action="{% url 'phenotypePredictionApp:sendinput' %}" method="post">
         {% csrf_token %}
-        <div id="title">
-            <img id="phendb_logo" src="{% static 'phenotypePredictionApp/phendb_logo.png' %}" ></img>
-        </div>
-        <div class="column" id="input_section" title="Your Input" style="margin:10px; display : {{ showInputFormCSS }}" >
-            <div>
-                <button id="queue_show" type="button" style="float:right">Job Queue</button>
-                <div id="queue_info" title="PhenDB Job Queue">
-                Currently {{ queueLen }} jobs waiting to be calculated.
-                </div>
-            </div>
-            <div class="row" id="description">
-                Upload your FASTA-files (as .fasta or compressed in a tar.gz / zip folder). The fasta files themselves may be compressed as .gz. Nested directories cannot be processed.
-                To get a notification when phenDB is finished, submit your email address (optional).
-            </div>
-            <div class="row">
-                <div class="column" style="flex:50">
-                    <label for="fileInput"><b>Input</b></label>
-                </div>
-                <div class="column inputField" style="flex:50">
-                    <input id="fileInput" name="fileInput" type="file" accept=".tar.gz, .zip, .fasta, .fna, .fa" required="true" ></input>
-                </div>
-            </div>
-            <div class="row">
-                <div class="column" style="flex:50">
-                    <label for="requested_balac"><b>Balanced Accuracy Cutoff (0.5 - 1)</b></label>
-                </div>
-                <div class="column inputField" style="flex:50">
-                        <input id="requested_balac" name="requested_balac" type="text" value="0.7"></input>
-                </div>
-            </div>
-            <div class="row">
-                <div class="column" style="flex:50">
-                    <label for="fileInput"><b>email (optional) </b></label>
-                </div>
-                <div class="column inputField" style="flex:50">
-                    <input id="user_mail" name="user_email" type="email"></input>
-                </div>
-            </div>
-            <div class="row">
-                <div class="column" style="flex:100">
-                </div>
-                <div class="column inputField">
-                    <input type="submit" value="Send" ></input>
-                </div>
-            </div>
-        </div>
-        <div id="result_section" title="Your results" style="margin:10px; display:{{ showResultCSS }}">
-            RESULTS:
-            <a href="{{ result }}"> Download your results </a>
-        </div>
-        <div id="overlay" title="Processing...">
-            Your files are processed by phenDB. The site will be automatically reloaded. You can save the URL to view your results later.
-            <div id="progressbar" ></div>
-        </div>
-        <div id="error_message"></div>
+
+        {% include "phenotypePredictionApp/inputsection.xhtml" %}
+
+        {% include "phenotypePredictionApp/resultdownloadsection.xhtml" %}
+
     </form>
 
-    <div style="text-align:justify; text-justify:inter-word; margin:10px; display:{{ showInputFormCSS }}"  id="help_section" title="Help">
-    <h4>PhenDB is an automated pipeline for the prediction of microbial phenotypes based on comparative genomics.</h4>
-    <br />
-    <h1>Concept</h1>
-    <br />
-    Gene prediction by Prodigal (Hyatt et al., 2010) is run on the DNA sequence of the uploaded metagenomic bins or genomes.<br />
-    Hmmer (Eddy et al., 2001) then searches orthologous groups from these protein sequences using the EggNOG DB (Huerta-Cepas et al., 2015).<br />
-    Finally PICA (Feldbauer et al., 2015) uses support vector machine (SVM)-based models (calculated from genomes with known phenotypes) and the list of orthologous groups of proteins present in a bin/genome to predict whether the organism possesses a particular trait or not.<br />
-    Currently, predictions for 44 different traits are calculated.<br /><br />
-    Please note that PhenDB is still in an early stage of development and for several models we are still working on improving the training data.<br />
-    Thus, please take note of the "balanced_accuracy" values ascribed to predictions.<br />
-    <br />
-    <br />
-    <h1>How to Use PhenDB</h1>
-    <br />
-    You may either upload a single metagenomic bin/genome in FASTA format (.gz-compressed or uncompressed), or an archive (.tar.gz or .zip) containing several bins/genomes.<br />
-    Alternatively, files and archives of files containing a proteome of a metagenomic bin (again in FASTA format) may be uploaded.<br /><br />
-    Please note that a flat filestructure is required in the compressed folder.<br />
-    The current maximum filesize for upload is 1 GB, the maximum file size per bin is 30 MB.<br />
-    Duplicate sequence files (determined by file content) will be silently dropped from the analysis.<br />
-    Empty sequence files will be silently dropped from the analysis.<br /><br />
-    Balanced Accuracy is a confidence measure computed from completeness/contamination of the uploaded bin and the model's predictive power. Predictions with a balanced accuracy below the chosen cutoff value (range: 0.5 - 1) are omitted from the result.<br /><br />
-    After submission, your job is queued and waits for completion of any previously submitted jobs.<br />
-    When computation starts, expect about 1-1.5 min of calculation time per bin.<br />
-    To receive a notification upon job completion, enter an email address during your submission.<br />
-    Alternatively, you may save the URL to your submission to retrieve your results later.<br />
-    Results are stored by PhenDB for 30 days - after which all user-uploaded data and associated results are deleted.<br />
-    <br />
-    <br />
-    <h1>Output</h1>
-    <br />
-    PhenDB provides the output files in a .zip compressed folder named after your Job ID (i.e. the key after ../results/ in the URL). This folder contains:<br />
-    <ul>
-    <li>the folder individual_results, containing:</li>
-        <ul>
-        <li>a .results.txt file for every valid uploaded bin/genome.<br />This file contains the model names, predictions (YES/NO/NA) along with probability and balanced accuracy values.</li>
-        </ul>
-    <li>the folder "summaries", which contains:</li>
-        <ul>
-        <li>"summary_matrix.results.tsv": A summary file that shows for each model how many bins/genomes were predicted as "YES", "NO" or "N/A"</li>
-        <li>"per_bin_matrix.results.tsv": A summary file that shows the verdict for each bin and each model as a matrix</li>
-        <li>"invalid_input_files.log.txt": If one or more of your uploaded files were invalid (e.g. not in FASTA format), a warning will appear to check this file. If all files were correct, this file is empty.</li>
-        <li>"PICA_trait_descriptions.txt": Contains the model names and the traits they are testing for.</li>
-        </ul>
-    </ul>
-    <br />
-    <br />
-    <h1>References</h1>
-    <br />
-    Hyatt, Doug, et al. "Prodigal: prokaryotic gene recognition and translation initiation site identification." BMC bioinformatics 11.1 (2010): 119.<br />
-    Eddy, Sean R. "HMMER: Profile hidden Markov models for biological sequence analysis." (2001).<br />
-    Huerta-Cepas, Jaime, et al. "eggNOG 4.5: a hierarchical orthology framework with improved functional annotations for eukaryotic, prokaryotic and viral sequences." Nucleic acids research 44.D1 (2015): D286-D293.<br />
-    Feldbauer, Roman, et al. "Prediction of microbial phenotypes based on comparative genomics." BMC bioinformatics 16.14 (2015): S1.<br />
-    </div>
+    {% include "phenotypePredictionApp/result_figures.xhtml" %}
 
-        <script>
+    {% include "phenotypePredictionApp/helpsection.xhtml" %}
+
+
+        <script type="text/javascript">
 
             //------------RELOAD OF PAGE----------------------------//
 
@@ -193,7 +105,6 @@
                 var reloadCounter = sessionStorage.getItem('reloadCounter');
                 var reloadTime = minReload * reloadCounter;
                 if(reloadTime > maxReload) reloadTime == maxReload;
-                console.log(reloadTime); //TODO: delete
                 setTimeout(function() {location.reload(true)}, reloadTime);
                 sessionStorage.setItem('reloadCounter', ++reloadCounter);
 
@@ -201,7 +112,7 @@
                 sessionStorage.setItem('reloadCounter', "")
             {% endif %}
         </script>
-        <script>
+        <script type="text/javascript">
             //--------DESKTOP-NOTIFICATIONS-------------------------//
             {% if showNotification %}
             $(document).ready(function() {

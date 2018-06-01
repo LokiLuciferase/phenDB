@@ -19,8 +19,7 @@ def upload_function_results(instance, givenname):
 
 # ----------------Models--------------------------------------
 
-#TODO: rename later (in the end)
-class UploadedFile(models.Model):
+class Job(models.Model):
 
     class Meta:
         indexes = [
@@ -45,12 +44,8 @@ class UploadedFile(models.Model):
     def get_absolute_url(self):
         return "results/%s/" % self.key
 
-# TODO: add taxonomy db taxids and descriptions of species?
-# TODO: migrate devel_new DB
-# class taxid(models.Model):
 
-
-class bin(models.Model):
+class Bin(models.Model):
 
     class Meta:
         indexes = [
@@ -67,28 +62,32 @@ class bin(models.Model):
     comple = models.FloatField()
     conta = models.FloatField()
     strainhet = models.FloatField()
-
+    assembly_id = models.TextField(null=True, blank=True)  # TODO: migrate this!
 
     def __str__(self):
-        return "File name: {fn}".format(fn=self.bin_name)
+        return str(self.bin_name) + " " + str(self.md5sum) + " " + str(self.tax_id) + " " + str(self.taxon_name) + " " + str(self.taxon_rank) + " " + str(self.comple) + " " + str(self.conta) + " " + str(self.strainhet)
+        #return "File name: {fn}".format(fn=self.bin_name)
+
+    def natural_key(self):
+        return (self.bin_name)
 
 
-class bins_in_UploadedFile(models.Model):
+class BinInJob(models.Model):
 
     class Meta:
-        unique_together = ('bin', 'UploadedFile')  # composite primary key
+        unique_together = ('bin', 'job')  # composite primary key
         indexes = [
-            models.Index(fields=['bin', 'UploadedFile'])
+            models.Index(fields=['bin', 'job'])
        ]
 
-    bin = models.ForeignKey(bin, on_delete=models.CASCADE)  # delete bins if we delete the association row
-    UploadedFile=models.ForeignKey(UploadedFile)
+    bin = models.ForeignKey(Bin, on_delete=models.CASCADE)  # delete bins if we delete the association row
+    job = models.ForeignKey(Job)
 
     def __str__(self):
-        return "Bin: {bin} in Job {job}".format(bin=self.bin, job=self.UploadedFile)
+        return "Bin: {bin} in Job {job}".format(bin=self.bin, job=self.job)
 
 
-class enog(models.Model):
+class Enog(models.Model):
 
     class Meta:
         indexes = [
@@ -103,7 +102,7 @@ class enog(models.Model):
                                                      ed=self.enog_descr)
 
 
-class model(models.Model):
+class PicaModel(models.Model):
 
     class Meta:
         unique_together = ('model_name', 'model_train_date')  # composite primary key
@@ -113,6 +112,7 @@ class model(models.Model):
         verbose_name = 'PICA Model'
         verbose_name_plural = 'PICA Models'
 
+    # New fields must be added at end due to web UI
     model_name = models.CharField(max_length=64)
     type = models.CharField(max_length=2)
     model_desc = models.TextField()
@@ -123,8 +123,11 @@ class model(models.Model):
                "Type= {type}".format(mid=self.model_name,md=self.model_desc, mtd=str(self.model_train_date),
                                          type=self.type)
 
+    def natural_key(self):
+        return (self.model_name)
 
-class model_enog_ranks(models.Model):
+
+class EnogRank(models.Model):
 #todo: change PK to model and enog alone
     class Meta:
         unique_together = ('model', 'enog')  # composite primary key
@@ -132,8 +135,8 @@ class model_enog_ranks(models.Model):
             models.Index(fields=['model', 'enog'])
         ]
 
-    model = models.ForeignKey(model)
-    enog = models.ForeignKey(enog)
+    model = models.ForeignKey(PicaModel)
+    enog = models.ForeignKey(Enog)
     internal_rank = models.FloatField()
 
     def __str__(self):
@@ -141,14 +144,16 @@ class model_enog_ranks(models.Model):
                                                                                            mid=self.model.model_name,
                                                                                            ir=str(self.internal_rank),
                                                                                            mtd=str(self.model.model_train_date))
-class model_accuracies(models.Model):
+
+
+class PicaModelAccuracy(models.Model):
     class Meta:
         unique_together = ('model', 'comple', 'conta')  # composite primary key
         indexes = [
             models.Index(fields=['model', 'comple', 'conta'])
         ]
 
-    model = models.ForeignKey(model)
+    model = models.ForeignKey(PicaModel)
     comple = models.FloatField()
     conta = models.FloatField()
     mean_balanced_accuracy  = models.FloatField()
@@ -157,23 +162,23 @@ class model_accuracies(models.Model):
 
 
     def __str__(self):
-        return "Name: {mid}\t type= {type} \t Completness: {comple} \t " \
+        return "Name: {mid}\t type= {type} \t Completeness: {comple} \t " \
                "Contamination {conta} \t bal. acc {balac}".format(mid=self.model.model_name,
                                                                       type=self.model.type, comple=self.comple,
                                                                       conta=self.conta,
                                                                       balac=self.mean_balanced_accuracy
                                                                               )
 
-class model_used_genomes(models.Model):
+class PicaModelTrainingData(models.Model):
     class Meta:
         unique_together = ('model', 'tax_id', 'assembly_id')
         indexes = [
             models.Index(fields=['model', 'tax_id'])
         ]
 
-    model = models.ForeignKey(model)
+    model = models.ForeignKey(PicaModel)
     tax_id = models.CharField(max_length=10)
-    assembly_id = models.TextField()
+    assembly_id = models.CharField(max_length=20)
     verdict = models.NullBooleanField()
 
     def __str__(self):
@@ -182,7 +187,7 @@ class model_used_genomes(models.Model):
                                                                          yn=self.verdict)
 
 
-class result_enog(models.Model):
+class HmmerResult(models.Model):
 
     class Meta:
         unique_together = ('bin', 'enog')
@@ -190,15 +195,15 @@ class result_enog(models.Model):
             models.Index(fields=['enog', 'bin'])
         ]
 
-    enog = models.ForeignKey(enog)
-    bin = models.ForeignKey(bin)
+    enog = models.ForeignKey(Enog)
+    bin = models.ForeignKey(Bin)
 
     def __str__(self):
         return "Enog {eid} contained in the bin {mds} of Job {Jb}".format(eid=self.enog_id,
-                                                              mds=self.bin_id, jb=self.UploadedFile.key)
+                                                              mds=self.bin_id, jb=self.bin.key)
 
 
-class result_model(models.Model):
+class PicaResult(models.Model):
 
     class Meta:
         unique_together = ('bin', 'model')
@@ -206,8 +211,8 @@ class result_model(models.Model):
             models.Index(fields=['bin', 'model'])
         ]
 
-    bin = models.ForeignKey(bin)
-    model = models.ForeignKey(model)
+    bin = models.ForeignKey(Bin)
+    model = models.ForeignKey(PicaModel)
     verdict = models.NullBooleanField()
     pica_pval = models.FloatField()
     accuracy = models.FloatField()

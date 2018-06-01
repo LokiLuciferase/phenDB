@@ -1,10 +1,10 @@
 from django import forms
-from .models import UploadedFile
+from .models import Job
 
 
 class FileForm(forms.ModelForm):
     class Meta:
-        model = UploadedFile
+        model = Job
         fields = ['filename', 'key', 'fileInput', 'user_ip', 'user_email', 'errors', 'requested_balac']
 
     def __init__(self, *args, **kwargs):

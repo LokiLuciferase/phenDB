@@ -1,0 +1,49 @@
+{% load jsonify %}
+<div style="display: {{ showResultCSS }}; margin:10px 10px 10px 10px; " id="result_figures" title="Results as tables">
+        <div id="dt_results">
+            <div style="padding-bottom: 30px" class="row" id="dt_results_model_filter_wrapper">
+                <div class="column" style="width: 100px; padding-right:10px" id="dt_result_model_filter_name">Filter Models</div>
+                <div class="column">
+                    <input id="dt_results_model_filter"></input>
+                </div>
+                <div class="column">
+                    <button style="height:100%; margin-bottom:3px;" id="dt_results_model_filter_info">info</button>
+                </div>
+                <div id="dt_results_model_filter_info_text"></div>
+            </div>
+            <div style="padding-bottom: 30px" class="row" id="dt_results_bin_filter_wrapper">
+                <div class="column" style="width: 100px; padding-right:10px" id="dt_result_bin_filter_name">Filter Bins</div>
+                <div class="column">
+                    <input id="dt_results_bin_filter"></input>
+                </div>
+            </div>
+            <div style="padding-bottom: 30px" class="row" id="dt_results_pval_filter_wrapper">
+                <div class="column" style="width: 100px; padding-right:10px" id="dt_result_pval_filter_name">PICA p-value cutoff</div>
+                <div class="column">
+                    <input id="dt_results_pval_filter"></input>
+                </div>
+            </div>
+            <div style="padding-bottom: 30px" class="row" id="dt_results_accuracy_filter_wrapper">
+                <div class="column" style="width: 100px; padding-right:10px" id="dt_result_accuracy_filter_name">accuracy cutoff</div>
+                <div class="column">
+                    <input id="dt_results_accuracy_filter"></input>
+                </div>
+            </div>
+            <table id="dt_results_table" width="100%" style="display: {{ showResultCSS }}"></table>
+        </div>
+</div>
+<script type="text/javascript">
+                    $(document).ready(function() {
+                        var resultListJson = {{ resultsList|jsonify | safe}};
+                        if(resultListJson.length != 0) {
+                            var resultsList_arr = resultList_to_datatable_input(resultListJson);
+                            var resultsListJSTitles = resultsList_arr[0];
+                            var resultsListJSValues = resultsList_arr[1];
+                            var bins = getAllBins(resultsListJSValues);
+                            var models_arr = all_models_to_list({{ all_models|jsonify | safe }});
+                            var model_names = models_arr[0];
+                            var model_descriptions = models_arr[1];
+                            initialize_result_figures(resultsListJSTitles, resultsListJSValues, model_names, model_descriptions, bins);
+                        }
+                    });
+</script>
