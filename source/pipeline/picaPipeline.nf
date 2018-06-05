@@ -757,7 +757,6 @@ outfilechannel = NA_replaced_for_download.collectFile() { item ->
 
 // create a matrix file containing all verdicts for each bin and add to output files
 // create a matrix file containing summaries per model
-// here we could for example add a header to each results file
 process make_matrix_and_headers {
 
     stageInMode 'copy'
@@ -866,7 +865,9 @@ process zip_results {
     stageInMode 'copy'  //actually copy in the results so we not only tar symlinks
 
     input:
-    file(allfiles) from all_files_for_tar
+    file(allfiles) from all_files_for_tar.collect()
+    file(kronafile) from krona_out.collect()
+    file(tax_cc_files) from tax_cc_file_out.collect()
     file(errorfile)
 
     output:
@@ -879,13 +880,14 @@ process zip_results {
     cp ${params.description_file} ${jobname}/summaries/PICA_trait_descriptions.txt
     cp ${errorfile} ${jobname}/summaries/invalid_input_files.log.txt
     mv *.results.csv ${jobname}/individual_results
-    mv *matrix.csv ${jobname}/summaries
+    mv *.csv ${jobname}/summaries
+    mv *.html ${jobname}/summaries
     zip -r ${jobname}.zip ./${jobname}
     rm -rf ${jobname}
     """
 }
 
-db_written = picaout_db_write.collectFile() { item ->
+db_write = picaout_db_write.collectFile() { item ->
     [ "${item[1]}.results", "${item[2]}\t${item[3]}\t${item[4]}" ]  // use md5sum as filename
 }
 
@@ -894,7 +896,10 @@ process write_pica_result_to_db {
     scratch true
 
     input:
-    file(mdsum_file) from db_written
+    file(mdsum_file) from db_write
+
+    output:
+    file(mdsum_file) into db_written
 
     script:
 // language=Python
@@ -951,6 +956,79 @@ for result in conditions:  # result = [modelname, verdict, pica_p_val, balanced_
 PicaResult.objects.bulk_create(modelresultlist)
 """
 }
+
+
+process write_tax_and_cc_result_file {
+
+    input:
+    file(allfiles) from db_written
+
+    output:
+    file('*.csv') into tax_cc_file_out
+    file('*.tsv') into tax_for_krona
+
+    script:
+    """
+#!/usr/bin/env python3
+
+import django
+import sys
+import glob
+import os
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import IntegrityError
+
+os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
+django.setup()
+from phenotypePredictionApp.models import Bin
+
+mdsums = []
+for name in glob.glob("*.results"):
+    mdsums.append(name.replace(".results", ""))
+mdsums = sorted(mdsums, reverse=True)
+bins = Bin.objects.filter(md5sum__in=mdsums)
+
+with open("taxonomy.csv", "w") as taxfile:
+    taxfile.write("Bin_name\\ttaxon_id\\ttaxon_name\\ttaxon_rank\\n")
+    for bin in bins:
+        taxfile.write("{bn}\\t{ti}\\t{tn}\\t{tr}\\n".format(bn=bin.bin_name,
+                                                        ti=bin.tax_id,
+                                                        tn=bin.taxon_name,
+                                                        tr=bin.taxon_rank))
+with open("taxonomy_krona.tsv", "w") as tax_krona:
+    tax_krona.write("#bin name\\t#taxon_id\\n")
+    for bin in bins:
+        tax_krona.write("{bn}\\t{ti}\\n".format(bn=bin.bin_name,
+                                              ti=bin.tax_id))
+
+with open("completeness_contamination.csv", "w") as cc_out:
+    cc_out.write("Bin_name\\tCompleteness\\tContamination\\tStrain_heterogeneity\\n")
+    for bin in bins:
+        cc_out.write("{bn}\\t{com}\\t{con}\\t{sh}\\n".format(bn=bin.bin_name,
+                                                         com=bin.comple,
+                                                         con=bin.conta,
+                                                         sh=bin.strainhet))
+    
+    """
+}
+
+
+process krona {
+
+    scratch true
+
+    input:
+    file(kronain) from tax_for_krona
+
+    output:
+    file('krona_taxonomy.html') into krona_out
+
+    script:
+    """
+    ktImportTaxonomy $kronain -o krona_taxonomy.html
+    """
+}
+
 
 process write_zip_to_db {
 
