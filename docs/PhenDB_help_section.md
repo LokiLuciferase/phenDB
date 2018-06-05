@@ -43,7 +43,9 @@ PhenDB provides a downloadable archive named after your Job ID (i.e. the key aft
     *   "per\_bin\_matrix.csv": A summary file that shows the verdict for each bin and each model as a matrix
     *   "invalid\_input\_files.log.txt": If one or more of your uploaded files were invalid (e.g. not in FASTA format), a warning will appear to check this file. If all files were correct, this file is empty.
     *   "PICA\_trait\_descriptions.txt": Contains the model names and the traits they are testing for.
-
+    *   "completeness_contamination.csv": Contains estimated completeness, contamination and strain heterogeneity of uploaded bins.
+    *   "taxonomy.csv": Contains estimated taxonomic position of uploaded bins.
+    *   "krona_taxonomy.html": A Krona plot[6] of taxonomy.csv
 
 ### Statistical Measures
 PhenDB provides two separate confidence measures associated with trait predictions.
@@ -69,3 +71,4 @@ References
 3. Huerta-Cepas, Jaime, et al. "eggNOG 4.5: a hierarchical orthology framework with improved functional annotations for eukaryotic, prokaryotic and viral sequences." Nucleic acids research 44.D1 (2015): D286-D293.  
 4. Hyden, Patrick, et al., unpublished (https://github.com/phyden/compleconta)
 5. Feldbauer, Roman, et al. "Prediction of microbial phenotypes based on comparative genomics." BMC bioinformatics 16.14 (2015): S1.
+6. Ondov BD, Bergman NH, and Phillippy AM. Interactive metagenomic visualization in a Web browser. BMC Bioinformatics. 2011 Sep 30; 12(1):385.
