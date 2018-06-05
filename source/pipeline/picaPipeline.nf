@@ -749,16 +749,19 @@ NA_replaced_for_download = picaout_for_download.mix(picaout_from_new_model).map 
     return [l[0], l[1], l[2], output, l[4]]
 }
 
+NA_replaced_for_download.into{ NA_repl_for_dl_pica; NA_repl_for_dl_tax }
+
 // merge all results into a file called $id.results.
-outfilechannel = NA_replaced_for_download.collectFile() { item ->
+outfilechannel = NA_repl_for_dl_pica.collectFile() { item ->
     [ "${item[0]}.results", "${item[2]}\t${item[3]}\t${item[4]}" ]  // use given bin name as filename
 }.collect()
 
+taxonomy_mdsums = NA_repl_for_dl_tax.map { item -> item[0] }.collect() // get md5sums
 
-mdsum_files_collected = picaout_db_write.collectFile() { item ->
+
+db_write_pica_results = picaout_db_write.collectFile() { item ->
     [ "${item[1]}.results", "${item[2]}\t${item[3]}\t${item[4]}" ]  // use md5sum as filename
 }
-mdsum_files_collected.into{ db_write; taxonomy_write }
 
 
 // create a matrix file containing all verdicts for each bin and add to output files
@@ -867,19 +870,19 @@ with open("per_bin_matrix.csv", "w") as outfile2:
 process write_tax_and_cc_result_file {
 
     input:
-    file(allfiles) from taxonomy_write
+    val(allsums) from taxonomy_mdsums
 
     output:
     file('*.csv') into tax_cc_file_out
     file('*.tsv') into tax_for_krona
 
     script:
+    mdsum_string = allsums.join("\t")
     """
 #!/usr/bin/env python3
 
 import django
 import sys
-import glob
 import os
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError
@@ -888,9 +891,8 @@ os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
 django.setup()
 from phenotypePredictionApp.models import Bin
 
-mdsums = []
-for name in glob.glob("*.results"):
-    mdsums.append(name.replace(".results", ""))
+mdsums = "${mdsum_string}".split("\\t")
+
 mdsums = sorted(mdsums, reverse=True)
 bins = Bin.objects.filter(md5sum__in=mdsums)
 
@@ -970,7 +972,7 @@ process write_pica_result_to_db {
     scratch true
 
     input:
-    file(mdsum_file) from db_write
+    file(mdsum_file) from db_write_pica_results
 
     script:
 // language=Python
