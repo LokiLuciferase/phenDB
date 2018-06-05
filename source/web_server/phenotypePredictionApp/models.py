@@ -77,7 +77,9 @@ class BinInJob(models.Model):
     class Meta:
         unique_together = ('bin', 'job')  # composite primary key
         indexes = [
-            models.Index(fields=['bin', 'job'])
+            models.Index(fields=['bin', 'job']),
+            models.Index(fields=['bin',]),
+            models.Index(fields=['job',])
        ]
 
     bin = models.ForeignKey(Bin, on_delete=models.CASCADE)  # delete bins if we delete the association row
@@ -132,7 +134,10 @@ class EnogRank(models.Model):
     class Meta:
         unique_together = ('model', 'enog')  # composite primary key
         indexes = [
-            models.Index(fields=['model', 'enog'])
+            models.Index(fields=['model', 'enog']),
+            models.Index(fields=['model',]),
+            models.Index(fields=['enog',]),
+            models.Index(fields=['internal_rank',])
         ]
 
     model = models.ForeignKey(PicaModel)
@@ -192,7 +197,8 @@ class HmmerResult(models.Model):
     class Meta:
         unique_together = ('bin', 'enog')
         indexes = [
-            models.Index(fields=['enog', 'bin'])
+            models.Index(fields=['enog', 'bin']),
+            models.Index(fields=['bin'])
         ]
 
     enog = models.ForeignKey(Enog)
@@ -208,7 +214,8 @@ class PicaResult(models.Model):
     class Meta:
         unique_together = ('bin', 'model')
         indexes = [
-            models.Index(fields=['bin', 'model'])
+            models.Index(fields=['bin', 'model']),
+            models.Index(fields=['bin'])
         ]
 
     bin = models.ForeignKey(Bin)
