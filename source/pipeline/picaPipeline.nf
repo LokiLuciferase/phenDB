@@ -755,6 +755,12 @@ outfilechannel = NA_replaced_for_download.collectFile() { item ->
 }.collect()
 
 
+mdsum_files_collected = picaout_db_write.collectFile() { item ->
+    [ "${item[1]}.results", "${item[2]}\t${item[3]}\t${item[4]}" ]  // use md5sum as filename
+}
+mdsum_files_collected.into{ db_write; taxonomy_write }
+
+
 // create a matrix file containing all verdicts for each bin and add to output files
 // create a matrix file containing summaries per model
 process make_matrix_and_headers {
@@ -858,110 +864,10 @@ with open("per_bin_matrix.csv", "w") as outfile2:
 }
 
 
-process zip_results {
-
-    tag { jobname }
-    scratch true
-    stageInMode 'copy'  //actually copy in the results so we not only tar symlinks
-
-    input:
-    file(allfiles) from all_files_for_tar.collect()
-    file(kronafile) from krona_out.collect()
-    file(tax_cc_files) from tax_cc_file_out.collect()
-    file(errorfile)
-
-    output:
-    file("${jobname}.zip") into zip_to_db
-
-    script:
-    """
-    mkdir -p ${jobname}/summaries
-    mkdir -p ${jobname}/individual_results
-    cp ${params.description_file} ${jobname}/summaries/PICA_trait_descriptions.txt
-    cp ${errorfile} ${jobname}/summaries/invalid_input_files.log.txt
-    mv *.results.csv ${jobname}/individual_results
-    mv *.csv ${jobname}/summaries
-    mv *.html ${jobname}/summaries
-    zip -r ${jobname}.zip ./${jobname}
-    rm -rf ${jobname}
-    """
-}
-
-db_write = picaout_db_write.collectFile() { item ->
-    [ "${item[1]}.results", "${item[2]}\t${item[3]}\t${item[4]}" ]  // use md5sum as filename
-}
-
-process write_pica_result_to_db {
-
-    scratch true
-
-    input:
-    file(mdsum_file) from db_write
-
-    output:
-    file(mdsum_file) into db_written
-
-    script:
-// language=Python
-"""
-#!/usr/bin/env python3
-
-import django
-import sys
-import os
-from django.core.exceptions import ObjectDoesNotExist
-from django.db import IntegrityError
-os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
-
-django.setup()
-from phenotypePredictionApp.models import Job, Bin, PicaModel, PicaResult
-
-# get Bin from db
-try:
-    parentbin = Bin.objects.get(md5sum="${mdsum_file.getBaseName()}")
-except ObjectDoesNotExist:
-    sys.exit("Bin not found.")
-
-conditions = []
-with open("${mdsum_file}", "r") as picaresults:
-    for line in picaresults:
-        conditions.append(line.split())
-
-modelresultlist=[]
-for result in conditions:  # result = [modelname, verdict, pica_p_val, balanced_accuracy]
-    try:
-        get_bool = {"YES": True, "NO": False, "N/A": None}
-        if result[2]=="NA" or result[2]=="N/A":
-            get_pica_pval=float(0)
-        else:
-            get_pica_pval=float(result[2])
-
-
-        boolean_verdict = get_bool[result[1]]
-        #get model from db
-        try:
-            this_model=PicaModel.objects.filter(model_name=result[0]).latest('model_train_date')
-        except ObjectDoesNotExist:
-            sys.exit("Current Model for this result not found.")
-
-        modelresult = PicaResult(verdict=boolean_verdict,
-                                   accuracy=float(result[3]),
-                                   pica_pval=get_pica_pval,
-                                   bin=parentbin,
-                                   model=this_model
-                                   )
-        modelresultlist.append(modelresult)
-    except (IntegrityError, ) as e:
-        sys.exit(e)
-PicaResult.objects.bulk_create(modelresultlist)
-"""
-}
-
-
 process write_tax_and_cc_result_file {
 
     input:
-    file(allfiles) from db_written
+    file(allfiles) from taxonomy_write
 
     output:
     file('*.csv') into tax_cc_file_out
@@ -1027,6 +933,99 @@ process krona {
     """
     ktImportTaxonomy $kronain -o krona_taxonomy.html
     """
+}
+
+process zip_results {
+
+    tag { jobname }
+    scratch true
+    stageInMode 'copy'  //actually copy in the results so we not only tar symlinks
+
+    input:
+    file(allfiles) from all_files_for_tar.collect()
+    file(kronafile) from krona_out.collect()
+    file(tax_cc_files) from tax_cc_file_out.collect()
+    file(errorfile)
+
+    output:
+    file("${jobname}.zip") into zip_to_db
+
+    script:
+    """
+    mkdir -p ${jobname}/summaries
+    mkdir -p ${jobname}/individual_results
+    cp ${params.description_file} ${jobname}/summaries/PICA_trait_descriptions.txt
+    cp ${errorfile} ${jobname}/summaries/invalid_input_files.log.txt
+    mv *.results.csv ${jobname}/individual_results
+    mv *.csv ${jobname}/summaries
+    mv *.html ${jobname}/summaries
+    zip -r ${jobname}.zip ./${jobname}
+    rm -rf ${jobname}
+    """
+}
+
+
+process write_pica_result_to_db {
+
+    scratch true
+
+    input:
+    file(mdsum_file) from db_write
+
+    script:
+// language=Python
+"""
+#!/usr/bin/env python3
+
+import django
+import sys
+import os
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import IntegrityError
+os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
+
+django.setup()
+from phenotypePredictionApp.models import Job, Bin, PicaModel, PicaResult
+
+# get Bin from db
+try:
+    parentbin = Bin.objects.get(md5sum="${mdsum_file.getBaseName()}")
+except ObjectDoesNotExist:
+    sys.exit("Bin not found.")
+
+conditions = []
+with open("${mdsum_file}", "r") as picaresults:
+    for line in picaresults:
+        conditions.append(line.split())
+
+modelresultlist=[]
+for result in conditions:  # result = [modelname, verdict, pica_p_val, balanced_accuracy]
+    try:
+        get_bool = {"YES": True, "NO": False, "N/A": None}
+        if result[2]=="NA" or result[2]=="N/A":
+            get_pica_pval=float(0)
+        else:
+            get_pica_pval=float(result[2])
+
+
+        boolean_verdict = get_bool[result[1]]
+        #get model from db
+        try:
+            this_model=PicaModel.objects.filter(model_name=result[0]).latest('model_train_date')
+        except ObjectDoesNotExist:
+            sys.exit("Current Model for this result not found.")
+
+        modelresult = PicaResult(verdict=boolean_verdict,
+                                   accuracy=float(result[3]),
+                                   pica_pval=get_pica_pval,
+                                   bin=parentbin,
+                                   model=this_model
+                                   )
+        modelresultlist.append(modelresult)
+    except (IntegrityError, ) as e:
+        sys.exit(e)
+PicaResult.objects.bulk_create(modelresultlist)
+"""
 }
 
 
