@@ -756,7 +756,7 @@ outfilechannel = NA_repl_for_dl_pica.collectFile() { item ->
     [ "${item[0]}.results", "${item[2]}\t${item[3]}\t${item[4]}" ]  // use given bin name as filename
 }.collect()
 
-taxonomy_mdsums = NA_repl_for_dl_tax.map { item -> item[0] }.collect() // get md5sums
+taxonomy_mdsums = NA_repl_for_dl_tax.map { item -> item[1] }.unique().collect() // get md5sums
 
 
 db_write_pica_results = picaout_db_write.collectFile() { item ->
