@@ -219,6 +219,6 @@ def pageNotFound(request):
     return HttpResponse(errorTemplate.render(context,request))
 
 def serverError(request):
-    context = {'errorMessage': 'Unknown server-error: This should not have happened. We are sorry! Please try later or contact us!'}
+    context = {'errorMessage': 'Unknown server error: This should not have happened. Please try again later or contact us!'}
     errorTemplate = loader.get_template('phenotypePredictionApp/error.xhtml')
     return HttpResponse(errorTemplate.render(context, request))

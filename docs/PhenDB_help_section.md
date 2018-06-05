@@ -21,7 +21,7 @@ Additionally, please note that PhenDB currently does not provide trait predictio
 How to Use PhenDB
 =================
 
-#### Input File Formats
+### Input File Formats
 The PhenDB pipeline takes as input genomic bins from a Metagenomics experiment, which may be provided as:
 
 * Nucleotide fasta file (raw or gzip-compressed)
@@ -33,7 +33,7 @@ The current maximum file size for upload is 1 GB, the maximum file size per bin 
 Duplicate sequence files (determined by file content) will be silently dropped from the analysis.  
 Empty sequence files will be silently dropped from the analysis.  
 
-#### Output Files
+### Output Files
 PhenDB provides a downloadable archive named after your Job ID (i.e. the key after ../results/ in the URL). This archive contains:  
 *   the folder individual_results, containing:
     *   a {bin name}.results.csv file for every valid uploaded bin/genome.
@@ -66,6 +66,6 @@ References
 
 1. Hyatt, Doug, et al. "Prodigal: prokaryotic gene recognition and translation initiation site identification." BMC bioinformatics 11.1 (2010): 119.  
 2. Eddy, Sean R. "HMMER: Profile hidden Markov models for biological sequence analysis." (2001).  
-Huerta-Cepas, Jaime, et al. "eggNOG 4.5: a hierarchical orthology framework with improved functional annotations for eukaryotic, prokaryotic and viral sequences." Nucleic acids research 44.D1 (2015): D286-D293.  
-3. Hyden, Patrick, et al., unpublished (https://github.com/phyden/compleconta)
-4. Feldbauer, Roman, et al. "Prediction of microbial phenotypes based on comparative genomics." BMC bioinformatics 16.14 (2015): S1.
+3. Huerta-Cepas, Jaime, et al. "eggNOG 4.5: a hierarchical orthology framework with improved functional annotations for eukaryotic, prokaryotic and viral sequences." Nucleic acids research 44.D1 (2015): D286-D293.  
+4. Hyden, Patrick, et al., unpublished (https://github.com/phyden/compleconta)
+5. Feldbauer, Roman, et al. "Prediction of microbial phenotypes based on comparative genomics." BMC bioinformatics 16.14 (2015): S1.

@@ -9,10 +9,11 @@
 
     function __initialize_data_table(resultsListJSValues, resultsListJSTitles) {
         var dataTable = $('#dt_results_table').DataTable( {
-                        data: resultsListJSValues,
-                        columns: resultsListJSTitles,
-                        searching: true,
-                        'dom' : '<ltp>', //controls which parts of the datatable should be rendered and in which order (e.g. paging control)
+            "lengthMenu": [[50, 100, -1], [50, 100, "All"]],
+            data: resultsListJSValues,
+            columns: resultsListJSTitles,
+            searching: true,
+            'dom' : '<ltp>', //controls which parts of the datatable should be rendered and in which order (e.g. paging control)
         } );
         return dataTable;
     }

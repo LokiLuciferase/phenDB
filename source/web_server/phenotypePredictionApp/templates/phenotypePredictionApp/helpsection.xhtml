@@ -1,5 +1,5 @@
 <!-- procedurally generated from docs/PhenDB_help_section.md  -->
-<div style="text-align:justify; text-justify:inter-word; margin:10px; display:{{ showInputFormCSS }}"  id="help_section" title="Help">
+<div style="text-align:justify; text-justify:inter-word; line-height: 100%; white-space: pre-line; margin:10px; display:{{ showInputFormCSS }}"  id="help_section" title="Help">
     <h3 id="phendbisanautomatedpipelineforthepredictionofmicrobialphenotypesbasedoncomparativegenomics">PhenDB is an automated pipeline for the prediction of microbial phenotypes based on comparative genomics.</h3>
 
 <h1 id="concept">Concept</h1>
@@ -8,30 +8,21 @@
 
 <ol>
 <li>bins provided as nucleotide fasta files are used to perform gene prediction with Prodigal (Hyatt et al., 2010).</li>
-
 <li>Hmmer (Eddy et al., 2001) then searches orthologous groups for the resulting protein sequences using the EggNOG DB (Huerta-Cepas et al., 2015).</li>
-
 <li>Compleconta (Hyden et al., unpublished) estimates completeness, contamination and taxonomic identity of the uploaded bins given a set of marker genes,</li>
-
 <li>Finally the machine learning framework PICA (Feldbauer et al., 2015) uses support vector machine (SVM)-based models (calculated from genomes with known phenotypes) and the list of orthologous groups of proteins present in a bin/genome to predict whether the organism possesses a particular trait, and the confidence in that prediction. <br />
 Currently, predictions for 45 different traits are calculated.  </li>
 </ol>
-
-<p>Please note that PhenDB is still in an early stage of development and for several models we are still working on improving the training data.
-Thus, please take note of the "balanced_accuracy" values ascribed to predictions. <br />
+<p>Please note that PhenDB is still in an early stage of development and for several models we are still working on improving the training data. Thus, please take note of the "balanced_accuracy" values ascribed to predictions. <br />
 Additionally, please note that PhenDB currently does not provide trait predictions for archaeal bins.</p>
 
 <h1 id="howtousephendb">How to Use PhenDB</h1>
 
-<h4 id="inputfileformats">Input File Formats</h4>
-
+<h3 id="inputfileformats">Input File Formats</h3>
 <p>The PhenDB pipeline takes as input genomic bins from a Metagenomics experiment, which may be provided as:</p>
-
 <ul>
 <li>Nucleotide fasta file (raw or gzip-compressed)</li>
-
 <li>Protein fasta file (raw or gzip-compressed)</li>
-
 <li>tar.gz or .zip archive of the above</li>
 </ul>
 
@@ -40,47 +31,31 @@ The current maximum file size for upload is 1 GB, the maximum file size per bin 
 Duplicate sequence files (determined by file content) will be silently dropped from the analysis. <br />
 Empty sequence files will be silently dropped from the analysis.  </p>
 
-<h4 id="outputfiles">Output Files</h4>
-
+<h3 id="outputfiles">Output Files</h3>
 <p>PhenDB provides a downloadable archive named after your Job ID (i.e. the key after ../results/ in the URL). This archive contains:  </p>
-
 <ul>
 <li>the folder individual_results, containing:
-
-
 <ul>
-<li>a {bin name}.results.csv file for every valid uploaded bin/genome.
-This file contains the model names, predictions (YES/NO/NA) along with PICA probability and balanced accuracy values.</li></ul>
+<li>a {bin name}.results.csv file for every valid uploaded bin/genome. This file contains the model names, predictions (YES/NO/NA) along with PICA probability and balanced accuracy values.</li></ul>
 </li>
-
 <li>the folder "summaries":
-
-
 <ul>
 <li>"summary_matrix.csv": A summary file that shows for each model how many bins/genomes were predicted as "YES", "NO" or "N/A"</li>
-
 <li>"per_bin_matrix.csv": A summary file that shows the verdict for each bin and each model as a matrix</li>
-
 <li>"invalid_input_files.log.txt": If one or more of your uploaded files were invalid (e.g. not in FASTA format), a warning will appear to check this file. If all files were correct, this file is empty.</li>
-
 <li>"PICA_trait_descriptions.txt": Contains the model names and the traits they are testing for.</li></ul>
 </li>
 </ul>
 
 <h3 id="statisticalmeasures">Statistical Measures</h3>
-
 <p>PhenDB provides two separate confidence measures associated with trait predictions.</p>
-
 <ol>
-<li>PICA probability is the internal probability of class membership within the linear SVM model used by PICA. It can thus be seen as the confidence the model itself shows in its prediction.</li>
-
+<li>PICA probability is the internal probability of class membership within the linear SVM model used by PICA (provided via Platt scaling). It can thus be seen as the confidence the model itself shows in its prediction.</li>
 <li>Balanced Accuracy is a confidence measure computed from completeness/contamination of the uploaded bin and the model's known predictive power. It can thus be interpreted as our confidence in the predictions of the model, given the bin's completeness and contamination. Values of Balanced Accuracy may range from 0.5 (predictions are expected to be random) to 1 (high expected correlation of predicted class and actual class).</li>
 </ol>
-
 <p>A balanced accuracy cutoff can be set when submitting to PhenDB: predictions with a balanced accuracy below the chosen cutoff value (range: 0.5 - 1) are then masked in the final result (NA instead of YES/NO).</p>
 
 <h3 id="additionalinformation">Additional Information</h3>
-
 <p>After submission, your job is queued and waits for completion of any previously submitted jobs. <br />
 When computation starts, expect about 1-1.5 min of calculation time per bin. <br />
 To receive a notification upon job completion, enter an email address during your submission. <br />
@@ -88,15 +63,11 @@ Alternatively, you may save the URL to your submission to retrieve your results 
 Results are stored by PhenDB for 30 days - after which all user-uploaded data and associated results are deleted.</p>
 
 <h1 id="references">References</h1>
-
 <ol>
 <li>Hyatt, Doug, et al. "Prodigal: prokaryotic gene recognition and translation initiation site identification." BMC bioinformatics 11.1 (2010): 119.  </li>
-
-<li>Eddy, Sean R. "HMMER: Profile hidden Markov models for biological sequence analysis." (2001). <br />
-Huerta-Cepas, Jaime, et al. "eggNOG 4.5: a hierarchical orthology framework with improved functional annotations for eukaryotic, prokaryotic and viral sequences." Nucleic acids research 44.D1 (2015): D286-D293.  </li>
-
+<li>Eddy, Sean R. "HMMER: Profile hidden Markov models for biological sequence analysis." (2001).</li>
+<li>Huerta-Cepas, Jaime, et al. "eggNOG 4.5: a hierarchical orthology framework with improved functional annotations for eukaryotic, prokaryotic and viral sequences." Nucleic acids research 44.D1 (2015): D286-D293.  </li>
 <li>Hyden, Patrick, et al., unpublished (https://github.com/phyden/compleconta)</li>
-
 <li>Feldbauer, Roman, et al. "Prediction of microbial phenotypes based on comparative genomics." BMC bioinformatics 16.14 (2015): S1.</li>
 </ol>
 </div>
