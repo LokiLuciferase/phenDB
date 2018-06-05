@@ -674,7 +674,7 @@ process accuracy {
     # get completeness and contamination
     try:
         with open("${complecontaitem}", "r") as ccfile:
-            comple, conta, strainhet, taxid, tname, trank = ccfile.readline().split("\t")
+            comple, conta, strainhet, taxid, tname, trank = ccfile.readline().strip().split("\t")
     except ValueError:
         raise ValueError
         #comple, conta, strainhet, taxid, tname, trank = [0 for x in range(6)]
