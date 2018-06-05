@@ -766,7 +766,7 @@ process make_matrix_and_headers {
     file(allfiles) from outfilechannel
 
     output:
-    file("*.{txt,tsv}") into all_files_for_tar
+    file("*.csv") into all_files_for_tar
 // language=python
 """
 #!/usr/bin/env python3
@@ -808,7 +808,7 @@ for name in glob.glob("*.results"):
                 pass
 
         # sort results file and prepend header
-        with open(os.path.join(os.getcwd(), name + ".txt"), "w") as sortfile:
+        with open(os.path.join(os.getcwd(), name + ".csv"), "w") as sortfile:
             binfile.seek(0, 0)
             content = []
             for line in binfile:
@@ -832,7 +832,7 @@ for cond in ("YES", "NO", "N/A"):
         condlist.append(vals[cond])
     countlist.append("\\t".join([cond] + [str(x) for x in condlist]))
 
-with open("summary_matrix.results.tsv", "w") as outfile:
+with open("summary_matrix.csv", "w") as outfile:
     outfile.write("# phenDB\\n# Time of run: {da}\\n# Accuracy cut-off: {co}\\n".format(da=now, co=cutoff))
     outfile.write("#\\nSummary of models:\\n")
     outfile.write("\\t".join([" "] + modelvec))
@@ -841,7 +841,7 @@ with open("summary_matrix.results.tsv", "w") as outfile:
         outfile.write(line)
         outfile.write("\\n")
 
-with open("per_bin_matrix.results.tsv", "w") as outfile2:
+with open("per_bin_matrix.csv", "w") as outfile2:
     outfile2.write("# phenDB\\n# Time of run: {da}\\n# Accuracy cut-off: {co}\\n".format(da=now, co=cutoff))
     outfile2.write("\\n#Results per bin:\\n")
     outfile2.write("\\t".join([" "] + modelvec))
@@ -878,8 +878,8 @@ process zip_results {
     mkdir -p ${jobname}/individual_results
     cp ${params.description_file} ${jobname}/summaries/PICA_trait_descriptions.txt
     cp ${errorfile} ${jobname}/summaries/invalid_input_files.log.txt
-    mv *.results.tsv ${jobname}/summaries
-    mv *.results.txt ${jobname}/individual_results
+    mv *.results.csv ${jobname}/individual_results
+    mv *matrix.csv ${jobname}/summaries
     zip -r ${jobname}.zip ./${jobname}
     rm -rf ${jobname}
     """
