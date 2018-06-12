@@ -37,7 +37,7 @@ def update_taxonomy(ppath):
             sys.stdout.flush()
             counter += 1
             ix, parent, tax_id, rank, namestring = line.strip().split("\t")
-            new_taxon = Taxon(tax_id=tax_id, taxon_name=namestring)
+            new_taxon = Taxon(tax_id=tax_id, taxon_rank=rank, taxon_name=namestring)
             taxonomy_entries.append(new_taxon)
     print("Done.")
 

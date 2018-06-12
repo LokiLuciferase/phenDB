@@ -241,6 +241,7 @@ class Taxon(models.Model):
         ]
 
     tax_id = models.CharField(max_length=10)
+    taxon_rank = models.TextField(default="")
     taxon_name = models.TextField()
 
     def __str__(self):

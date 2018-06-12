@@ -21,8 +21,8 @@ sys.path.append(PHENDB_BASEDIR)
 q = Queue(PHENDB_QUEUE, connection=Redis())
 q.enqueue_call(func=update_taxonomy,
                args=(PHENDB_BASEDIR,),
-               timeout='10m',
-               ttl='10m',
+               timeout='20m',
+               ttl='20m',
                job_id='db_maintenance_update_taxonomy',
                at_front=True
                )
