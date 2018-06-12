@@ -44,17 +44,17 @@ function all_models_to_list(json_obj) {
 
 function models_to_infotext(titles, descriptions) {
     var infotable = "<table>";
-    for(var i=0; i<titles.length; i++) {
+    for(var i=0; i<titles.length; i+=2) {
         infotable += "<tr>";
         for(var a=0; a<2; a++) {
+            console.log(i + a + " " + titles[i+a]);
             infotable += "<td class='table_info_box'>";
-            infotable += titles[i];
+            infotable += titles[i+a];
             infotable += "</td>";
             infotable += "<td class='table_info_box'>";
             if(descriptions[i].length == 0) infotable += "no description available";
-            else infotable += "description: " + descriptions[i];
+            else infotable += "description: " + descriptions[i+a];
             infotable += "</td>";
-            ++i;
         }
         infotable += "</tr>";
     }
