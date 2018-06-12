@@ -2,7 +2,7 @@ from django.contrib import admin
 import os
 
 # Register your models here.
-from .models import UploadedFile, model, bin
+from .models import Job, PicaModel, Bin
 
 
 class JobDisplay(admin.ModelAdmin):
@@ -60,6 +60,6 @@ class BinDisplay(admin.ModelAdmin):
 admin.site.site_header = "PhenDB Admin Pages"
 admin.site.site_title = "PhenDB Admin Pages"
 admin.site.index_title = "PhenDB Admin Pages"
-admin.site.register(UploadedFile, JobDisplay)
-admin.site.register(model, ModelDisplay)
-admin.site.register(bin, BinDisplay)
+admin.site.register(Job, JobDisplay)
+admin.site.register(PicaModel, ModelDisplay)
+admin.site.register(Bin, BinDisplay)

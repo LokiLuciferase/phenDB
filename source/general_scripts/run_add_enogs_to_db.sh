@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 set -e
-source variables.sh
-
-export DJANGO_SETTINGS_MODULE="phenotypePrediction.settings"
+source "/apps/phenDB_devel_LL/source/general_scripts/variables.sh"
 
 cd ${BASEDIR}/source/general_scripts
 python3 add_enogs_to_db.py

@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 set -e
-source variables.sh
-
-export DJANGO_SETTINGS_MODULE="phenotypePrediction.settings"
+source "/apps/phenDB_devel_LL/source/general_scripts/variables.sh"
 
 cd ${BASEDIR}/source/web_server/businessLogic
 python3 delete_old_user_data.py

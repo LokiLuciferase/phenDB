@@ -240,7 +240,7 @@ django.setup()
 from phenotypePredictionApp.models import *
 
 try:
-    parentjob = UploadedFile.objects.get(key="${jobname}")
+    parentjob = Job.objects.get(key="${jobname}")
     parentjob.total_bins = ${nr_of_files}
     parentjob.save()
 
@@ -249,13 +249,14 @@ except ObjectDoesNotExist:
 
 # if the bin exists, calculate it's hmmer and compleconta file from the db entries
 try:
-    thisbin=bin.objects.get(md5sum="${mdsum}")
+    thisbin=Bin.objects.get(md5sum="${mdsum}")
     with open("reconstructed_hmmer_file.txt", "w") as hmmer:
-        for entry in result_enog.objects.filter(bin=thisbin):
+        for entry in HmmerResult.objects.filter(bin=thisbin):
             hmmer.write("dummy\\t"+entry.enog.enog_name+"\\tdummy\\n")
 
     with open("reconstructed_compleconta_file.txt", "w") as complecon:
-        complecon.write(str(thisbin.comple)+"\\t"+str(thisbin.conta))
+        recon_cc_string = "\\t".join([str(x) for x in (thisbin.comple, thisbin.conta, thisbin.strainhet, thisbin.tax_id, thisbin.taxon_name, thisbin.taxon_rank)])
+        complecon.write(recon_cc_string)
 
     print("NO", end='')
 
@@ -269,7 +270,7 @@ try:
 
 except ObjectDoesNotExist:
     # write impossible Nr. for comple and conta that would cause an error during get_accuracy if not overwritten:
-    thisbin = bin(bin_name="${binname}", md5sum="${mdsum}", comple=2, conta=2, strainhet=2)
+    thisbin = Bin(bin_name="${binname}", md5sum="${mdsum}", comple=2, conta=2, strainhet=2)
     thisbin.save()
     print("YES", end='')
 
@@ -282,7 +283,7 @@ except ObjectDoesNotExist:
 
 
 try:
-    assoc= bins_in_UploadedFile(bin=thisbin, UploadedFile=parentjob)
+    assoc= BinInJob(bin=thisbin, job=parentjob)
     assoc.save()
 except IntegrityError:
     sys.exit("Cannot add bin to db: An identical file (same md5sum) from the same job is already in the db. Please remove duplicate files from your input!")
@@ -322,7 +323,7 @@ process prodigal {
 }
 
 // merge uploaded protein files with our calculated prodigal results
-all_protein_files = prodigalout.mix(new_protein_bins)
+all_protein_files = prodigalout.mix( new_protein_bins.filter{ it[4] == "YES" } )
 
 // if the bin has already been in our db:
 
@@ -355,11 +356,11 @@ process determine_models_that_need_recalculation {
 
     #if this succeeds, then there is a result for this bin and the newest model version in our db
     try:
-        result_model.objects.get(model=model.objects.filter(model_name="${model.getBaseName()}").latest('model_train_date'), bin=bin.objects.get(md5sum="${mdsum}"))
+        PicaResult.objects.get(model=PicaModel.objects.filter(model_name="${model.getBaseName()}").latest('model_train_date'), bin=Bin.objects.get(md5sum="${mdsum}"))
         print("NO", end='')
     except:
         try:
-            archaea_result = result_model.objects.get(model=model.objects.filter(model_name="ARCHAEA").latest('model_train_date'), bin=bin.objects.get(md5sum="${mdsum}"))
+            archaea_result = PicaResult.objects.get(model=PicaModel.objects.filter(model_name="ARCHAEA").latest('model_train_date'), bin=Bin.objects.get(md5sum="${mdsum}"))
             use_in_archaea = "${params.use_in_archaea.join(" ")}"
             if archaea_result.verdict == True and "${model.getBaseName()}" not in use_in_archaea:
                 os._exit(1)
@@ -404,14 +405,14 @@ process uptodate_model_to_targz {
     verdict = ""
 
     try:
-        archaea_result = result_model.objects.get(model=model.objects.filter(model_name="ARCHAEA").latest('model_train_date'), bin=bin.objects.get(md5sum="${mdsum}"))
+        archaea_result = PicaResult.objects.get(model=PicaModel.objects.filter(model_name="ARCHAEA").latest('model_train_date'), bin=Bin.objects.get(md5sum="${mdsum}"))
         archaea_vec = "${params.use_in_archaea.join(" ")}"
         if archaea_result.verdict == True and "${RULEBOOK}" not in archaea_vec:
             os._exit(1)
     except:
         pass
 
-    picaresult=result_model.objects.get(model=model.objects.filter(model_name="${RULEBOOK}").latest('model_train_date'), bin=bin.objects.get(md5sum="${mdsum}"))
+    picaresult=PicaResult.objects.get(model=PicaModel.objects.filter(model_name="${RULEBOOK}").latest('model_train_date'), bin=Bin.objects.get(md5sum="${mdsum}"))
     if picaresult.verdict == True:
         verdict="YES"
     elif picaresult.verdict == None:
@@ -477,7 +478,7 @@ process hmmer {
 }
 
 //increase percentage completed after each hmmer job completion
-// TODO: this does not work for jobs with >> 100 bins at the moment (errors in rounding)
+
 process update_job_completeness {
 
     tag { jobname }
@@ -505,7 +506,7 @@ django.setup()
 from phenotypePredictionApp.models import *
 
 try:
-    parentjob = UploadedFile.objects.get(key="${jobname}")
+    parentjob = Job.objects.get(key="${jobname}")
     current_finished = parentjob.finished_bins
     total_jobs = parentjob.total_bins
     if current_finished < total_jobs - 1:
@@ -518,37 +519,18 @@ except ObjectDoesNotExist:
 
 }
 
-// compute contamination and completeness using compleconta
-process compleconta {
+// determine if the uploaded bin is a bacterium. add verdict to set
+// later on, use verdict to omit certain models for archaea
+process pica_bacteria {
 
     tag { binname }
+    memory = '500 MB'
 
     input:
     set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem) from job_updated_out
 
     output:
-    set val(binname), val(mdsum), file(hmmeritem), file("complecontaitem.txt") into complecontaout
-
-    """
-    compleconta_taxonomy.py $prodigalitem $hmmeritem | tail -1 > complecontaitem.txt
-    """
-}
-
-// determine if the uploaded bin is a bacterium. add verdict to set
-// later on, use verdict to omit certain models for archaea
-// TODO: implement this, right now all are treated as bacteria
-process pica_bacteria {
-
-    tag { binname }
-    scratch true
-
-    memory = '500 MB'
-
-    input:
-    set val(binname), val(mdsum), file(hmmeritem), val(complecontaitem) from complecontaout
-
-    output:
-    set val(binname), val(mdsum), file(hmmeritem), val(complecontaitem), stdout into complecontaout_for_call_accuracy, complecontaout_for_hmmerresults_to_db  // "YES"= is bacterium
+    set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem), stdout into pica_bacteria_out  // "YES"= is bacterium
 
     script:
     RULEBOOK = file(params.archaea_model_path).getBaseName()
@@ -564,6 +546,30 @@ process pica_bacteria {
         echo -n "YES"
     fi
     """
+}
+
+
+// compute contamination and completeness using compleconta, add taxonomy only if it is not archaeon
+process compleconta {
+
+    tag { binname }
+
+    input:
+    set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem), val(is_bacterium) from pica_bacteria_out
+
+    output:
+    set val(binname), val(mdsum), file(hmmeritem), file("complecontaitem.txt"), val(is_bacterium) into complecontaout_for_call_accuracy, complecontaout_for_hmmerresults_to_db
+
+    script:
+    if (is_bacterium == "YES"){
+    """
+    compleconta_taxonomy.py $prodigalitem $hmmeritem | tail -1 > complecontaitem.txt
+    """
+    } else {
+    """
+    echo "\$(compleconta_taxonomy.py $prodigalitem $hmmeritem | tail -1 | cut -f1,2,3)\t-\t-\t-"  > complecontaitem.txt
+    """
+    }
 }
 
 
@@ -590,13 +596,13 @@ django.setup()
 from phenotypePredictionApp.models import *
 
 try:
-    parentbin = bin.objects.get(md5sum="${mdsum}")
+    parentbin = Bin.objects.get(md5sum="${mdsum}")
 except ObjectDoesNotExist:
     sys.exit("Bin not found.")
 
 
 
-#write hmmer output to result_enog table
+#write hmmer output to HmmerResult table
 with open("${hmmeritem}", "r") as enogresfile:
     enoglist=[]
     for line in enogresfile:
@@ -609,7 +615,7 @@ with open("${hmmeritem}", "r") as enogresfile:
         try:
             print("Attempting to add enog {en} from bin {bn} to database.".format(en=enog_elem,
                                                                                   bn="${binname}"))
-            new_enog_res = result_enog(bin=parentbin, enog=enog.objects.get(enog_name=enog_elem))
+            new_enog_res = HmmerResult(bin=parentbin, enog=Enog.objects.get(enog_name=enog_elem))
             enog_res_objectlist.append(new_enog_res)
             #todo: should that not throw an error?
         except IntegrityError:
@@ -618,7 +624,7 @@ with open("${hmmeritem}", "r") as enogresfile:
 
 
     try:
-        result_enog.objects.bulk_create(enog_res_objectlist)
+        HmmerResult.objects.bulk_create(enog_res_objectlist)
     except IntegrityError:
         print("Could not add enogs of bin ${binname} to the db.")
 
@@ -668,7 +674,7 @@ process accuracy {
     # get completeness and contamination
     try:
         with open("${complecontaitem}", "r") as ccfile:
-            comple, conta, strainhet, taxid, tname, trank = ccfile.readline().split("\t")
+            comple, conta, strainhet, taxid, tname, trank = ccfile.readline().strip().split("\t")
     except ValueError:
         raise ValueError
         #comple, conta, strainhet, taxid, tname, trank = [0 for x in range(6)]
@@ -681,7 +687,7 @@ process accuracy {
             cc[i] = 1
 
     try:
-        parentbin = bin.objects.get(md5sum="${mdsum}")
+        parentbin = Bin.objects.get(md5sum="${mdsum}")
         parentbin.comple = float(cc[0])
         parentbin.conta = float(cc[1])
         parentbin.strainhet = float(cc[2])
@@ -697,7 +703,7 @@ process accuracy {
     #check the balanced accuracy. other metrices would be very similar to evaluate, just change the part after the last dot
     # the print statments includes a newline at the end, this is important for processing further downstream
 
-    print(model_accuracies.objects.get(model=model.objects.filter(model_name="${model.getBaseName()}").latest('model_train_date'),
+    print(PicaModelAccuracy.objects.get(model=PicaModel.objects.filter(model_name="${model.getBaseName()}").latest('model_train_date'),
     comple=round_nearest(float(cc[0]),0.05),
     conta=round_nearest(float(cc[1]),0.05)).mean_balanced_accuracy)
 
@@ -743,15 +749,23 @@ NA_replaced_for_download = picaout_for_download.mix(picaout_from_new_model).map 
     return [l[0], l[1], l[2], output, l[4]]
 }
 
+NA_replaced_for_download.into{ NA_repl_for_dl_pica; NA_repl_for_dl_tax }
+
 // merge all results into a file called $id.results.
-outfilechannel = NA_replaced_for_download.collectFile() { item ->
+outfilechannel = NA_repl_for_dl_pica.collectFile() { item ->
     [ "${item[0]}.results", "${item[2]}\t${item[3]}\t${item[4]}" ]  // use given bin name as filename
 }.collect()
+
+taxonomy_mdsums = NA_repl_for_dl_tax.map { item -> item[1] }.unique().collect() // get md5sums
+
+
+db_write_pica_results = picaout_db_write.collectFile() { item ->
+    [ "${item[1]}.results", "${item[2]}\t${item[3]}\t${item[4]}" ]  // use md5sum as filename
+}
 
 
 // create a matrix file containing all verdicts for each bin and add to output files
 // create a matrix file containing summaries per model
-// here we could for example add a header to each results file
 process make_matrix_and_headers {
 
     stageInMode 'copy'
@@ -760,7 +774,7 @@ process make_matrix_and_headers {
     file(allfiles) from outfilechannel
 
     output:
-    file("*.{txt,tsv}") into all_files_for_tar
+    file("*.csv") into all_files_for_tar
 // language=python
 """
 #!/usr/bin/env python3
@@ -779,7 +793,7 @@ now = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
 HEADER = "Model_name\\tPrediction\\tProbability\\tBalanced_accuracy\\n"
 ROUND_TO = 2
 
-modelvec = list(set([x.model_name for x in model.objects.filter()]))
+modelvec = list(set([x.model_name for x in PicaModel.objects.filter()]))
 modelvec = sorted(modelvec)
 
 bin_dict = {}
@@ -802,7 +816,7 @@ for name in glob.glob("*.results"):
                 pass
 
         # sort results file and prepend header
-        with open(os.path.join(os.getcwd(), name + ".txt"), "w") as sortfile:
+        with open(os.path.join(os.getcwd(), name + ".csv"), "w") as sortfile:
             binfile.seek(0, 0)
             content = []
             for line in binfile:
@@ -826,7 +840,7 @@ for cond in ("YES", "NO", "N/A"):
         condlist.append(vals[cond])
     countlist.append("\\t".join([cond] + [str(x) for x in condlist]))
 
-with open("summary_matrix.results.tsv", "w") as outfile:
+with open("summary_matrix.csv", "w") as outfile:
     outfile.write("# phenDB\\n# Time of run: {da}\\n# Accuracy cut-off: {co}\\n".format(da=now, co=cutoff))
     outfile.write("#\\nSummary of models:\\n")
     outfile.write("\\t".join([" "] + modelvec))
@@ -835,7 +849,7 @@ with open("summary_matrix.results.tsv", "w") as outfile:
         outfile.write(line)
         outfile.write("\\n")
 
-with open("per_bin_matrix.results.tsv", "w") as outfile2:
+with open("per_bin_matrix.csv", "w") as outfile2:
     outfile2.write("# phenDB\\n# Time of run: {da}\\n# Accuracy cut-off: {co}\\n".format(da=now, co=cutoff))
     outfile2.write("\\n#Results per bin:\\n")
     outfile2.write("\\t".join([" "] + modelvec))
@@ -853,6 +867,76 @@ with open("per_bin_matrix.results.tsv", "w") as outfile2:
 }
 
 
+process write_tax_and_cc_result_file {
+
+    input:
+    val(allsums) from taxonomy_mdsums
+
+    output:
+    file('*.csv') into tax_cc_file_out
+    file('*.tsv') into tax_for_krona
+
+    script:
+    mdsum_string = allsums.join("\t")
+    """
+#!/usr/bin/env python3
+
+import django
+import sys
+import os
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import IntegrityError
+
+os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
+django.setup()
+from phenotypePredictionApp.models import Bin
+
+mdsums = "${mdsum_string}".split("\\t")
+
+mdsums = sorted(mdsums, reverse=True)
+bins = Bin.objects.filter(md5sum__in=mdsums)
+
+with open("taxonomy.csv", "w") as taxfile:
+    taxfile.write("Bin_name\\ttaxon_id\\ttaxon_name\\ttaxon_rank\\n")
+    for bin in bins:
+        taxfile.write("{bn}\\t{ti}\\t{tn}\\t{tr}\\n".format(bn=bin.bin_name,
+                                                        ti=bin.tax_id,
+                                                        tn=bin.taxon_name,
+                                                        tr=bin.taxon_rank))
+with open("taxonomy_krona.tsv", "w") as tax_krona:
+    tax_krona.write("#bin name\\t#taxon_id\\n")
+    for bin in bins:
+        tax_krona.write("{bn}\\t{ti}\\n".format(bn=bin.bin_name,
+                                              ti=bin.tax_id))
+
+with open("completeness_contamination.csv", "w") as cc_out:
+    cc_out.write("Bin_name\\tCompleteness\\tContamination\\tStrain_heterogeneity\\n")
+    for bin in bins:
+        cc_out.write("{bn}\\t{com}\\t{con}\\t{sh}\\n".format(bn=bin.bin_name,
+                                                         com=bin.comple,
+                                                         con=bin.conta,
+                                                         sh=bin.strainhet))
+    
+    """
+}
+
+
+process krona {
+
+    scratch true
+
+    input:
+    file(kronain) from tax_for_krona
+
+    output:
+    file('krona_taxonomy.html') into krona_out
+
+    script:
+    """
+    ktImportTaxonomy $kronain -o krona_taxonomy.html
+    """
+}
+
 process zip_results {
 
     tag { jobname }
@@ -860,7 +944,9 @@ process zip_results {
     stageInMode 'copy'  //actually copy in the results so we not only tar symlinks
 
     input:
-    file(allfiles) from all_files_for_tar
+    file(allfiles) from all_files_for_tar.collect()
+    file(kronafile) from krona_out.collect()
+    file(tax_cc_files) from tax_cc_file_out.collect()
     file(errorfile)
 
     output:
@@ -872,23 +958,21 @@ process zip_results {
     mkdir -p ${jobname}/individual_results
     cp ${params.description_file} ${jobname}/summaries/PICA_trait_descriptions.txt
     cp ${errorfile} ${jobname}/summaries/invalid_input_files.log.txt
-    mv *.results.tsv ${jobname}/summaries
-    mv *.results.txt ${jobname}/individual_results
+    mv *.results.csv ${jobname}/individual_results
+    mv *.csv ${jobname}/summaries
+    mv *.html ${jobname}/summaries
     zip -r ${jobname}.zip ./${jobname}
     rm -rf ${jobname}
     """
 }
 
-db_written = picaout_db_write.collectFile() { item ->
-    [ "${item[1]}.results", "${item[2]}\t${item[3]}\t${item[4]}" ]  // use md5sum as filename
-}
 
 process write_pica_result_to_db {
 
     scratch true
 
     input:
-    file(mdsum_file) from db_written
+    file(mdsum_file) from db_write_pica_results
 
     script:
 // language=Python
@@ -903,11 +987,11 @@ from django.db import IntegrityError
 os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
 
 django.setup()
-from phenotypePredictionApp.models import UploadedFile, bin, model, result_model
+from phenotypePredictionApp.models import Job, Bin, PicaModel, PicaResult
 
-# get bin from db
+# get Bin from db
 try:
-    parentbin = bin.objects.get(md5sum="${mdsum_file.getBaseName()}")
+    parentbin = Bin.objects.get(md5sum="${mdsum_file.getBaseName()}")
 except ObjectDoesNotExist:
     sys.exit("Bin not found.")
 
@@ -929,11 +1013,11 @@ for result in conditions:  # result = [modelname, verdict, pica_p_val, balanced_
         boolean_verdict = get_bool[result[1]]
         #get model from db
         try:
-            this_model=model.objects.filter(model_name=result[0]).latest('model_train_date')
+            this_model=PicaModel.objects.filter(model_name=result[0]).latest('model_train_date')
         except ObjectDoesNotExist:
             sys.exit("Current Model for this result not found.")
 
-        modelresult = result_model(verdict=boolean_verdict,
+        modelresult = PicaResult(verdict=boolean_verdict,
                                    accuracy=float(result[3]),
                                    pica_pval=get_pica_pval,
                                    bin=parentbin,
@@ -942,9 +1026,10 @@ for result in conditions:  # result = [modelname, verdict, pica_p_val, balanced_
         modelresultlist.append(modelresult)
     except (IntegrityError, ) as e:
         sys.exit(e)
-result_model.objects.bulk_create(modelresultlist)
+PicaResult.objects.bulk_create(modelresultlist)
 """
 }
+
 
 process write_zip_to_db {
 
@@ -969,10 +1054,10 @@ from django.core.files import File
 os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
 
 django.setup()
-from phenotypePredictionApp.models import UploadedFile
+from phenotypePredictionApp.models import Job
 
 try:
-    obj = UploadedFile.objects.filter(key='${jobname}')
+    obj = Job.objects.filter(key='${jobname}')
     obj.update(errors=${errors_occurred}, error_type="${errtype}")
     file = open('${zip}', 'rb')
     djangoFile = File(file)

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-set -e
-source variables.sh
+
+source "/apps/phenDB_devel_LL/source/general_scripts/variables.sh"
 
 mkdir -p ${BASEDIR}/logs
 cd ${BASEDIR}/logs

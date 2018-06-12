@@ -50,6 +50,9 @@ parser.add_argument('-e', '--maxevalue', default=0.05, type=float,
 parser.add_argument('-m', '--maxhits', default=0, type=int,
    help="Maximal number of hits to report (default=0, which means no limit)")
 
+parser.add_argument('-y', '--modeY', action='store_true',
+   help="Downstream processing allowing multiple non-overlapping hits per sequence")
+
 args = parser.parse_args()
 
 
@@ -117,9 +120,10 @@ class serverPool:
         self.connections_by_server[server] -= 1
 
 class hmmpgmdThread (threading.Thread):
-   def __init__(self, serverpool, port, verbose, queries, dbtype, maxhits, maxevalue, dbnames, outfile, errors):
+   def __init__(self, serverpool, port, verbose, queries, dbtype, maxhits, maxevalue, dbnames, outfile, errors, modeY):
       threading.Thread.__init__(self)
       self.verbose = verbose
+      self.modeY = modeY
       self.serverpool = serverpool
       self.port = port
       self.queries = queries
@@ -167,28 +171,166 @@ class hmmpgmdThread (threading.Thread):
             # Unpack and extract result data
             statusvalues=unpack('5d2I9q', data[:120])
             nmodels = statusvalues[7]
-            nhits = statusvalues[14]
+            nhits = statusvalues[13]
+            nreported = statusvalues[14]
             dbsize = statusvalues[3]
+            dom_dbsize = statusvalues[4]
             if self.verbose:
               sys.stderr.write("Models: %i  Hits: %i  Dbsize: %i\n" % (nmodels, nhits, dbsize))
             if nmodels != len(self.dbnames):
               sys.stderr.write("FATAL: Number of models in database %i and number of database names from names file %i are different. Aborting.\n" % (nmodels, len(self.dbnames)))
               sys.exit(1)
+            if not len(statusvalues) == 16:
+              sys.stderr.write("FATAL: Missmatch between the number of stats data elements recieved [%i] and expected [%i]" % (len(statusvalues),16))
+              sys.exit(1)
+            
             selectedhits = nhits
             if self.maxhits:
               selectedhits=min(self.maxhits, nhits)
-            for i in range(selectedhits):
+            hits=[]
+            for i in range(nhits):
               offset=120+i*152
               hitvalues=unpack('3QI4xd3f4x3df9I4Q', data[offset:offset+152])
               dbid=hitvalues[0]
               dbname=self.dbnames[dbid-1]
               evalue=exp(hitvalues[8]) * dbsize
-              if self.verbose:
-                sys.stderr.write("Query: %s Model: %i %s  Evalue: %1.1e\n" % (queryname, dbid, dbname, evalue))
-              if evalue <= self.maxevalue:
-                threadLock.acquire()
-                self.outfile.write("%s\t%s\t%1.1e\n" % (queryname, dbname, evalue))
-                threadLock.release()
+              score=round(hitvalues[5],1)
+              ndom=hitvalues[16]
+              nrep=hitvalues[18]
+              hits.append({'queryname':queryname,'dbid':dbid,'dbname':dbname,'evalue':evalue,'ndom':ndom,'nrep':nrep,'score':score})
+            if not self.modeY:
+              for i in range(selectedhits):
+                dbid=hits[i]['dbid']
+                dbname=self.dbnames[dbid-1]
+                evalue=hits[i]['evalue']
+                if self.verbose:
+                  sys.stderr.write("Query: %s Model: %i %s  Evalue: %1.1e\n" % (queryname, dbid, dbname, evalue))
+                if evalue <= self.maxevalue:
+                  threadLock.acquire()
+                  self.outfile.write("%s\t%s\t%1.1e\n" % (queryname, dbname, evalue))
+                  threadLock.release()
+            else:
+              hits_list=[]
+              all_domains=[]
+              outfmt=['queryname','dbname','evalue','score','ievalue','cevalue','tlen','hmmfrom','hmmto','qlen','sqfrom','sqto']
+              offset=120+nhits*152
+              for hit in hits:
+                hit_domains=[]
+                print_next=False
+                for i in range(hit['ndom']):
+                  domainvalues=unpack('4i5f4xd2iQ8x', data[offset:offset+72])
+                  if domainvalues[9] > sys.float_info.max_10_exp:
+                    local_evalue=exp(min(domainvalues[9],sys.float_info.max_10_exp))
+                    sys.stderr.write("WARNING: evalue-exponent (%i) exeeds sys.max, unpacking binary data erroneous?\n" % domainvalues[9])
+                  else:
+                    local_evalue=exp(domainvalues[9])
+                  domain_dict=hit.copy()
+                  add_dict={'ievalue':local_evalue*dbsize,'cevalue':local_evalue*dom_dbsize}
+                  domain_dict.update(add_dict)
+                  hit_domains.append(domain_dict)
+                  offset=offset+72
+                all_domains.append(hit_domains)
+                for domain in hit_domains:
+                  alivalues=unpack("7QI4x3Q3I4x6QI4xQ", data[offset:offset+168])
+                  memsize=alivalues[20]
+                  offset=offset+168+memsize
+                  dict_ali={'tlen':alivalues[13],'hmmfrom':alivalues[11],'hmmto':alivalues[12],'qlen':alivalues[19],'sqfrom':alivalues[17],'sqto':alivalues[18]}
+                  domain.update(dict_ali)
+                  hits_list.append(domain)
+                  #self.outfile.write("%s\n" % "\t".join([str(domain[key]) for key in outfmt]))
+
+              #downstream processing for mode Y here:
+              #Yanbin Yin script from 07/21/2015 adapted by
+              #Patrick Hyden on 03/27/2018 to fit our needs
+
+              # filtering hits below (adaptive) cutoff (1e-3 or 1e-5) and target coverage (0.3):
+              del_ids=[]
+              for i in range(0,len(hits_list)):
+                hit=hits_list[i]
+                if hit['ievalue']>1e-3:
+                  del_ids.append(i)
+                elif hit['sqto']-hit['sqfrom']>80 and hit['ievalue']>1e-5:
+                  del_ids.append(i)
+                #delete hits with low target coverage
+                #elif float(hit['hmmto']-hit['hmmfrom'])/hit['tlen']<0.3:
+                  #del sorted_hits[i]
+                  #i=i-1
+
+              #delete them
+              for i in reversed(del_ids):
+                del hits_list[i]
+
+              if len(hits_list) > 1:
+                sorted_hits=sorted(hits_list, key=lambda k: k['sqfrom'])
+              else:
+                sorted_hits=hits_list
+              i = 1
+
+              # filtering overlapping hits
+              while i < len(sorted_hits):
+                hit1=sorted_hits[i-1]
+                hit2=sorted_hits[i]
+                
+                len_h1=hit1['sqto']-hit1['sqfrom']
+                len_h2=hit2['sqto']-hit2['sqfrom']
+                overlap=hit1['sqto']-hit2['sqfrom']
+
+                if len_h1 == 0:
+                  del sorted_hits[i-1]
+                  i = i - 1
+                elif len_h2 == 0:
+                  del sorted_hits[i]
+                  i = i - 1
+                elif float(overlap)/len_h1 > 0.5 or float(overlap)/len_h2 > 0.5:
+                  if hit1['ievalue']>hit2['ievalue']:
+                    del sorted_hits[i-1]
+                  elif hit1['ievalue']<hit2['ievalue']:
+                    del sorted_hits[i]
+                  elif hit1['score']<hit2['score']:
+                    del sorted_hits[i-1]
+                  else:
+                    del sorted_hits[i]
+                  i=i-1
+                i=i+1
+              hits_list=sorted_hits
+
+              checked_ids={}
+              del_ids=[]
+              for i in range(0,len(hits_list)):
+                if not i in checked_ids:
+                  hit=hits_list[i]
+                  hit_len=hit['hmmto']-hit['hmmfrom']
+                  if hit_len/hit['tlen']<0.3:
+                    #not directly delete, look for other hits with same 'dbid'
+                    ids=[i]
+                    for k in range(i,len(hits_list)):
+                      hit_comp=hits_list[k]
+                      if hit_comp['dbid']==hit['dbid']:
+                        if hit_comp['hmmto']<=hit['hmmfrom'] or hit_comp['hmmfrom']>=hit['hmmto']:
+                          hit_len=hit_len+hit_comp['hmmto']-hit_comp['hmmfrom']
+                          ids.append(k)
+                    for k in ids:
+                      checked_ids[k]=1
+                      if hit_len/hit['tlen']<0.3:
+                        del_ids.append(k)
+                      elif not k==i:
+                        del_ids.append(k)
+
+              del_ids.sort(reverse=True)
+              #print(del_ids)
+              for i in del_ids:
+                try:
+                  del_hit=hits_list[i]
+                  del hits_list[i]
+
+                except IndexError:
+                  print(i, del_ids, len(hits_list))
+                  print("%s" % "\t".join([str(del_hit[key]) for key in outfmt]))
+
+
+              for hit in hits_list:
+                self.outfile.write("%s\n" % "\t".join([str(hit[key]) for key in outfmt]))
+
             success=True
         threadLock.acquire()
         self.serverpool.release_server(server)
@@ -200,7 +342,7 @@ class hmmpgmdThread (threading.Thread):
         s.close()
 
 def startnewthread(args, queries, dbnames, errors, serverpool):
-  thread = hmmpgmdThread(serverpool, args.port, args.verbose, queries, args.dbtype, args.maxhits, args.maxevalue, dbnames, args.outfile, errors)
+  thread = hmmpgmdThread(serverpool, args.port, args.verbose, queries, args.dbtype, args.maxhits, args.maxevalue, dbnames, args.outfile, errors, args.modeY)
   thread.start()
 
 
