@@ -231,3 +231,17 @@ class PicaResult(models.Model):
                                                                                         pval=str(self.pica_pval),
                                                                                           mid=self.model.model_name,
                                                                                           mtd=str(self.model.model_train_date))
+
+
+class Taxon(models.Model):
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['tax_id', ]),
+        ]
+
+    tax_id = models.CharField(max_length=10)
+    taxon_name = models.TextField()
+
+    def __str__(self):
+        return "{tn} - {ti}".format(tn=self.taxon_name, ti=self.tax_id)

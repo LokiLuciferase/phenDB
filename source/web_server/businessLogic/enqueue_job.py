@@ -9,6 +9,44 @@ import subprocess
 from phenotypePredictionApp.variables import PHENDB_BASEDIR, PHENDB_QUEUE, PHENDB_DEBUG
 
 
+TAXONOMY_NAMES_FILE = "/var/www/krona_taxonomy/taxonomy.tab"  # using kronatools taxonomy names, easily updatable
+
+
+def update_taxonomy(ppath):
+    import django
+    os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
+    sys.path.append(ppath)
+    django.setup()
+    from phenotypePredictionApp.models import Taxon
+
+    print("Updating KronaTools Taxonomy DB using updateTaxonomy.sh...")
+    update_call = subprocess.run("/apps/KronaTools/updateTaxonomy.sh", check=True)
+    if not update_call.returncode == 0:
+        raise RuntimeError("Updating of taxonomy.tab exited with error code. Aborting.")
+    print("Done.")
+
+    if not os.path.exists(TAXONOMY_NAMES_FILE):
+        raise RuntimeError("taxonomy.tab was not found. Cannot update Taxonomy.")
+
+    print("Reading new rows from updated taxonomy file...")
+    taxonomy_entries = []
+    with open(TAXONOMY_NAMES_FILE, "r") as taxfile:
+        for line in taxfile:
+            ix, parent, tax_id, rank, namestring = line.strip().split("\t")
+            new_taxon = Taxon(tax_id=tax_id, taxon_name=namestring)
+            taxonomy_entries.append(new_taxon)
+    print("Done.")
+
+    if len(taxonomy_entries) < 1700000:
+        raise RuntimeError("Something went wrong during database read-in. Aborting.")
+
+    # drop all rows from old taxonomy DB
+    print("Rebuilding taxonomy DB...")
+    Taxon.objects.all.delete()
+    Taxon.objects.bulk_create(taxonomy_entries)
+    print("Finished updating Taxonomy Table.")
+
+
 def clean_up_on_pipeline_fail(keyname, ppath, failtype):
 
     import django
