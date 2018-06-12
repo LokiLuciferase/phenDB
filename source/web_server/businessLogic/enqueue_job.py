@@ -44,10 +44,16 @@ def update_taxonomy(ppath):
     if len(taxonomy_entries) < 1700000:
         raise RuntimeError("Something went wrong during database read-in. Aborting.")
 
+
     # drop all rows from old taxonomy DB
     print("Rebuilding taxonomy DB...")
     Taxon.objects.all().delete()
-    Taxon.objects.bulk_create(taxonomy_entries)
+    while len(taxonomy_entries) > 0:
+        sys.stdout.write("                {n}                entries left to add.\r".format(n=len(taxonomy_entries)))
+        sys.stdout.flush()
+        subset = taxonomy_entries[-10000:]
+        taxonomy_entries = taxonomy_entries[:-10000]
+        Taxon.objects.bulk_create(subset)
     print("Finished updating Taxonomy Table.")
 
 
