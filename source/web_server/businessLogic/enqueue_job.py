@@ -28,10 +28,14 @@ def update_taxonomy(ppath):
     if not os.path.exists(TAXONOMY_NAMES_FILE):
         raise RuntimeError("taxonomy.tab was not found. Cannot update Taxonomy.")
 
-    print("Reading new rows from updated taxonomy file...")
+    print("Reading rows from updated taxonomy file...")
     taxonomy_entries = []
+    counter = 0
     with open(TAXONOMY_NAMES_FILE, "r") as taxfile:
         for line in taxfile:
+            sys.stdout.write("Reading line {i}               \r".format(i=counter))
+            sys.stdout.flush()
+            counter += 1
             ix, parent, tax_id, rank, namestring = line.strip().split("\t")
             new_taxon = Taxon(tax_id=tax_id, taxon_name=namestring)
             taxonomy_entries.append(new_taxon)
@@ -42,7 +46,7 @@ def update_taxonomy(ppath):
 
     # drop all rows from old taxonomy DB
     print("Rebuilding taxonomy DB...")
-    Taxon.objects.all.delete()
+    Taxon.objects.all().delete()
     Taxon.objects.bulk_create(taxonomy_entries)
     print("Finished updating Taxonomy Table.")
 
