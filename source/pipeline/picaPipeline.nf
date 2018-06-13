@@ -192,7 +192,7 @@ else:
 
 nr_of_files = sanity_check_for_count.count()
 
-// sanity_check_for_count is later used in update_job_completeness to count the total nr. of bins
+
 process md5sum {
 
     tag { binname }
@@ -279,9 +279,7 @@ except ObjectDoesNotExist:
         hmmer.write("dummy")
     with open("reconstructed_compleconta_file.txt", "w") as complecon:
         complecon.write("dummy")
-
-
-
+        
 try:
     assoc= BinInJob(bin=thisbin, job=parentjob)
     assoc.save()
@@ -306,10 +304,10 @@ process prodigal {
     memory = "450 MB"
 
     input:
-    set val(binname), val(mdsum), file(sanitychecked), val(seqtype), val(calc_bin_or_not), file(reconstr_hmmer), file(reconst_hmmer) from new_dna_bins
+    set val(binname), val(mdsum), file(sanitychecked), val(seqtype), val(calc_bin_or_not), file(reconstr_hmmer), file(reconst_cc) from new_dna_bins
 
     output:
-    set val(binname), val(mdsum), file("prodigalout.faa"), val(seqtype), val(calc_bin_or_not), file(reconstr_hmmer), file(reconst_hmmer) into prodigalout
+    set val(binname), val(mdsum), file("prodigalout.faa"), val(seqtype), val(calc_bin_or_not), file(reconstr_hmmer), file(reconst_cc) into prodigalout
 
     when:
     calc_bin_or_not.equals("YES")
@@ -326,18 +324,17 @@ process prodigal {
 all_protein_files = prodigalout.mix( new_protein_bins.filter{ it[4] == "YES" } )
 
 // if the bin has already been in our db:
-
-// todo: Implement check for bacteria here or filter afterwards
 process determine_models_that_need_recalculation {
 
     errorStrategy 'ignore'
 
     input:
-    set val(binname), val(mdsum), file(item), val(seqtype), val(calc_bin_or_not), file(reconstr_hmmer), file(reconst_hmmer) from bin_is_in_db
+    set val(binname), val(mdsum), file(item), val(seqtype), val(calc_bin_or_not), file(reconstr_hmmer), file(reconst_cc) from bin_is_in_db
     each model from models
 
     output:
-    set val(binname), val(mdsum), val(model), stdout, file(reconstr_hmmer), file(reconst_hmmer) into calc_model, dont_calc_model
+    set val(binname), val(mdsum), val(model), stdout, file(reconstr_hmmer), file(reconst_cc) into calc_model
+    val(mdsum) into do_not_calc_model
 
     when:
     calc_bin_or_not == "NO" && model.isDirectory()
@@ -359,92 +356,12 @@ process determine_models_that_need_recalculation {
         PicaResult.objects.get(model=PicaModel.objects.filter(model_name="${model.getBaseName()}").latest('model_train_date'), bin=Bin.objects.get(md5sum="${mdsum}"))
         print("NO", end='')
     except:
-        try:
-            archaea_result = PicaResult.objects.get(model=PicaModel.objects.filter(model_name="ARCHAEA").latest('model_train_date'), bin=Bin.objects.get(md5sum="${mdsum}"))
-            use_in_archaea = "${params.use_in_archaea.join(" ")}"
-            if archaea_result.verdict == True and "${model.getBaseName()}" not in use_in_archaea:
-                os._exit(1)
-            else:
-                print("YES", end='')
-        except:
-            print("YES", end='')
-
+        print("YES", end='')
     """
-}
-
-// if the results for this bin and model are up-to-date, we only need to include them in the final output file
-process uptodate_model_to_targz {
-
-    errorStrategy 'ignore'
-
-    input:
-    set val(binname), val(mdsum), val(model), val(calc_model_or_not), file(reconstr_hmmer), file(reconst_hmmer) from dont_calc_model
-
-    output:
-    set val(binname), val(mdsum), val(RULEBOOK), stdout into new_model_to_targz_out
-    // print YES or NO
-    when:
-    calc_model_or_not == "NO"
-
-    script:
-    RULEBOOK=model.getBaseName()
-    // language=Python
-    """
-    #!/usr/bin/env python3
-
-    import django
-    import sys
-    import os
-    from django.core.exceptions import ObjectDoesNotExist
-    from django.db import IntegrityError
-    os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
-
-    django.setup()
-    from phenotypePredictionApp.models import *
-
-    verdict = ""
-
-    try:
-        archaea_result = PicaResult.objects.get(model=PicaModel.objects.filter(model_name="ARCHAEA").latest('model_train_date'), bin=Bin.objects.get(md5sum="${mdsum}"))
-        archaea_vec = "${params.use_in_archaea.join(" ")}"
-        if archaea_result.verdict == True and "${RULEBOOK}" not in archaea_vec:
-            os._exit(1)
-    except:
-        pass
-
-    picaresult=PicaResult.objects.get(model=PicaModel.objects.filter(model_name="${RULEBOOK}").latest('model_train_date'), bin=Bin.objects.get(md5sum="${mdsum}"))
-    if picaresult.verdict == True:
-        verdict="YES"
-    elif picaresult.verdict == None:
-        verdict = "N/A"
-    else:
-        verdict= "NO"
-    pica_pval = "N/A" if float(picaresult.pica_pval) == 0.0 else str(picaresult.pica_pval)
-    accuracy = str(picaresult.accuracy)
-
-    write_this=verdict+" "+pica_pval+"\\t"+accuracy
-    print(write_this, end="")
-
-    """
-}
-
-// split output of last process on tab to get seperate verdict and accuracy fields
-picaout_from_new_model = new_model_to_targz_out.map { l ->
-
-    splitted = l[3].split("\t")
-    verdict = splitted[0]
-    accuracy = splitted[1] as float
-    // the print statment in the process "accuracy" includes a newline at the end, this is important for processing further downstream
-    // so this has to be included also here.
-    // todo: include "end="" in the print statement in "accurcy", remove the follwing line and adopt downstream handling
-    accuracy += "\n"
-    return [ l[0], l[1], l[2], verdict, accuracy ]
-
 }
 
 // if the results in our db for this bin and model are outdated, pica needs to be called
 // this just reformats the input and just calls accuracy if the value is YES
-
 accuracy_in_from_old_model = calc_model.filter{ it[3] == "YES" }.map{ l -> [l[0], l[1], l[2], l[4], l[5]] }
 
 
@@ -458,7 +375,7 @@ process hmmer {
     time '10 m'
 
     input:
-    set val(binname), val(mdsum), file(item), val(seqtype), val(calc_bin_or_not), file(reconstr_hmmer), file(reconst_hmmer) from all_protein_files
+    set val(binname), val(mdsum), file(item), val(seqtype), val(calc_bin_or_not), file(reconstr_hmmer), file(reconst_cc) from all_protein_files
 
     output:
     set val(binname), val(mdsum), file("hmmer.out"), file(item) into hmmerout
@@ -516,60 +433,23 @@ try:
 except ObjectDoesNotExist:
     sys.exit("Job not found.")
 """
-
 }
 
-// determine if the uploaded bin is a bacterium. add verdict to set
-// later on, use verdict to omit certain models for archaea
-process pica_bacteria {
-
-    tag { binname }
-    memory = '500 MB'
-
-    input:
-    set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem) from job_updated_out
-
-    output:
-    set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem), stdout into pica_bacteria_out  // "YES"= is bacterium
-
-    script:
-    RULEBOOK = file(params.archaea_model_path).getBaseName()
-    TEST_MODEL = "${params.archaea_model_path}/${RULEBOOK}.rules"
-    """
-    echo -ne "${binname}\\t" > tempfile.tmp
-    cut -f2 $hmmeritem | tr "\\n" "\\t" >> tempfile.tmp
-    test.py -m $TEST_MODEL -t $RULEBOOK -s tempfile.tmp > picaout.result
-    is_archaea=\$(cat picaout.result | tail -n1 | cut -f2)
-    if [[ \$is_archaea = "YES" ]]; then
-        echo -n "NO"
-    else
-        echo -n "YES"
-    fi
-    """
-}
-
-
-// compute contamination and completeness using compleconta, add taxonomy only if it is not archaeon
+// compute contamination and completeness using compleconta, add taxonomy
 process compleconta {
 
     tag { binname }
 
     input:
-    set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem), val(is_bacterium) from pica_bacteria_out
+    set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem) from job_updated_out
 
     output:
-    set val(binname), val(mdsum), file(hmmeritem), file("complecontaitem.txt"), val(is_bacterium) into complecontaout_for_call_accuracy, complecontaout_for_hmmerresults_to_db
+    set val(binname), val(mdsum), file(hmmeritem), file("complecontaitem.txt") into complecontaout_for_call_accuracy, complecontaout_for_hmmerresults_to_db
 
     script:
-    if (is_bacterium == "YES"){
     """
     compleconta_taxonomy.py $prodigalitem $hmmeritem | tail -1 > complecontaitem.txt
     """
-    } else {
-    """
-    echo "\$(compleconta_taxonomy.py $prodigalitem $hmmeritem | tail -1 | cut -f1,2,3)\t-\t-\t-"  > complecontaitem.txt
-    """
-    }
 }
 
 
@@ -578,7 +458,7 @@ process write_hmmer_results_to_db {
     tag { binname }
 
     input:
-    set val(binname), val(mdsum), file(hmmeritem), file(complecontaitem), val(is_bacterium) from complecontaout_for_hmmerresults_to_db
+    set val(binname), val(mdsum), file(hmmeritem), file(complecontaitem) from complecontaout_for_hmmerresults_to_db
 
     script:
 // language=Python
@@ -600,9 +480,7 @@ try:
 except ObjectDoesNotExist:
     sys.exit("Bin not found.")
 
-
-
-#write hmmer output to HmmerResult table
+# write hmmer output to HmmerResult table
 with open("${hmmeritem}", "r") as enogresfile:
     enoglist=[]
     for line in enogresfile:
@@ -621,42 +499,33 @@ with open("${hmmeritem}", "r") as enogresfile:
         except IntegrityError:
             print("Skipping due to IntegrityError.")
             continue
-
-
     try:
         HmmerResult.objects.bulk_create(enog_res_objectlist)
     except IntegrityError:
         print("Could not add enogs of bin ${binname} to the db.")
-
 """
 }
 
 // instantiates an item for each compleconta output item and each model,
-// drops all channel items which are not either bacteria
-// or archea but the assorted model is not contained in the blacklist omit_in_archaea
 accuracy_in = complecontaout_for_call_accuracy
-                .combine(models)
-                .filter{it[4] == "YES" || params.use_in_archaea.contains(it[5].getBaseName())}
-                .map { l -> [ l[0], l[1], l[5], l[2], l[3] ]}
+              .combine(models)
+              .map { l -> [ l[0], l[1], l[4], l[2], l[3] ]}
 
 
 // compute accuracy from compleconta output and model intrinsics.
 process accuracy {
 
     tag { "${binname}_${model.getBaseName()}" }
-
     memory = '300 MB'
 
-    input:                       // .mix: this is where models from bins that were already in the db, but that have outdated results, are added
+    input:
     set val(binname), val(mdsum), val(model), file(hmmeritem), file(complecontaitem) from accuracy_in.mix(accuracy_in_from_old_model)
 
     output:
     set val(binname), val(mdsum), val(model), file(hmmeritem), stdout into accuracyout
 
-
     script:
     """
-
     #!/usr/bin/env python3
 
     import django
@@ -700,7 +569,7 @@ process accuracy {
     except ObjectDoesNotExist:
         sys.exit("Bin not found.")
 
-    #check the balanced accuracy. other metrices would be very similar to evaluate, just change the part after the last dot
+    # check the balanced accuracy. other metrices would be very similar to evaluate, just change the part after the last dot
     # the print statments includes a newline at the end, this is important for processing further downstream
 
     print(PicaModelAccuracy.objects.get(model=PicaModel.objects.filter(model_name="${model.getBaseName()}").latest('model_train_date'),
@@ -710,7 +579,7 @@ process accuracy {
     """
 }
 
-// call pica for every sample for every condition in parallel
+// call pica for every sample for every condition
 process pica {
 
     tag { "${binname}_${model.getBaseName()}" }
@@ -721,7 +590,7 @@ process pica {
     set val(binname), val(mdsum), val(model), file(hmmeritem), val(accuracy) from accuracyout
 
     output:
-    set val(binname), val(mdsum), val(RULEBOOK), stdout, val(accuracy) into picaout_db_write, picaout_for_download //print decision on stdout, and put stdout into return set
+    set val(binname), val(mdsum), val(RULEBOOK), stdout, val(accuracy) into picaout_db_files
 
     script:
     RULEBOOK = model.getBaseName()
@@ -735,237 +604,9 @@ process pica {
     """
 }
 
-// replace the verdict of pica with "N/A N/A" if the balanced accuracy is below the treshold
-NA_replaced_for_download = picaout_for_download.mix(picaout_from_new_model).map { l ->
-
-    float accuracy_cutoff = params.accuracy_cutoff as float
-    float accuracy_float = l[4] as float
-
-    if (accuracy_float >= accuracy_cutoff) {
-        output = l[3]
-    } else {
-        output = "N/A N/A"
-    }
-    return [l[0], l[1], l[2], output, l[4]]
+db_write_pica_results = picaout_db_files.collectFile() { item ->
+    [ "${item[1]}.results", "${item[2]}\t${item[3]}\t${item[4]}" ]  // use md5sum as filename for identification in DB
 }
-
-NA_replaced_for_download.into{ NA_repl_for_dl_pica; NA_repl_for_dl_tax }
-
-// merge all results into a file called $id.results.
-outfilechannel = NA_repl_for_dl_pica.collectFile() { item ->
-    [ "${item[0]}.results", "${item[2]}\t${item[3]}\t${item[4]}" ]  // use given bin name as filename
-}.collect()
-
-taxonomy_mdsums = NA_repl_for_dl_tax.map { item -> item[1] }.unique().collect() // get md5sums
-
-
-db_write_pica_results = picaout_db_write.collectFile() { item ->
-    [ "${item[1]}.results", "${item[2]}\t${item[3]}\t${item[4]}" ]  // use md5sum as filename
-}
-
-
-// create a matrix file containing all verdicts for each bin and add to output files
-// create a matrix file containing summaries per model
-process make_matrix_and_headers {
-
-    stageInMode 'copy'
-
-    input:
-    file(allfiles) from outfilechannel
-
-    output:
-    file("*.csv") into all_files_for_tar
-// language=python
-"""
-#!/usr/bin/env python3
-
-import django
-import datetime
-import os
-import glob
-
-os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
-django.setup()
-from phenotypePredictionApp.models import *
-
-cutoff = "${params.accuracy_cutoff}"
-now = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
-HEADER = "Model_name\\tPrediction\\tProbability\\tBalanced_accuracy\\n"
-ROUND_TO = 2
-
-modelvec = list(set([x.model_name for x in PicaModel.objects.filter()]))
-modelvec = sorted(modelvec)
-
-bin_dict = {}
-countdict = {x: {"YES": 0, "NO": 0, "N/A": 0} for x in modelvec}
-resultmat = []
-
-for name in glob.glob("*.results"):
-
-    # extract info for matrix writing
-    with open(os.path.join(os.getcwd(), name), "r") as binfile:
-        binname = name.replace(".results", "")
-        bin_dict[binname] = {}
-        for line in binfile:
-            sline = line.split()
-            modelname, verdict = sline[0], sline[1]
-            bin_dict[binname][modelname] = verdict
-            try:
-                countdict[modelname][verdict] += 1
-            except KeyError:
-                pass
-
-        # sort results file and prepend header
-        with open(os.path.join(os.getcwd(), name + ".csv"), "w") as sortfile:
-            binfile.seek(0, 0)
-            content = []
-            for line in binfile:
-                rline = line.split()
-                try:
-                    pval = round(float(rline[2]), ROUND_TO)
-                except ValueError:
-                    pval = rline[2]
-                balac = round(float(rline[3]), ROUND_TO)
-                content.append([rline[0], rline[1], str(pval), str(balac)])
-            content = sorted(content, key=lambda x: x[0])
-            sortfile.write(HEADER)
-            for tup in content:
-                sortfile.write("\\t".join(tup))
-                sortfile.write("\\n")
-
-countlist = []
-for cond in ("YES", "NO", "N/A"):
-    condlist = []
-    for key, vals in countdict.items():
-        condlist.append(vals[cond])
-    countlist.append("\\t".join([cond] + [str(x) for x in condlist]))
-
-with open("summary_matrix.csv", "w") as outfile:
-    outfile.write("# phenDB\\n# Time of run: {da}\\n# Accuracy cut-off: {co}\\n".format(da=now, co=cutoff))
-    outfile.write("#\\nSummary of models:\\n")
-    outfile.write("\\t".join([" "] + modelvec))
-    outfile.write("\\n")
-    for line in countlist:
-        outfile.write(line)
-        outfile.write("\\n")
-
-with open("per_bin_matrix.csv", "w") as outfile2:
-    outfile2.write("# phenDB\\n# Time of run: {da}\\n# Accuracy cut-off: {co}\\n".format(da=now, co=cutoff))
-    outfile2.write("\\n#Results per bin:\\n")
-    outfile2.write("\\t".join([" "] + modelvec))
-    outfile2.write("\\n")
-    for item in bin_dict.keys():
-        resultlist = []
-        for modelname in modelvec:
-            try:
-                resultlist.append(bin_dict[item][modelname])
-            except KeyError:
-                resultlist.append("NC")
-        outfile2.write("\\t".join([item] + resultlist))
-        outfile2.write("\\n")
-"""
-}
-
-
-process write_tax_and_cc_result_file {
-
-    input:
-    val(allsums) from taxonomy_mdsums
-
-    output:
-    file('*.csv') into tax_cc_file_out
-    file('*.tsv') into tax_for_krona
-
-    script:
-    mdsum_string = allsums.join("\t")
-    """
-#!/usr/bin/env python3
-
-import django
-import sys
-import os
-from django.core.exceptions import ObjectDoesNotExist
-from django.db import IntegrityError
-
-os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
-django.setup()
-from phenotypePredictionApp.models import Bin
-
-mdsums = "${mdsum_string}".split("\\t")
-
-mdsums = sorted(mdsums, reverse=True)
-bins = Bin.objects.filter(md5sum__in=mdsums)
-
-with open("taxonomy.csv", "w") as taxfile:
-    taxfile.write("Bin_name\\ttaxon_id\\ttaxon_name\\ttaxon_rank\\n")
-    for bin in bins:
-        taxfile.write("{bn}\\t{ti}\\t{tn}\\t{tr}\\n".format(bn=bin.bin_name,
-                                                        ti=bin.tax_id,
-                                                        tn=bin.taxon_name,
-                                                        tr=bin.taxon_rank))
-with open("taxonomy_krona.tsv", "w") as tax_krona:
-    tax_krona.write("#bin name\\t#taxon_id\\n")
-    for bin in bins:
-        tax_krona.write("{bn}\\t{ti}\\n".format(bn=bin.bin_name,
-                                              ti=bin.tax_id))
-
-with open("completeness_contamination.csv", "w") as cc_out:
-    cc_out.write("Bin_name\\tCompleteness\\tContamination\\tStrain_heterogeneity\\n")
-    for bin in bins:
-        cc_out.write("{bn}\\t{com}\\t{con}\\t{sh}\\n".format(bn=bin.bin_name,
-                                                         com=bin.comple,
-                                                         con=bin.conta,
-                                                         sh=bin.strainhet))
-    
-    """
-}
-
-
-process krona {
-
-    scratch true
-
-    input:
-    file(kronain) from tax_for_krona
-
-    output:
-    file('krona_taxonomy.html') into krona_out
-
-    script:
-    """
-    ktImportTaxonomy $kronain -o krona_taxonomy.html
-    """
-}
-
-process zip_results {
-
-    tag { jobname }
-    scratch true
-    stageInMode 'copy'  //actually copy in the results so we not only tar symlinks
-
-    input:
-    file(allfiles) from all_files_for_tar.collect()
-    file(kronafile) from krona_out.collect()
-    file(tax_cc_files) from tax_cc_file_out.collect()
-    file(errorfile)
-
-    output:
-    file("${jobname}.zip") into zip_to_db
-
-    script:
-    """
-    mkdir -p ${jobname}/summaries
-    mkdir -p ${jobname}/individual_results
-    cp ${params.description_file} ${jobname}/summaries/PICA_trait_descriptions.txt
-    cp ${errorfile} ${jobname}/summaries/invalid_input_files.log.txt
-    mv *.results.csv ${jobname}/individual_results
-    mv *.csv ${jobname}/summaries
-    mv *.html ${jobname}/summaries
-    zip -r ${jobname}.zip ./${jobname}
-    rm -rf ${jobname}
-    """
-}
-
 
 process write_pica_result_to_db {
 
@@ -973,6 +614,9 @@ process write_pica_result_to_db {
 
     input:
     file(mdsum_file) from db_write_pica_results
+
+    output:
+    file(mdsum_file) into resfiles_after_db_write
 
     script:
 // language=Python
@@ -1028,6 +672,70 @@ for result in conditions:  # result = [modelname, verdict, pica_p_val, balanced_
         sys.exit(e)
 PicaResult.objects.bulk_create(modelresultlist)
 """
+}
+
+job_mdsums = resfiles_after_db_write.map { item -> item[1] }.mix(do_not_calc_model).unique().collect()
+
+//TODO: implement this again! including cutoff/hiding
+process make_downloadable_flat_files {
+
+    input:
+    file(job_mdsums)
+
+    output:
+    file("*.{csv,txt}") into downloadable_files_out
+    file("taxonomy_krona.tsv") into tax_for_krona
+
+    script:
+    """
+    
+    """
+}
+
+
+process krona {
+
+ scratch true
+
+ input:
+ file(kronain) from tax_for_krona
+
+ output:
+ file('krona_taxonomy.html') into krona_out
+
+ script:
+ """
+ ktImportTaxonomy $kronain -o krona_taxonomy.html
+ """
+}
+
+
+process zip_results {
+
+    tag { jobname }
+    scratch true
+    stageInMode 'copy'  //actually copy in the results so we not only tar symlinks
+
+    input:
+    file(allfiles) from all_files_for_tar.collect()
+    file(kronafile) from krona_out.collect()
+    file(errorfile)
+
+    output:
+    file("${jobname}.zip") into zip_to_db
+
+    script:
+    """
+    mkdir -p ${jobname}/summaries
+    mkdir -p ${jobname}/individual_results
+    cp ${params.description_file} ${jobname}/summaries/PICA_trait_descriptions.txt
+    cp ${errorfile} ${jobname}/summaries/invalid_input_files.log.txt
+    mv *.results.csv ${jobname}/individual_results
+    mv *.csv ${jobname}/summaries
+    mv *.html ${jobname}/summaries
+    zip -r ${jobname}.zip ./${jobname}
+    rm -rf ${jobname}
+    """
 }
 
 
