@@ -14,6 +14,7 @@ from phenotypePredictionApp.models import Job, Bin, PicaModel, PicaResult
 
 BALAC_CUTOFF = 0.75  # "${params.accuracy_cutoff}"
 PICA_CONF_CUTOFF = 0.75  # "${params.pica_conf_cutoff}"
+TRAIT_DEPENDENCY_FILE = "trait_dependencies.tsv"
 SHOW_ALL_RESULTS = True if "false" == "true" else False  # "${params.show_everything}"
 ROUND_TO = 2
 now = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
@@ -22,43 +23,69 @@ BIN_SUMMARY_HEADER = "Bin_Name\tCompleteness\tContamination\tStrain_Heterogeneit
 KRONA_FILE_HEADER = "#bin name\t#taxon_id\n"
 
 
-def filter_by_co(rd, rl, balac, pica, show_all=False):
+def filter_by_cutoff(rd, rl, balac, pica, show_all=False):
     if show_all:
         return rd
 
     for res in rl:
         name = res.bin.bin_name
         model = res.model.model_name
-        if res.accuracy <= balac or res.pica_pval <= pica:
-            if rd[name][model]["PICA_probability"] is not None:
+        if (res.accuracy <= balac or res.pica_pval <= pica) and model != "ARCHAEA":
+            if rd[name][model]["PICA_probability"] is not None: # remove this when model Archaea ahs probs
                 rd[name][model]["Prediction"] = "ND"
     return rd
 
 
-def filter_by_hierarchy(rd, bl, schema, show_all=False):
+def filter_by_hierarchy(rd, bl, ml, schema, show_all=False):
+    # fix taxonomy for bins predicted to be archaea
     for bin in bl:
+        print(rd[bin.bin_name]["ARCHAEA"]["Prediction"])
         if rd[bin.bin_name]["ARCHAEA"]["Prediction"] == "YES":
             bin.tax_id = "2157"
             bin.taxon_name = "Archaea"
             bin.taxon_rank = "superkingdom"
-
+            bin.save()
     if show_all:
         return rd, bl
 
+    # read in dependencies
+    dep_dic = {model_name: {} for model_name in ml}
+    with open(schema, "r") as depfile:
+        for line in depfile:
+            model_deps = line.strip().split("\t")
+            mname = model_deps[0]
+            deps = {dep.split(":")[0]: dep.split(":")[1] for dep in model_deps[1:]}
+            if mname.startswith("!"):
+                mname = mname[1:]
+                for name in ml:
+                    if name != mname:
+                        dep_dic[name] = {**dep_dic[name], **deps}
+            else:
+                dep_dic[mname] = {**dep_dic[mname], **deps}
+
+    # lookup dependencies for each bin for each model and set to ND if not all satisfied
+    for bin in bl:
+        for model_name in ml:
+            current_cstr = dep_dic[model_name]
+            for constraint_model, c_s in current_cstr.items():
+                print(current_cstr)
+                if rd[bin.bin_name][constraint_model] not in ("ND", "NC", c_s):
+                    print("setting ", model_name, " to ND.")
+                    rd[bin.bin_name][model_name]["Prediction"] = "ND"
     return rd, bl  # remove in the end
 
 
-BIN_MDSUMS = ["9aedaab39d7a6f59c2e74e8b05c36315",
-              "f66b68e21373ea2dbedfa43037178c48",
-              "0ccb1344d608c883164aa949ad1a06bb",
+BIN_MDSUMS = ["0ccb1344d608c883164aa949ad1a06bb",
+              "20dc8a09dc90c0db18d67ff2284b035c",
+              "5f341600ffec0b8c689cba69d412aa82",
+              "a8f3265e27ea5f4af49f03802f12b1ac",
               "d24a691dc232586ce893852c4e3f7ee7"]  # sorted("${mdsum_string}".split("\t"), reverse=True)
 job_bins = sorted(Bin.objects.filter(md5sum__in=BIN_MDSUMS), key=lambda x: x.bin_name)
-
-
 
 # model-bin-related information
 all_job_results = PicaResult.objects.filter(bin__in=job_bins)
 all_model_names = sorted(list(set([x.model_name for x in PicaModel.objects.filter()])))
+all_model_desc = [PicaModel.objects.filter(model_name=x).latest("model_train_date").model_desc for x in all_model_names]
 job_results_dict = {x.bin_name: {y: None for y in all_model_names} for x in job_bins}
 model_results_count = {x: {"YES": 0, "NO": 0, "ND": 0, "NC": 0} for x in all_model_names}
 
@@ -76,9 +103,17 @@ for pica_result in all_job_results:
     job_results_dict[pica_result.bin.bin_name][pica_result.model.model_name] = this_result_dict
 
 # filter results as desired
-cutoff_filtered_job_results = filter_by_co(job_results_dict, all_job_results, balac=BALAC_CUTOFF,
-                                           pica=PICA_CONF_CUTOFF, show_all=SHOW_ALL_RESULTS)
-hf_job_results, bins_tax_fixed = filter_by_hierarchy(job_results_dict, job_bins, schema=None, show_all=SHOW_ALL_RESULTS)
+cutoff_filtered_job_results = filter_by_cutoff(job_results_dict,
+                                               all_job_results,
+                                               balac=BALAC_CUTOFF,
+                                               pica=PICA_CONF_CUTOFF,
+                                               show_all=SHOW_ALL_RESULTS)
+
+hf_job_results, bins_tax_fixed = filter_by_hierarchy(job_results_dict,
+                                                     job_bins,
+                                                     all_model_names,
+                                                     schema=TRAIT_DEPENDENCY_FILE,
+                                                     show_all=SHOW_ALL_RESULTS)
 
 # write summaries and individual files
 with open("trait_summary_matrix.csv", "w") as summary_matrix:
@@ -89,6 +124,7 @@ with open("trait_summary_matrix.csv", "w") as summary_matrix:
                                                                  co=BALAC_CUTOFF,
                                                                  unl=SHOW_ALL_RESULTS))
     summary_matrix.write("# Summary of Trait Prediction Results:\n\n")
+    summary_matrix.write("\t" + "\t".join(all_model_desc) + "\n")
     summary_matrix.write("Bin Name\t" + "\t".join(all_model_names) + "\n")
     # write individual result files and append to list for each bin
     for bin in bins_tax_fixed:
