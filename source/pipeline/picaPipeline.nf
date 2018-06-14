@@ -667,7 +667,7 @@ PicaResult.objects.bulk_create(modelresultlist)
 """
 }
 
-job_mdsums = resfiles_after_db_write.map { item -> item[1] }.mix(do_not_calc_model).unique().collect()
+job_mdsums = resfiles_after_db_write.map { item -> item.getBaseName() }.mix(do_not_calc_model).unique().collect()
 
 //access database to get results for all bin md5sums received, and produce files for download
 process make_downloadable_flat_files {
@@ -714,32 +714,19 @@ def filter_by_co(rd, rl, balac, pica, show_all=False):
     return rd
 
 def filter_by_hierarchy(rd, bl, schema, show_all=False):
-    if show_all:
-        return rd
-
     for bin in bl:
-        pass
-    return rd  # remove in the end
+        if rd[bin.bin_name]["ARCHAEA"]["Prediction"] == "YES":
+            bin.tax_id = "2157"
+            bin.taxon_name = "Archaea"
+            bin.taxon_rank = "superkingdom"
+
+    if show_all:
+        return rd, bl
+
+    return rd, bl  # remove in the end
 
 BIN_MDSUMS = sorted("${mdsum_string}".split("\\t"), reverse=True)
 job_bins = sorted(Bin.objects.filter(md5sum__in=BIN_MDSUMS), key=lambda x: x.bin_name)
-
-# summarize bin-related information
-with open("bin_summary.csv", "w") as taxfile:
-    taxfile.write(BIN_SUMMARY_HEADER)
-    for bin in job_bins:
-        taxfile.write("{bn}\\t{com}\\t{con}\\t{sh}\\t{ti}\\t{tn}\\t{tr}\\n".format(bn=bin.bin_name,
-                                                                                   com=bin.comple,
-                                                                                   con=bin.conta,
-                                                                                   sh=bin.strainhet
-                                                                                   ti=bin.tax_id,
-                                                                                   tn=bin.taxon_name,
-                                                                                   tr=bin.taxon_rank))
-with open("taxonomy_krona.tsv", "w") as tax_krona:
-    tax_krona.write(KRONA_FILE_HEADER)
-    for bin in job_bins:
-        tax_krona.write("{bn}\\t{ti}\\n".format(bn=bin.bin_name,
-                                              ti=bin.tax_id))
 
 # model-bin-related information
 all_job_results = PicaResult.objects.filter(bin__in=job_bins)
@@ -763,7 +750,7 @@ for pica_result in all_job_results:
 # filter results as desired
 cutoff_filtered_job_results = filter_by_co(job_results_dict, all_job_results, balac=BALAC_CUTOFF,
                                            pica=PICA_CONF_CUTOFF, show_all=SHOW_ALL_RESULTS)
-hf_job_results = filter_by_hierarchy(job_results_dict, job_bins, schema=None, show_all=SHOW_ALL_RESULTS)
+hf_job_results, bins_tax_fixed = filter_by_hierarchy(job_results_dict, job_bins, schema=None, show_all=SHOW_ALL_RESULTS)
 
 # write summaries and individual files
 with open("trait_summary_matrix.csv", "w") as summary_matrix:
@@ -776,7 +763,7 @@ with open("trait_summary_matrix.csv", "w") as summary_matrix:
     summary_matrix.write("# Summary of Trait Prediction Results:\\n\\n")
     summary_matrix.write("Bin Name\\t" + "\\t".join(all_model_names) + "\\n")
     # write individual result files and append to list for each bin
-    for bin in job_bins:
+    for bin in bins_tax_fixed:
         all_bin_predictions = []
         with open("{bn}.traits.csv".format(bn=bin.bin_name), "w") as ind_t:
             ind_t.write(INDIVIDUAL_RESULTS_HEADER)
@@ -817,6 +804,23 @@ with open("trait_counts.csv", "w") as count_table:
         nd = str(model_results_count[model]["ND"])
         nc = str(model_results_count[model]["NC"])
         count_table.write("\\t".join([model, y, n, nd, nc]) + "\\n")
+
+# summarize bin-related information
+with open("bin_summary.csv", "w") as taxfile:
+    taxfile.write(BIN_SUMMARY_HEADER)
+    for bin in bins_tax_fixed:
+        taxfile.write("{bn}\\t{com}\\t{con}\\t{sh}\\t{ti}\\t{tn}\\t{tr}\\n".format(bn=bin.bin_name,
+                                                                                   com=bin.comple,
+                                                                                   con=bin.conta,
+                                                                                   sh=bin.strainhet,
+                                                                                   ti=bin.tax_id,
+                                                                                   tn=bin.taxon_name,
+                                                                                   tr=bin.taxon_rank))
+with open("taxonomy_krona.tsv", "w") as tax_krona:
+    tax_krona.write(KRONA_FILE_HEADER)
+    for bin in bins_tax_fixed:
+        tax_krona.write("{bn}\\t{ti}\\n".format(bn=bin.bin_name,
+                                              ti=bin.tax_id))
     """
 }
 
