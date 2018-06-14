@@ -11,7 +11,6 @@ $(document).ready(function() {
 
 //TODO: seperate progressbar
 function __initialize_popups(showProgressBar) {
-        if(showProgressBar) console.log("show progress bar");
         $('#overlay').puidialog({
                  closable: false,
                  minimizable: false,
@@ -19,17 +18,17 @@ function __initialize_popups(showProgressBar) {
                  modal: true,
                  resizable: false
              });
-                {% if showProgressBar %}
-                    $('#overlay').puidialog('show');
-                    $('#progressbar').puiprogressbar({
-                        value : {{  progress }},
-                        {% if queuePos > 0 %}
-                            labelTemplate: "Queue position: " + "{{ queuePos }}/{{ queueLen }}"
-                        {% else %}
-                            labelTemplate: "Finished/Total: " + "{{ finished_bins }}/{{ total_bins }}"
-                        {% endif %}
-                    });
-                {%  endif %}
+            if(showProgressBar) {
+                $('#overlay').puidialog('show');
+                $('#progressbar').puiprogressbar({
+                    value : {{  progress }},
+                    {% if queuePos > 0 %}
+                        labelTemplate: "Queue position: " + "{{ queuePos }}/{{ queueLen }}"
+                    {% else %}
+                        labelTemplate: "Finished/Total: " + "{{ finished_bins }}/{{ total_bins }}"
+                    {% endif %}
+                });
+            }
         $('#queue_info').puidialog({
                  minimizable: false,
                  maximizable: false,
@@ -47,6 +46,7 @@ function __initialize_widgets() {
     $('#result_download').puipanel();
     $('#result_figures1').puipanel({toggleable:true, closable:false, collapsed:false});
     $('#help_section').puipanel({toggleable: true, closable: false, collapsed: true});
+    $('#result_figures2').puipanel({toggleable: true, closable: false, collapsed: true});
 }
 
 function __initialize_error_messages() {
