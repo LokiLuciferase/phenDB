@@ -17,11 +17,15 @@ PICA_CONF_CUTOFF = 0.75  # "${params.pica_conf_cutoff}"
 TRAIT_DEPENDENCY_FILE = "trait_dependencies.tsv"
 SHOW_ALL_RESULTS = True if "false" == "true" else False  # "${params.show_everything}"
 ROUND_TO = 2
+BIN_MDSUMS = ["0ccb1344d608c883164aa949ad1a06bb",
+              "20dc8a09dc90c0db18d67ff2284b035c",
+              "5f341600ffec0b8c689cba69d412aa82",
+              "a8f3265e27ea5f4af49f03802f12b1ac",
+              "d24a691dc232586ce893852c4e3f7ee7"]  # sorted("${mdsum_string}".split("\t"), reverse=True)
 now = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
 INDIVIDUAL_RESULTS_HEADER = "Model_Name\tPrediction\tModel_Confidence\tBalanced_Accuracy\nModel_Description\n"
 BIN_SUMMARY_HEADER = "Bin_Name\tCompleteness\tContamination\tStrain_Heterogeneity\tTaxon_ID\tTaxon_Name\tTaxon_Rank\n"
 KRONA_FILE_HEADER = "#bin name\t#taxon_id\n"
-
 
 def filter_by_cutoff(rd, rl, balac, pica, show_all=False):
     if show_all:
@@ -31,15 +35,13 @@ def filter_by_cutoff(rd, rl, balac, pica, show_all=False):
         name = res.bin.bin_name
         model = res.model.model_name
         if (res.accuracy <= balac or res.pica_pval <= pica) and model != "ARCHAEA":
-            if rd[name][model]["PICA_probability"] is not None: # remove this when model Archaea ahs probs
+            if rd[name][model]["PICA_probability"] is not None:
                 rd[name][model]["Prediction"] = "ND"
     return rd
-
 
 def filter_by_hierarchy(rd, bl, ml, schema, show_all=False):
     # fix taxonomy for bins predicted to be archaea
     for bin in bl:
-        print(rd[bin.bin_name]["ARCHAEA"]["Prediction"])
         if rd[bin.bin_name]["ARCHAEA"]["Prediction"] == "YES":
             bin.tax_id = "2157"
             bin.taxon_name = "Archaea"
@@ -68,21 +70,12 @@ def filter_by_hierarchy(rd, bl, ml, schema, show_all=False):
         for model_name in ml:
             current_cstr = dep_dic[model_name]
             for constraint_model, c_s in current_cstr.items():
-                print(current_cstr)
-                if rd[bin.bin_name][constraint_model] not in ("ND", "NC", c_s):
-                    print("setting ", model_name, " to ND.")
-                    rd[bin.bin_name][model_name]["Prediction"] = "ND"
+                if rd[bin.bin_name][constraint_model]["Prediction"] not in ("ND", "NC", c_s):
+                    rd[bin.bin_name][model_name]["Prediction"] = "NC"
     return rd, bl  # remove in the end
 
-
-BIN_MDSUMS = ["0ccb1344d608c883164aa949ad1a06bb",
-              "20dc8a09dc90c0db18d67ff2284b035c",
-              "5f341600ffec0b8c689cba69d412aa82",
-              "a8f3265e27ea5f4af49f03802f12b1ac",
-              "d24a691dc232586ce893852c4e3f7ee7"]  # sorted("${mdsum_string}".split("\t"), reverse=True)
-job_bins = sorted(Bin.objects.filter(md5sum__in=BIN_MDSUMS), key=lambda x: x.bin_name)
-
 # model-bin-related information
+job_bins = sorted(Bin.objects.filter(md5sum__in=BIN_MDSUMS), key=lambda x: x.bin_name)
 all_job_results = PicaResult.objects.filter(bin__in=job_bins)
 all_model_names = sorted(list(set([x.model_name for x in PicaModel.objects.filter()])))
 all_model_desc = [PicaModel.objects.filter(model_name=x).latest("model_train_date").model_desc for x in all_model_names]
@@ -90,7 +83,7 @@ job_results_dict = {x.bin_name: {y: None for y in all_model_names} for x in job_
 model_results_count = {x: {"YES": 0, "NO": 0, "ND": 0, "NC": 0} for x in all_model_names}
 
 for pica_result in all_job_results:
-    pica_verdict_to_string = {1: "YES", 0: "NO", 2: "ND", "NC": 3}
+    pica_verdict_to_string = {1: "YES", 0: "NO"}
     string_verdict = pica_verdict_to_string[int(pica_result.verdict)]
 
     this_result_dict = {
@@ -137,17 +130,7 @@ with open("trait_summary_matrix.csv", "w") as summary_matrix:
                     result_for_write["PICA_probability"] = round(result_for_write["PICA_probability"], ROUND_TO)
                 if type(result_for_write["Balanced_Accuracy"]) == float:
                     result_for_write["Balanced_Accuracy"] = round(result_for_write["Balanced_Accuracy"], ROUND_TO)
-                if result_for_write is None:
-                    all_bin_predictions.append("NC")
-                    result_for_write = {
-                        "Model_name"       : model,
-                        "Model_description": PicaModel.objects.filter(model_name=model).latest('model_train_date').model_descr,
-                        "Prediction"       : "NC",
-                        "PICA_probability" : "NC",
-                        "Balanced_Accuracy": "NC"
-                    }
-                else:
-                    all_bin_predictions.append(result_for_write["Prediction"])
+                all_bin_predictions.append(result_for_write["Prediction"])
                 model_results_count[model][result_for_write["Prediction"]] += 1
                 ind_t.write("{mn}\t{pred}\t{pica_conf}\t{balac}\t{desc}\n".format(mn=result_for_write["Model_name"],
                                                                                   pred=result_for_write["Prediction"],

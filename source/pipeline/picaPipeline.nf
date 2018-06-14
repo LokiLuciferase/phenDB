@@ -804,8 +804,7 @@ with open("trait_summary_matrix.csv", "w") as summary_matrix:
                     result_for_write["PICA_probability"] = round(result_for_write["PICA_probability"], ROUND_TO)
                 if type(result_for_write["Balanced_Accuracy"]) == float:
                     result_for_write["Balanced_Accuracy"] = round(result_for_write["Balanced_Accuracy"], ROUND_TO)
-                else:
-                    all_bin_predictions.append(result_for_write["Prediction"])
+                all_bin_predictions.append(result_for_write["Prediction"])
                 model_results_count[model][result_for_write["Prediction"]] += 1
                 ind_t.write("{mn}\\t{pred}\\t{pica_conf}\\t{balac}\\t{desc}\\n".format(mn=result_for_write["Model_name"],
                                                                                   pred=result_for_write["Prediction"],
