@@ -4,16 +4,14 @@
 jobname = file(params.inputfolder).getBaseName()
 outdir = file(params.outdir)
 file(outdir).mkdir()
+
 models = file(params.modelfolder).listFiles()
-// make this independent of ending!! try to unpack, then directly check contents
+hmmdb = file(params.hmmdb)
 input_gzipfiles = Channel.fromPath("${params.inputfolder}/*.tar.gz")
 input_barezipfiles = Channel.fromPath("${params.inputfolder}/*.zip")
+all_input_files = Channel.fromPath("${params.inputfolder}/*")
+                  .filter{!it.name.endsWith('.tar.gz') && !it.name.endsWith('.zip')}
 
-all_input_files = Channel.fromPath("${params.inputfolder}/*").filter{!it.name.endsWith('.tar.gz') && !it.name.endsWith('.zip')}
-
-//todo: job status update is incorrect if some bins are already known
-
-hmmdb = file(params.hmmdb)
 
 log.info"""
     ##################################################################################
@@ -24,8 +22,9 @@ log.info"""
     Output directory: $outdir
     Job name: $jobname
 
-    Disabled compute nodes (for hmmer computation) (--omit_nodes): ${(params.omit_nodes == "") ? "None" : params.omit_nodes }
-    Accuracy cutoff for displaying PICA results (--accuracy_cutoff): $params.accuracy_cutoff
+    PICA confidence cutoff for displaying PICA results: $params.pica_conf_cutoff    
+    Balanced Accuracy cutoff for displaying PICA results: $params.accuracy_cutoff
+    Override cutoffs and hierarchical filtering: $params.show_everything
 
     ##################################################################################
     """.stripIndent()
@@ -43,7 +42,6 @@ process tgz {
     file(tarfile) from input_gzipfiles
 
     output:
-    //file("${tarfile.getSimpleName()}/*.fasta") into tgz_unraveled_fasta
     file("${tarfile.getSimpleName()}/*") into tgz_unraveled_all
 
     script:
@@ -66,7 +64,6 @@ process unzip {
     file(zipfile) from input_barezipfiles
 
     output:
-    //file("${zipfile.getSimpleName()}/*/*.fasta") into zip_unraveled_fasta
     file("${zipfile.getSimpleName()}/*") into zip_unraveled_all
 
     script:
@@ -79,7 +76,6 @@ process unzip {
     mv \$(find . -type f) ../${outfolder}/.
     """
 }
-
 
 // combine raw fasta files and those extracted from archive files
 truly_all_input_files = all_input_files.mix(tgz_unraveled_all.flatten(), zip_unraveled_all.flatten())
@@ -103,11 +99,11 @@ input_files_groovy_checked = truly_all_input_files.map {
     return it
 }
 
-// Passes every fasta file through Biopythons SeqIO to check for corrupted files
+// Pass every fasta file through Biopythons SeqIO to check for corrupted files
 process fasta_sanity_check {
-//todo: output also sequences-only for md5sum?
+
     tag { binname }
-    errorStrategy 'ignore'
+    errorStrategy 'ignore'  // failing files removed from pipeline
     maxForks 5
     scratch true
 
@@ -177,7 +173,7 @@ if "${item}".endswith(".gz"):
                 invalid_gz_error()
     except OSError:
        with open("${errorfile}", "a") as myfile:
-            myfile.write("WARNING: ${binname} is a compressed directory, not a file, or otherwise an not a valid .gz file. It is dropped from further analysis; Nested directories cannot be analyzed! \\n\\n")
+            myfile.write("WARNING: ${binname} is a compressed directory, not a file, or otherwise not a valid .gz file. It is dropped from further analysis; Nested directories cannot be analyzed! \\n\\n")
             os._exit(1)
 else:
     inputfasta="${item}"
@@ -188,10 +184,10 @@ else:
 """
 
 }
-
+// number of sane files for processing
 nr_of_files = sanity_check_for_count.count()
 
-
+// get primary key for bins
 process md5sum {
 
     tag { binname }
@@ -209,7 +205,7 @@ process md5sum {
     """
 }
 
-
+// add each bin to database
 process add_bin_to_db {
 
     tag { binname }
@@ -393,8 +389,7 @@ process hmmer {
     """
 }
 
-//increase percentage completed after each hmmer job completion
-
+//increase completed job count after each hmmer job completion
 process update_job_completeness {
 
     tag { jobname }
@@ -434,7 +429,7 @@ except ObjectDoesNotExist:
 """
 }
 
-// compute contamination and completeness using compleconta, add taxonomy
+// compute contamination and completeness using compleconta, and taxonomy
 process compleconta {
 
     tag { binname }
@@ -443,7 +438,7 @@ process compleconta {
     set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem) from job_updated_out
 
     output:
-    set val(binname), val(mdsum), file(hmmeritem), file("complecontaitem.txt") into complecontaout_for_call_accuracy, complecontaout_for_hmmerresults_to_db
+    set val(binname), val(mdsum), file(hmmeritem), file("complecontaitem.txt") into cc_for_accuracy, cc_to_db
 
     script:
     """
@@ -451,13 +446,13 @@ process compleconta {
     """
 }
 
-
+// write output of compleconta to database for each bin
 process write_hmmer_results_to_db {
 
     tag { binname }
 
     input:
-    set val(binname), val(mdsum), file(hmmeritem), file(complecontaitem) from complecontaout_for_hmmerresults_to_db
+    set val(binname), val(mdsum), file(hmmeritem), file(complecontaitem) from cc_to_db
 
     script:
 // language=Python
@@ -506,7 +501,7 @@ with open("${hmmeritem}", "r") as enogresfile:
 }
 
 // instantiates an item for each compleconta output item and each model,
-accuracy_in = complecontaout_for_call_accuracy
+accuracy_in = cc_for_accuracy
               .combine(models)
               .map { l -> [ l[0], l[1], l[4], l[2], l[3] ]}
 
@@ -607,6 +602,7 @@ db_write_pica_results = picaout_db_files.collectFile() { item ->
     [ "${item[1]}.results", "${item[2]}\t${item[3]}\t${item[4]}" ]  // use md5sum as filename for identification in DB
 }
 
+// write PICA result to database
 process write_pica_result_to_db {
 
     scratch true
@@ -651,8 +647,6 @@ for result in conditions:  # result = [modelname, verdict, pica_p_val, balanced_
             get_pica_pval=float(0)
         else:
             get_pica_pval=float(result[2])
-
-
         boolean_verdict = get_bool[result[1]]
         #get model from db
         try:
@@ -795,7 +789,7 @@ with open("trait_summary_matrix.csv", "w") as summary_matrix:
                     all_bin_predictions.append("NC")
                     result_for_write = {
                         "Model_name"       : model,
-                        "Model_description": PicaModel.objects.latest(model_name=model).model_desc,
+                        "Model_description": PicaModel.objects.filter(model_name=model).latest('model_train_date').model_descr,
                         "Prediction"       : "NC",
                         "PICA_probability" : "NC",
                         "Balanced_Accuracy": "NC"
@@ -825,7 +819,7 @@ with open("trait_counts.csv", "w") as count_table:
     """
 }
 
-
+// make kronaplot
 process krona {
 
  scratch true
@@ -842,7 +836,7 @@ process krona {
  """
 }
 
-
+//zip up all downloadable results
 process zip_results {
 
     tag { jobname }
@@ -871,7 +865,7 @@ process zip_results {
     """
 }
 
-
+//mark job as finished and save zip to upload location
 process write_zip_to_db {
 
     scratch true
