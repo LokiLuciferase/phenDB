@@ -485,13 +485,10 @@ with open("${hmmeritem}", "r") as enogresfile:
     enog_res_objectlist=[]
     for enog_elem in enoglist:
         try:
-            print("Attempting to add enog {en} from bin {bn} to database.".format(en=enog_elem,
-                                                                                  bn="${binname}"))
             new_enog_res = HmmerResult(bin=parentbin, enog=Enog.objects.get(enog_name=enog_elem))
             enog_res_objectlist.append(new_enog_res)
             #todo: should that not throw an error?
         except IntegrityError:
-            print("Skipping due to IntegrityError.")
             continue
     try:
         HmmerResult.objects.bulk_create(enog_res_objectlist)
@@ -669,7 +666,9 @@ PicaResult.objects.bulk_create(modelresultlist)
 
 job_mdsums = resfiles_after_db_write.map { item -> item.getBaseName() }.mix(do_not_calc_model).unique().collect()
 
-//access database to get results for all bin md5sums received, and produce files for download
+// access database to get results for all bin md5sums received
+// apply filtering by cutoffs and model constraints
+// and produce individual and summary files for download
 process make_downloadable_flat_files {
 
     input:
@@ -695,6 +694,7 @@ BALAC_CUTOFF = ${params.accuracy_cutoff}
 PICA_CONF_CUTOFF = ${params.pica_conf_cutoff}
 SHOW_ALL_RESULTS = True if "${params.show_everything}" == "true" else False
 TRAIT_DEPENDENCY_FILE = "${params.pica_dependencies}"
+BIN_MDSUMS = sorted("${mdsum_string}".split("\\t"), reverse=True)
 ROUND_TO = 2
 now = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
 INDIVIDUAL_RESULTS_HEADER = "Model_Name\\tPrediction\\tModel_Confidence\\tBalanced_Accuracy\\nModel_Description\\n"
@@ -716,7 +716,6 @@ def filter_by_cutoff(rd, rl, balac, pica, show_all=False):
 def filter_by_hierarchy(rd, bl, ml, schema, show_all=False):
     # fix taxonomy for bins predicted to be archaea
     for bin in bl:
-        print(rd[bin.bin_name]["ARCHAEA"]["Prediction"])
         if rd[bin.bin_name]["ARCHAEA"]["Prediction"] == "YES":
             bin.tax_id = "2157"
             bin.taxon_name = "Archaea"
@@ -745,16 +744,12 @@ def filter_by_hierarchy(rd, bl, ml, schema, show_all=False):
         for model_name in ml:
             current_cstr = dep_dic[model_name]
             for constraint_model, c_s in current_cstr.items():
-                print(current_cstr)
                 if rd[bin.bin_name][constraint_model] not in ("ND", "NC", c_s):
-                    print("setting ", model_name, " to ND.")
-                    rd[bin.bin_name][model_name]["Prediction"] = "ND"
+                    rd[bin.bin_name][model_name]["Prediction"] = "NC"
     return rd, bl  # remove in the end
 
-BIN_MDSUMS = sorted("${mdsum_string}".split("\\t"), reverse=True)
-job_bins = sorted(Bin.objects.filter(md5sum__in=BIN_MDSUMS), key=lambda x: x.bin_name)
-
 # model-bin-related information
+job_bins = sorted(Bin.objects.filter(md5sum__in=BIN_MDSUMS), key=lambda x: x.bin_name)
 all_job_results = PicaResult.objects.filter(bin__in=job_bins)
 all_model_names = sorted(list(set([x.model_name for x in PicaModel.objects.filter()])))
 all_model_desc = [PicaModel.objects.filter(model_name=x).latest("model_train_date").model_desc for x in all_model_names]
@@ -762,7 +757,7 @@ job_results_dict = {x.bin_name: {y: None for y in all_model_names} for x in job_
 model_results_count = {x: {"YES": 0, "NO": 0, "ND": 0, "NC": 0} for x in all_model_names}
 
 for pica_result in all_job_results:
-    pica_verdict_to_string = {1: "YES", 0: "NO", 2: "ND", "NC": 3}
+    pica_verdict_to_string = {1: "YES", 0: "NO"}
     string_verdict = pica_verdict_to_string[int(pica_result.verdict)]
 
     this_result_dict = {
@@ -782,7 +777,7 @@ cutoff_filtered_job_results = filter_by_cutoff(job_results_dict,
                                            show_all=SHOW_ALL_RESULTS)
 hf_job_results, bins_tax_fixed = filter_by_hierarchy(job_results_dict, 
                                                      job_bins, 
-                                                     schema=PICA_DEPENDENCY_FILE, 
+                                                     schema=TRAIT_DEPENDENCY_FILE, 
                                                      show_all=SHOW_ALL_RESULTS)
 
 # write summaries and individual files
@@ -807,15 +802,6 @@ with open("trait_summary_matrix.csv", "w") as summary_matrix:
                     result_for_write["PICA_probability"] = round(result_for_write["PICA_probability"], ROUND_TO)
                 if type(result_for_write["Balanced_Accuracy"]) == float:
                     result_for_write["Balanced_Accuracy"] = round(result_for_write["Balanced_Accuracy"], ROUND_TO)
-                if result_for_write is None:
-                    all_bin_predictions.append("NC")
-                    result_for_write = {
-                        "Model_name"       : model,
-                        "Model_description": PicaModel.objects.filter(model_name=model).latest('model_train_date').model_descr,
-                        "Prediction"       : "NC",
-                        "PICA_probability" : "NC",
-                        "Balanced_Accuracy": "NC"
-                    }
                 else:
                     all_bin_predictions.append(result_for_write["Prediction"])
                 model_results_count[model][result_for_write["Prediction"]] += 1
