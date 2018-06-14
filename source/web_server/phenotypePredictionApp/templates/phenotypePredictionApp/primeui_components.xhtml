@@ -11,7 +11,7 @@ $(document).ready(function() {
 
 //TODO: seperate progressbar
 function __initialize_popups(showProgressBar) {
-        console.log(showProgressBar);
+        if(showProgressBar) console.log("show progress bar");
         $('#overlay').puidialog({
                  closable: false,
                  minimizable: false,

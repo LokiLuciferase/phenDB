@@ -5,6 +5,6 @@ register = Library()
 @register.filter(is_safe=True)
 def boolean_js(object):
     if(object):
-        return "true"
+        return 1
     else:
-        return "false"
+        return 0
