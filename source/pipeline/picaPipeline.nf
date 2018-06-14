@@ -673,13 +673,14 @@ job_mdsums = resfiles_after_db_write.map { item -> item[1] }.mix(do_not_calc_mod
 process make_downloadable_flat_files {
 
     input:
-    file(job_mdsums)
+    val(job_mdsums)
 
     output:
     file("*.{csv,txt}") into downloadable_files_out
     file("taxonomy_krona.tsv") into tax_for_krona
 
     script:
+    mdsum_string = job_mdsums.join("\t")
     """
 #!/usr/bin/env python3
 import django
