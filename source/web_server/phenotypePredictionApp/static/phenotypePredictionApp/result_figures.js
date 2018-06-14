@@ -1,5 +1,5 @@
     function initialize_result_figures(resultsListJSTitles, resultsListJSValues, model_names, model_descriptions, bins) {
-        var dataTable1 =  __initialize_data_table1(resultsListJSValues, resultsListJSTitles);
+        var dataTable1 =  __initialize_data_table1(resultsListJSValues, resultsListJSTitles, "#dt_results_table");
         __initialize_pica_models_info(model_names, model_descriptions);
         __initialize_pica_models_autocomplete(model_names, dataTable1);
         __initialize_bins_autocomplete(bins, dataTable1);
@@ -7,8 +7,8 @@
         __initialize_accuracy_cutoff_spinner(dataTable1);
     }
 
-    function __initialize_data_table1(resultsListJSValues, resultsListJSTitles) {
-        var dataTable = $('#dt_results_table').DataTable( {
+    function __initialize_data_table(resultsListJSValues, resultsListJSTitles, identifier) {
+        var dataTable = $(identifier).DataTable( {
             "lengthMenu": [[50, 100, -1], [50, 100, "All"]],
             data: resultsListJSValues,
             columns: resultsListJSTitles,
