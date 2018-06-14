@@ -771,12 +771,14 @@ for pica_result in all_job_results:
 
 # filter results as desired
 cutoff_filtered_job_results = filter_by_cutoff(job_results_dict, 
-                                           all_job_results, 
-                                           balac=BALAC_CUTOFF,
-                                           pica=PICA_CONF_CUTOFF, 
-                                           show_all=SHOW_ALL_RESULTS)
+                                               all_job_results, 
+                                               balac=BALAC_CUTOFF,
+                                               pica=PICA_CONF_CUTOFF, 
+                                               show_all=SHOW_ALL_RESULTS)
+
 hf_job_results, bins_tax_fixed = filter_by_hierarchy(job_results_dict, 
-                                                     job_bins, 
+                                                     job_bins,
+                                                     all_model_names,
                                                      schema=TRAIT_DEPENDENCY_FILE, 
                                                      show_all=SHOW_ALL_RESULTS)
 
