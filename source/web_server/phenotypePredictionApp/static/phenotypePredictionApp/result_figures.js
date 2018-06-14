@@ -1,5 +1,5 @@
     function initialize_result_figures(resultsListJSTitles, resultsListJSValues, model_names, model_descriptions, bins) {
-        var dataTable1 =  __initialize_data_table1(resultsListJSValues, resultsListJSTitles, "#dt_results_table");
+        var dataTable1 =  __initialize_data_table(resultsListJSValues, resultsListJSTitles, "#dt_results_table");
         __initialize_pica_models_info(model_names, model_descriptions);
         __initialize_pica_models_autocomplete(model_names, dataTable1);
         __initialize_bins_autocomplete(bins, dataTable1);
