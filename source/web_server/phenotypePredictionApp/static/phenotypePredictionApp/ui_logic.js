@@ -68,3 +68,8 @@ function getAllBins(resultsListJSValues) {
     });
     return unique_bins;
 }
+/*
+function resultslist_to_dt2_matrix(resultsListJSValues) {
+    var bins_arr = resultsListJSValues[0];
+    var models =
+} */

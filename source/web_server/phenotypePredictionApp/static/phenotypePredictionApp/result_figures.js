@@ -1,13 +1,13 @@
     function initialize_result_figures(resultsListJSTitles, resultsListJSValues, model_names, model_descriptions, bins) {
-        var dataTable =  __initialize_data_table(resultsListJSValues, resultsListJSTitles);
+        var dataTable1 =  __initialize_data_table1(resultsListJSValues, resultsListJSTitles);
         __initialize_pica_models_info(model_names, model_descriptions);
-        __initialize_pica_models_autocomplete(model_names, dataTable);
-        __initialize_bins_autocomplete(bins, dataTable);
-        __initialize_pval_cutoff_spinner(dataTable);
-        __initialize_accuracy_cutoff_spinner(dataTable);
+        __initialize_pica_models_autocomplete(model_names, dataTable1);
+        __initialize_bins_autocomplete(bins, dataTable1);
+        __initialize_pval_cutoff_spinner(dataTable1);
+        __initialize_accuracy_cutoff_spinner(dataTable1);
     }
 
-    function __initialize_data_table(resultsListJSValues, resultsListJSTitles) {
+    function __initialize_data_table1(resultsListJSValues, resultsListJSTitles) {
         var dataTable = $('#dt_results_table').DataTable( {
             "lengthMenu": [[50, 100, -1], [50, 100, "All"]],
             data: resultsListJSValues,
@@ -17,6 +17,7 @@
         } );
         return dataTable;
     }
+
 
     function __initialize_pica_models_info(model_names, model_descriptions) {
         document.getElementById('dt_results_model_filter_info_text').innerHTML = models_to_infotext(model_names, model_descriptions);
