@@ -10,8 +10,8 @@
     function __initialize_data_table(resultsListJSValues, resultsListJSTitles, identifier) {
     window.resultListJSValuesNoF = resultsListJSValues;
     window.resultListJSValuesF = resultsListJSValues.sort(function(a,b) {
-        if (a[0] < a[1]) return -1;
-        else if(a[0] > a[1]) return 1;
+        if (a[0] < b[0]) return -1;
+        else if(a[0] > b[0]) return 1;
         else return 0;
     });
         var dataTable = $(identifier).DataTable( {
