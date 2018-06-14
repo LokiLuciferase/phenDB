@@ -1,5 +1,12 @@
 {% load jsonify %}
-<div style="display: {{ showResultCSS }}; margin:10px 10px 10px 10px; " id="result_figures" title="Explore Your Results - Trait Predictions">
+<style>
+    .result_figures {
+        display: {{ showResultCSS }};
+        margin:10px 10px 10px 10px;
+    }
+</style>
+<!-- TODO: change all titles -->
+<div class="result_figures" id="result_figures1" title="Explore Your Results - Trait Predictions">
         <div id="dt_results">
             <div style="padding-bottom: 30px" class="row" id="dt_results_model_filter_wrapper">
                 <div class="column" style="width: 100px; padding-right:10px" id="dt_result_model_filter_name">Filter Models</div>
@@ -31,6 +38,9 @@
             </div>
             <table id="dt_results_table" width="100%" style="display: {{ showResultCSS }}"></table>
         </div>
+</div>
+<div class="result_figures" id="result_figures2" title="Explore Your Results - Trait Predictions">
+
 </div>
 <script type="text/javascript">
                     $(document).ready(function() {

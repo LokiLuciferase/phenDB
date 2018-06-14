@@ -22,51 +22,7 @@
         <script type="text/javascript" src="{% static "phenotypePredictionApp/result_figures.js" %}"></script>
         <script type="text/javascript">
             $(document).ready(function() {
-             $('#overlay').puidialog({
-                 closable: false,
-                 minimizable: false,
-                 maximizable: false,
-                 modal: true,
-                 resizable: false
-             });
-                {% if showProgressBar %}
-                    $('#overlay').puidialog('show');
-                    $('#progressbar').puiprogressbar({
-                        value : {{  progress }},
-                        {% if queuePos > 0 %}
-                            labelTemplate: "Queue position: " + "{{ queuePos }}/{{ queueLen }}"
-                        {% else %}
-                            labelTemplate: "Finished/Total: " + "{{ finished_bins }}/{{ total_bins }}"
-                        {% endif %}
-                    });
-                {%  endif %}
-            $('#input_section').puipanel();
-            $('#requested_balac').puispinner({
-                min: 0.5,
-                max: 1,
-                step: 0.01
-            });
-            $('#result_download').puipanel();
-            $('#result_figures').puipanel({toggleable:true, closable:false, collapsed:false});
-            $('#help_section').puipanel({toggleable: true, closable: false, collapsed: true});
-            $('#error_message').puigrowl({sticky:true});
-                {% if showErrorMessage %}
-                    $('#error_message').puigrowl('show', [{severity: '{{ errorSeverityPU }}', summary: '{{ errorSummaryPU }}', detail: '{{ errorMessagePU }}' } ]);
-                {% endif %}
-            $('#queue_info').puidialog({
-                 minimizable: false,
-                 maximizable: false,
-                 resizable: false
-            });
-            $('#queue_show').puibutton({
-                icon: 'fa-external-link-square',
-                click: function() {
-                    $('#queue_info').puidialog('show');
-                }
-            });
-            $('#dt_results_pval_filter').puispinner({step:0.05});
-            $('#dt_results_accuracy_filter').puispinner({step:0.05});
-            });
+
         </script>
         <title>PhenDB</title>
     </head>
@@ -88,6 +44,8 @@
     {% include "phenotypePredictionApp/result_figures.xhtml" %}
 
     {% include "phenotypePredictionApp/helpsection.xhtml" %}
+
+    {% include "primeui_components.xhtml" %}
 
 
         <script type="text/javascript">
