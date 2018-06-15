@@ -692,7 +692,7 @@ from phenotypePredictionApp.models import Job, Bin, PicaModel, PicaResult
 
 BALAC_CUTOFF = ${params.accuracy_cutoff}
 PICA_CONF_CUTOFF = ${params.pica_conf_cutoff}
-SHOW_ALL_RESULTS = True if "${params.show_everything}" == "true" else False
+SHOW_ALL_RESULTS = "${params.show_everything}" == "true"
 TRAIT_DEPENDENCY_FILE = "${params.pica_dependencies}"
 BIN_MDSUMS = sorted("${mdsum_string}".split("\\t"), reverse=True)
 ROUND_TO = 2
@@ -744,7 +744,7 @@ def filter_by_hierarchy(rd, bl, ml, schema, show_all=False):
         for model_name in ml:
             current_cstr = dep_dic[model_name]
             for constraint_model, c_s in current_cstr.items():
-                if rd[bin.bin_name][constraint_model] not in ("ND", "NC", c_s):
+                if rd[bin.bin_name][constraint_model]["Prediction"] not in ("ND", "NC", c_s):
                     rd[bin.bin_name][model_name]["Prediction"] = "NC"
     return rd, bl  # remove in the end
 

@@ -15,7 +15,7 @@ from phenotypePredictionApp.models import Job, Bin, PicaModel, PicaResult
 BALAC_CUTOFF = 0.75  # "${params.accuracy_cutoff}"
 PICA_CONF_CUTOFF = 0.75  # "${params.pica_conf_cutoff}"
 TRAIT_DEPENDENCY_FILE = "trait_dependencies.tsv"
-SHOW_ALL_RESULTS = True if "false" == "true" else False  # "${params.show_everything}"
+SHOW_ALL_RESULTS = "false" == "true"  # "${params.show_everything}" == "true"
 ROUND_TO = 2
 BIN_MDSUMS = ["0ccb1344d608c883164aa949ad1a06bb",
               "20dc8a09dc90c0db18d67ff2284b035c",
