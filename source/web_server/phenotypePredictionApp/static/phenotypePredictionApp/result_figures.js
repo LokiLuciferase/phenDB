@@ -10,7 +10,8 @@
     }
 
     function __initialize_data_table(resultsListJSValues, resultsListJSTitles, identifier) {
-        console.log($.fn.dataTable.isDataTable("#dt_results_table"));
+        console.log(resultsListJSValues);
+        console.log(resultsListJSTitles);
         var dataTable = $(identifier).DataTable( {
             "lengthMenu": [[50, 100, -1], [50, 100, "All"]],
             data: resultsListJSValues,
