@@ -89,7 +89,7 @@ function resultslist_to_dt2_matrix(resultsListJSValues, models) {
         if(model_index == -1) throw "model not in model set";
         row[model_index+1] = verdict;
         if(bin_prev != bin_tmp || i == resultsListJSValues.length-1) {
-            row = __initializeEmptySlots(arr);
+            row = __initializeEmptySlots(row);
             dt2_matrix[row_index] = row;
             row = [];
             row[0] = bin_tmp;
