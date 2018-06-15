@@ -836,12 +836,12 @@ with open("bin_summary.csv", "w") as taxfile:
     taxfile.write(BIN_SUMMARY_HEADER)
     for bin in bins_tax_fixed:
         taxfile.write("{bn}\\t{com}\\t{con}\\t{sh}\\t{ti}\\t{tn}\\t{tr}\\n".format(bn=jam[bin.md5sum],
-                                                                            com=bin.comple,
-                                                                            con=bin.conta,
-                                                                            sh=bin.strainhet,
-                                                                            ti=bin.tax_id,
-                                                                            tn=bin.taxon_name,
-                                                                            tr=bin.taxon_rank))
+                                                                                   com=bin.comple,
+                                                                                   con=bin.conta,
+                                                                                   sh=bin.strainhet,
+                                                                                   ti=bin.tax_id,
+                                                                                   tn=bin.taxon_name,
+                                                                                   tr=bin.taxon_rank))
 with open("taxonomy_krona.tsv", "w") as tax_krona:
     tax_krona.write(KRONA_FILE_HEADER)
     for bin in bins_tax_fixed:
