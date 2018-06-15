@@ -76,22 +76,25 @@ function resultslist_to_dt2_matrix(resultsListJSValues, models) {
         else return 0;
     });
 
-    var dt2_matrix;
+    var dt2_matrix = [];
     var bin_prev = resultsListJSValues[0][0];
     var row_index = 0;
-    var row = [bin_prev];
+    var row = [];
+    row[0] = bin_prev;
     for(var i=0; i<resultsListJSValues.length; i++) {
         var bin_tmp = resultsListJSValues[i][0];
         var verdict = resultsListJSValues[i][2];
-        var model = resultsListJSValues[i][3];
+        var model = resultsListJSValues[i][1];
         var model_index = models.indexOf(model);
-        if(bin_prev != bin_tmp) {
+        if(bin_prev != bin_tmp || i == resultsListJSValues.length-1) {
+            console.log("row index " + row_index);
             dt2_matrix[row_index] = row;
-            row = [bin_tmp];
+            row = [];
+            row[0] = bin_tmp;
             ++row_index;
         }
         row[model_index+1] = verdict;
         bin_prev = bin_tmp;
     }
-
+    return dt2_matrix;
 }
