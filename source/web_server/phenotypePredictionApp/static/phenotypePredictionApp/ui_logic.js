@@ -104,7 +104,7 @@ function resultslist_to_dt2_matrix(resultsListJSValues, models) {
         bin_prev = bin_tmp;
     }
 
-    var model_cp = model_names.slice();
+    var model_cp = models.slice();
     model_cp.unshift("");
     var titles = __convertTitles(model_cp);
     return [dt2_matrix, titles];
