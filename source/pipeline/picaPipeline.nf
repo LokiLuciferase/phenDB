@@ -276,7 +276,7 @@ except ObjectDoesNotExist:
         complecon.write("dummy")
         
 try:
-    assoc= BinInJob(bin=thisbin, job=parentjob)
+    assoc= BinInJob(bin=thisbin, job=parentjob, bin_alias="${binname}")
     assoc.save()
 except IntegrityError:
     sys.exit("Cannot add bin to db: An identical file (same md5sum) from the same job is already in the db. Please remove duplicate files from your input!")

@@ -82,8 +82,9 @@ class BinInJob(models.Model):
             models.Index(fields=['job',])
        ]
 
-    bin = models.ForeignKey(Bin, on_delete=models.CASCADE)  # delete bins if we delete the association row
-    job = models.ForeignKey(Job)
+    bin = models.ForeignKey(Bin, on_delete=models.CASCADE)
+    job = models.ForeignKey(Job, on_delete=models.CASCADE)
+    bin_alias = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return "Bin: {bin} in Job {job}".format(bin=self.bin, job=self.job)
@@ -107,7 +108,7 @@ class Enog(models.Model):
 class PicaModel(models.Model):
 
     class Meta:
-        unique_together = ('model_name', 'model_train_date')  # composite primary key
+        unique_together = ('model_name', 'model_train_date')
         indexes = [
             models.Index(fields=['model_name', 'model_train_date'])
         ]
@@ -132,7 +133,7 @@ class PicaModel(models.Model):
 class EnogRank(models.Model):
 #todo: change PK to model and enog alone
     class Meta:
-        unique_together = ('model', 'enog')  # composite primary key
+        unique_together = ('model', 'enog')
         indexes = [
             models.Index(fields=['model', 'enog']),
             models.Index(fields=['model',]),
@@ -140,8 +141,8 @@ class EnogRank(models.Model):
             models.Index(fields=['internal_rank',])
         ]
 
-    model = models.ForeignKey(PicaModel)
-    enog = models.ForeignKey(Enog)
+    model = models.ForeignKey(PicaModel, on_delete=models.CASCADE)
+    enog = models.ForeignKey(Enog, on_delete=models.CASCADE)
     internal_rank = models.FloatField()
 
     def __str__(self):
@@ -153,12 +154,12 @@ class EnogRank(models.Model):
 
 class PicaModelAccuracy(models.Model):
     class Meta:
-        unique_together = ('model', 'comple', 'conta')  # composite primary key
+        unique_together = ('model', 'comple', 'conta')
         indexes = [
             models.Index(fields=['model', 'comple', 'conta'])
         ]
 
-    model = models.ForeignKey(PicaModel)
+    model = models.ForeignKey(PicaModel, on_delete=models.CASCADE)
     comple = models.FloatField()
     conta = models.FloatField()
     mean_balanced_accuracy  = models.FloatField()
@@ -181,7 +182,7 @@ class PicaModelTrainingData(models.Model):
             models.Index(fields=['model', 'tax_id'])
         ]
 
-    model = models.ForeignKey(PicaModel)
+    model = models.ForeignKey(PicaModel, on_delete=models.CASCADE)
     tax_id = models.CharField(max_length=10)
     assembly_id = models.CharField(max_length=20)
     verdict = models.NullBooleanField()
@@ -201,8 +202,8 @@ class HmmerResult(models.Model):
             models.Index(fields=['bin'])
         ]
 
-    enog = models.ForeignKey(Enog)
-    bin = models.ForeignKey(Bin)
+    enog = models.ForeignKey(Enog, on_delete=models.CASCADE)
+    bin = models.ForeignKey(Bin, on_delete=models.CASCADE)
 
     def __str__(self):
         return "Enog {eid} contained in the bin {mds} of Job {Jb}".format(eid=self.enog_id,
@@ -218,8 +219,8 @@ class PicaResult(models.Model):
             models.Index(fields=['bin'])
         ]
 
-    bin = models.ForeignKey(Bin)
-    model = models.ForeignKey(PicaModel)
+    bin = models.ForeignKey(Bin, on_delete=models.CASCADE)
+    model = models.ForeignKey(PicaModel, on_delete=models.CASCADE)
     verdict = models.NullBooleanField()
     pica_pval = models.FloatField()
     accuracy = models.FloatField()

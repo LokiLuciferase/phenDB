@@ -10,7 +10,7 @@ import sys  # remove this in process
 sys.path.append("/apps/phenDB_devel_LL/source/web_server")  # remove this in process
 os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
 django.setup()
-from phenotypePredictionApp.models import Job, Bin, PicaModel, PicaResult
+from phenotypePredictionApp.models import Job, Bin, BinInJob, PicaModel, PicaResult
 
 BALAC_CUTOFF = 0.75  # "${params.accuracy_cutoff}"
 PICA_CONF_CUTOFF = 0.75  # "${params.pica_conf_cutoff}"
@@ -75,7 +75,10 @@ def filter_by_hierarchy(rd, bl, ml, schema, show_all=False):
     return rd, bl  # remove in the end
 
 # model-bin-related information
+parentjob = Job.objects.get(key="65d798a5-2d7b-476a-9255-7ab379ac3677")   #Job.objects.get(key="${jobname}")
 job_bins = sorted(Bin.objects.filter(md5sum__in=BIN_MDSUMS), key=lambda x: x.bin_name)
+job_bins_aliases = [BinInJob.objects.get(bin=x, job=parentjob).bin_alias for x in job_bins]
+print(job_bins_aliases)
 all_job_results = PicaResult.objects.filter(bin__in=job_bins)
 all_model_names = sorted(list(set([x.model_name for x in PicaModel.objects.filter()])))
 all_model_desc = [PicaModel.objects.filter(model_name=x).latest("model_train_date").model_desc for x in all_model_names]
