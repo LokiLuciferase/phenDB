@@ -695,6 +695,7 @@ PICA_CONF_CUTOFF = ${params.pica_conf_cutoff}
 SHOW_ALL_RESULTS = "${params.show_everything}" == "true"
 TRAIT_DEPENDENCY_FILE = "${params.pica_dependencies}"
 BIN_MDSUMS = sorted("${mdsum_string}".split("\\t"), reverse=True)
+JOB_ID = "${jobname}"
 ROUND_TO = 2
 now = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
 INDIVIDUAL_RESULTS_HEADER = "Model_Name\\tPrediction\\tModel_Confidence\\tBalanced_Accuracy\\nModel_Description\\n"
@@ -706,17 +707,17 @@ def filter_by_cutoff(rd, rl, balac, pica, show_all=False):
         return rd
 
     for res in rl:
-        name = res.bin.bin_name
+        md5sum = res.bin.md5sum
         model = res.model.model_name
         if (res.accuracy <= balac or res.pica_pval <= pica) and model != "ARCHAEA":
-            if rd[name][model]["PICA_probability"] is not None:
-                rd[name][model]["Prediction"] = "ND"
+            if rd[md5sum][model]["PICA_probability"] is not None:
+                rd[md5sum][model]["Prediction"] = "ND"
     return rd
 
 def filter_by_hierarchy(rd, bl, ml, schema, show_all=False):
     # fix taxonomy for bins predicted to be archaea
     for bin in bl:
-        if rd[bin.bin_name]["ARCHAEA"]["Prediction"] == "YES":
+        if rd[bin.md5sum]["ARCHAEA"]["Prediction"] == "YES":
             bin.tax_id = "2157"
             bin.taxon_name = "Archaea"
             bin.taxon_rank = "superkingdom"
@@ -744,22 +745,25 @@ def filter_by_hierarchy(rd, bl, ml, schema, show_all=False):
         for model_name in ml:
             current_cstr = dep_dic[model_name]
             for constraint_model, c_s in current_cstr.items():
-                if rd[bin.bin_name][constraint_model]["Prediction"] not in ("ND", "NC", c_s):
-                    rd[bin.bin_name][model_name]["Prediction"] = "NC"
+                if rd[bin.md5sum][constraint_model]["Prediction"] not in ("ND", "NC", c_s):
+                    rd[bin.md5sum][model_name]["Prediction"] = "NC"
     return rd, bl  # remove in the end
 
 # model-bin-related information
+parentjob = Job.objects.get(key=JOB_ID)
 job_bins = sorted(Bin.objects.filter(md5sum__in=BIN_MDSUMS), key=lambda x: x.bin_name)
+job_bins_aliases = [BinInJob.objects.get(bin=x, job=parentjob).bin_alias for x in job_bins]
+job_bins_aliases = [x if x else job_bins[i].bin_name for i, x in enumerate(job_bins_aliases)]
+jam = {x.md5sum: y for x, y in zip(job_bins, job_bins_aliases)}
 all_job_results = PicaResult.objects.filter(bin__in=job_bins)
 all_model_names = sorted(list(set([x.model_name for x in PicaModel.objects.filter()])))
 all_model_desc = [PicaModel.objects.filter(model_name=x).latest("model_train_date").model_desc for x in all_model_names]
-job_results_dict = {x.bin_name: {y: None for y in all_model_names} for x in job_bins}
+job_results_dict = {x.md5sum: {y: None for y in all_model_names} for x in job_bins}
 model_results_count = {x: {"YES": 0, "NO": 0, "ND": 0, "NC": 0} for x in all_model_names}
 
 for pica_result in all_job_results:
     pica_verdict_to_string = {1: "YES", 0: "NO"}
     string_verdict = pica_verdict_to_string[int(pica_result.verdict)]
-
     this_result_dict = {
         "Model_name"       : pica_result.model.model_name,
         "Model_description": pica_result.model.model_desc,
@@ -767,19 +771,19 @@ for pica_result in all_job_results:
         "PICA_probability" : pica_result.pica_pval,
         "Balanced_Accuracy": pica_result.accuracy
     }
-    job_results_dict[pica_result.bin.bin_name][pica_result.model.model_name] = this_result_dict
+    job_results_dict[pica_result.bin.md5sum][pica_result.model.model_name] = this_result_dict
 
 # filter results as desired
-cutoff_filtered_job_results = filter_by_cutoff(job_results_dict, 
-                                               all_job_results, 
+cutoff_filtered_job_results = filter_by_cutoff(job_results_dict,
+                                               all_job_results,
                                                balac=BALAC_CUTOFF,
-                                               pica=PICA_CONF_CUTOFF, 
+                                               pica=PICA_CONF_CUTOFF,
                                                show_all=SHOW_ALL_RESULTS)
 
-hf_job_results, bins_tax_fixed = filter_by_hierarchy(job_results_dict, 
+hf_job_results, bins_tax_fixed = filter_by_hierarchy(job_results_dict,
                                                      job_bins,
                                                      all_model_names,
-                                                     schema=TRAIT_DEPENDENCY_FILE, 
+                                                     schema=TRAIT_DEPENDENCY_FILE,
                                                      show_all=SHOW_ALL_RESULTS)
 
 # write summaries and individual files
@@ -793,13 +797,14 @@ with open("trait_summary_matrix.csv", "w") as summary_matrix:
     summary_matrix.write("# Summary of Trait Prediction Results:\\n\\n")
     summary_matrix.write("\\t" + "\\t".join(all_model_desc) + "\\n")
     summary_matrix.write("Bin Name\\t" + "\\t".join(all_model_names) + "\\n")
+    
     # write individual result files and append to list for each bin
     for bin in bins_tax_fixed:
         all_bin_predictions = []
-        with open("{bn}.traits.csv".format(bn=bin.bin_name), "w") as ind_t:
+        with open("{bn}.traits.csv".format(bn=jam[bin.md5sum]), "w") as ind_t:
             ind_t.write(INDIVIDUAL_RESULTS_HEADER)
             for model in all_model_names:
-                result_for_write = hf_job_results[bin.bin_name][model]
+                result_for_write = hf_job_results[bin.md5sum][model]
                 if type(result_for_write["PICA_probability"]) == float:
                     result_for_write["PICA_probability"] = round(result_for_write["PICA_probability"], ROUND_TO)
                 if type(result_for_write["Balanced_Accuracy"]) == float:
@@ -815,7 +820,7 @@ with open("trait_summary_matrix.csv", "w") as summary_matrix:
                                                                                   desc=result_for_write[
                                                                                       "Model_description"]
                                                                                   ))
-        summary_matrix.write("\\t".join([bin.bin_name, *all_bin_predictions]) + "\\n")
+        summary_matrix.write("\\t".join([jam[bin.md5sum], *all_bin_predictions]) + "\\n")
 
 with open("trait_counts.csv", "w") as count_table:
     count_table.write("Model Name\\tYES\\tNO\\tND\\tNC\\n")
@@ -830,17 +835,17 @@ with open("trait_counts.csv", "w") as count_table:
 with open("bin_summary.csv", "w") as taxfile:
     taxfile.write(BIN_SUMMARY_HEADER)
     for bin in bins_tax_fixed:
-        taxfile.write("{bn}\\t{com}\\t{con}\\t{sh}\\t{ti}\\t{tn}\\t{tr}\\n".format(bn=bin.bin_name,
-                                                                                   com=bin.comple,
-                                                                                   con=bin.conta,
-                                                                                   sh=bin.strainhet,
-                                                                                   ti=bin.tax_id,
-                                                                                   tn=bin.taxon_name,
-                                                                                   tr=bin.taxon_rank))
+        taxfile.write("{bn}\\t{com}\\t{con}\\t{sh}\\t{ti}\\t{tn}\\t{tr}\\n".format(bn=jam[bin.md5sum],
+                                                                            com=bin.comple,
+                                                                            con=bin.conta,
+                                                                            sh=bin.strainhet,
+                                                                            ti=bin.tax_id,
+                                                                            tn=bin.taxon_name,
+                                                                            tr=bin.taxon_rank))
 with open("taxonomy_krona.tsv", "w") as tax_krona:
     tax_krona.write(KRONA_FILE_HEADER)
     for bin in bins_tax_fixed:
-        tax_krona.write("{bn}\\t{ti}\\n".format(bn=bin.bin_name,
+        tax_krona.write("{bn}\\t{ti}\\n".format(bn=jam[bin.md5sum],
                                               ti=bin.tax_id))
     """
 }
