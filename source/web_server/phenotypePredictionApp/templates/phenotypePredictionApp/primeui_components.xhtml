@@ -21,7 +21,7 @@ function __initialize_popups(showProgressBar) {
             if(showProgressBar) {
                 $('#overlay').puidialog('show');
                 $('#progressbar').puiprogressbar({
-                    value : 0,
+                    value : {{  progress|default_if_none: 0}},
                     {% if queuePos > 0 %}
                         labelTemplate: "Queue position: " + "{{ queuePos }}/{{ queueLen }}"
                     {% else %}
