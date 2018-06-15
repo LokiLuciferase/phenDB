@@ -1,7 +1,7 @@
     function initialize_result_figures(resultsListJSTitles, resultsListJSValues, model_names, model_descriptions, bins) {
         var dataTable1 =  __initialize_data_table(resultsListJSValues, resultsListJSTitles, "#dt_results_table");
         //var matrix_for_dt2 = resultslist_to_dt2_matrix(resultsListJSValues, model_names, "#dt_results_table2");
-        var dataTable2 = __initialize_data_table(matrix_for_dt2, model_names.slice.unshift("")); //unshift adds empty item to the beginning of the array
+        //var dataTable2 = __initialize_data_table(matrix_for_dt2, model_names.slice.unshift("")); //unshift adds empty item to the beginning of the array
         __initialize_pica_models_info(model_names, model_descriptions);
         __initialize_pica_models_autocomplete(model_names, dataTable1);
         __initialize_bins_autocomplete(bins, dataTable1);
