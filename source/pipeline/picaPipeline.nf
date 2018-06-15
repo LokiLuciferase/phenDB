@@ -688,7 +688,7 @@ import os
 
 os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
 django.setup()
-from phenotypePredictionApp.models import Job, Bin, PicaModel, PicaResult
+from phenotypePredictionApp.models import Job, Bin, BinInJob, PicaModel, PicaResult
 
 BALAC_CUTOFF = ${params.accuracy_cutoff}
 PICA_CONF_CUTOFF = ${params.pica_conf_cutoff}
