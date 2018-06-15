@@ -24,13 +24,12 @@ Additionally, please note that PhenDB currently does not provide trait predictio
 <li>Protein fasta file (raw or gzip-compressed)</li>
 <li>tar.gz or zip archive of the above</li>
 </ul>
-
 <p>Please note that a flat file structure is required within archives. The current maximum file size for upload is 1 GB, the maximum file size per bin is 30 MB. Duplicate sequence files (determined by file content) will be silently dropped from the analysis. Empty sequence files will be silently dropped from the analysis.</p>
 
 <h3 id="statisticalmeasures">Statistical Measures and Interpretation of Results</h3>
 <p>PhenDB provides two separate confidence measures associated with trait predictions.</p>
 <ol>
-<li>PICA probability is the internal probability of class membership within the linear SVM model used by PICA (provided via Platt scaling). It can thus be seen as the internal confidence of the model into its prediction, given its training.</li>
+<li>Model confidence is the internal probability of class membership within the linear SVM model used by PICA (provided via Platt scaling). It can thus be seen as the internal confidence of the model into its prediction, given its training.</li>
 <li>Balanced Accuracy is a confidence measure computed from completeness/contamination of the uploaded bin and the model's known predictive power. It can thus be interpreted as our confidence in the predictions of the model, given the bin's completeness and contamination. Values of Balanced Accuracy may range from 0.5 (predictions are expected to be random) to 1 (high expected correlation of predicted class and actual class).</li>
 </ol>
 <p>A balanced accuracy cutoff can be set when submitting to PhenDB: predictions with a balanced accuracy below the chosen cutoff value (range: 0.5 - 1) are then masked in the downloadable result ("ND" instead of YES/NO). In the web interface, results can be masked and filtered as desired after computation.</p>
@@ -41,7 +40,7 @@ Additionally, please note that PhenDB currently does not provide trait predictio
 <ul>
 <li>the folder individual_results:
 <ul>
-<li>a {bin name}.results.csv file for every valid uploaded bin/genome. This file contains the model names, predictions (YES/NO/ND/NC) along with PICA probability and balanced accuracy values.</li></ul>
+<li>a {bin name}.traits.csv file for every valid uploaded bin/genome. This file contains the model names, predictions (YES/NO/ND/NC) along with model confidence and balanced accuracy values.</li></ul>
 </li>
 <li>the folder "summaries":
 <ul>

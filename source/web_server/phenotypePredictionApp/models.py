@@ -65,11 +65,11 @@ class Bin(models.Model):
     assembly_id = models.TextField(null=True, blank=True)  # TODO: migrate this!
 
     def __str__(self):
-        return str(self.bin_name) + " " + str(self.md5sum) + " " + str(self.tax_id) + " " + str(self.taxon_name) + " " + str(self.taxon_rank) + " " + str(self.comple) + " " + str(self.conta) + " " + str(self.strainhet)
-        #return "File name: {fn}".format(fn=self.bin_name)
+        return " ".join([str(x) for x in (self.bin_name, self.md5sum, self.tax_id, self.taxon_name,
+                                          self.taxon_rank, self.comple, self.conta, self.strainhet)])
 
     def natural_key(self):
-        return (self.bin_name)
+        return self.bin_name
 
 
 class BinInJob(models.Model):
@@ -80,7 +80,7 @@ class BinInJob(models.Model):
             models.Index(fields=['bin', 'job']),
             models.Index(fields=['bin',]),
             models.Index(fields=['job',])
-       ]
+        ]
 
     bin = models.ForeignKey(Bin, on_delete=models.CASCADE)
     job = models.ForeignKey(Job, on_delete=models.CASCADE)
@@ -123,15 +123,15 @@ class PicaModel(models.Model):
 
     def __str__(self):
         return "Name: {mid}\t Description: {md}\tDate of Training: {mtd} \t " \
-               "Type= {type}".format(mid=self.model_name,md=self.model_desc, mtd=str(self.model_train_date),
-                                         type=self.type)
+               "Type= {type}".format(mid=self.model_name, md=self.model_desc,
+                                     mtd=str(self.model_train_date), type=self.type)
 
     def natural_key(self):
-        return (self.model_name)
+        return self.model_name
 
 
 class EnogRank(models.Model):
-#todo: change PK to model and enog alone
+
     class Meta:
         unique_together = ('model', 'enog')
         indexes = [
@@ -146,10 +146,11 @@ class EnogRank(models.Model):
     internal_rank = models.FloatField()
 
     def __str__(self):
-        return "Enog ID: {eid}\tModel ID: {mid}\tRank {ir}\t(Model trained on {mtd})".format(eid=self.enog_id,
-                                                                                           mid=self.model.model_name,
-                                                                                           ir=str(self.internal_rank),
-                                                                                           mtd=str(self.model.model_train_date))
+        return "Enog ID: {eid}\tModel ID:" \
+               " {mid}\tRank {ir}\t(Model trained on {mtd})".format(eid=self.enog_id,
+                                                                    mid=self.model.model_name,
+                                                                    ir=str(self.internal_rank),
+                                                                    mtd=str(self.model.model_train_date))
 
 
 class PicaModelAccuracy(models.Model):
@@ -166,14 +167,12 @@ class PicaModelAccuracy(models.Model):
     mean_fp_rate = models.FloatField()
     mean_fn_rate = models.FloatField()
 
-
     def __str__(self):
         return "Name: {mid}\t type= {type} \t Completeness: {comple} \t " \
                "Contamination {conta} \t bal. acc {balac}".format(mid=self.model.model_name,
-                                                                      type=self.model.type, comple=self.comple,
-                                                                      conta=self.conta,
-                                                                      balac=self.mean_balanced_accuracy
-                                                                              )
+                                                                  type=self.model.type, comple=self.comple,
+                                                                  conta=self.conta,
+                                                                  balac=self.mean_balanced_accuracy)
 
 class PicaModelTrainingData(models.Model):
     class Meta:
@@ -207,7 +206,8 @@ class HmmerResult(models.Model):
 
     def __str__(self):
         return "Enog {eid} contained in the bin {mds} of Job {Jb}".format(eid=self.enog_id,
-                                                              mds=self.bin_id, jb=self.bin.key)
+                                                                          mds=self.bin_id,
+                                                                          jb=self.bin.key)
 
 
 class PicaResult(models.Model):
@@ -226,12 +226,13 @@ class PicaResult(models.Model):
     accuracy = models.FloatField()
 
     def __str__(self):
-        return "Bin {mds}: {v} ({acc} accuracy, {pval} pica_p_value) for model {mid} trained on {mtd}.".format(mds=self.bin.bin_name,
-                                                                                          v=str(self.verdict),
-                                                                                          acc=str(self.accuracy),
-                                                                                        pval=str(self.pica_pval),
-                                                                                          mid=self.model.model_name,
-                                                                                          mtd=str(self.model.model_train_date))
+        return "Bin {mds}: {v} ({acc} accuracy, " \
+               "{pval} pica_p_value) for model {mid} trained on {mtd}.".format(mds=self.bin.bin_name,
+                                                                               v=str(self.verdict),
+                                                                               acc=str(self.accuracy),
+                                                                               pval=str(self.pica_pval),
+                                                                               mid=self.model.model_name,
+                                                                               mtd=str(self.model.model_train_date))
 
 
 class Taxon(models.Model):

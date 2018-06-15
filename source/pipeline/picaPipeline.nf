@@ -12,7 +12,6 @@ input_barezipfiles = Channel.fromPath("${params.inputfolder}/*.zip")
 all_input_files = Channel.fromPath("${params.inputfolder}/*")
                   .filter{!it.name.endsWith('.tar.gz') && !it.name.endsWith('.zip')}
 
-
 log.info"""
     ##################################################################################
 
