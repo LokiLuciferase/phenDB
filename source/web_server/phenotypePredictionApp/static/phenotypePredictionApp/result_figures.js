@@ -1,9 +1,8 @@
     function initialize_result_figures(resultsListJSTitles, resultsListJSValues, model_names, model_descriptions, bins) {
         //var dataTable1 =  __initialize_data_table(resultsListJSValues, resultsListJSTitles, "#dt_results_table");
         var matrix_for_dt2 = resultslist_to_dt2_matrix(resultsListJSValues, model_names);
-        var model_names_for_dt2 = model_names.slice();
-        model_names_for_dt2.unshift("");
-        var dataTable2 = __initialize_data_table(matrix_for_dt2, model_names_for_dt2, "#dt_results_table2"); //unshift adds empty item to the beginning of the array
+
+        var dataTable2 = __initialize_data_table(matrix_for_dt2[0], matrix_for_dt2[1], "#dt_results_table2"); //unshift adds empty item to the beginning of the array
         //__initialize_pica_models_info(model_names, model_descriptions);
         //__initialize_pica_models_autocomplete(model_names, dataTable1);
         //__initialize_bins_autocomplete(bins, dataTable1);
@@ -17,7 +16,7 @@
         var dataTable = $(identifier).DataTable( {
             "lengthMenu": [[50, 100, -1], [50, 100, "All"]],
             data: resultsListJSValues,
-            //columns: resultsListJSTitles,
+            columns: resultsListJSTitles,
             searching: true,
             'dom' : '<ltp>', //controls which parts of the datatable should be rendered and in which order (e.g. paging control)
         } );

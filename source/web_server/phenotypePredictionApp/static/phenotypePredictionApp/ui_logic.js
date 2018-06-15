@@ -4,10 +4,7 @@ function resultList_to_datatable_input(json_obj) {
     var titles = [];
 
     var all_keys = Object.keys(json_obj[0].fields);
-    for(var i=0; i<all_keys.length; i++) {
-        var dicTmp = {title : all_keys[i]};
-        titles.push(dicTmp);
-    }
+    titles = __convertTitles(all_keys);
 
     for (var i=0; i<json_obj.length; i++) {
         var sub_arr = Object.values(json_obj[i].fields);
@@ -15,6 +12,15 @@ function resultList_to_datatable_input(json_obj) {
     }
     __roundNumbers(all_data, [3,4], 2);
     return [titles, all_data];
+}
+
+function __convertTitles(titles_arr) {
+    var titles_new = [];
+    for(var i=0; i<titles_arr.length; i++) {
+        var dicTmp = {title : all_keys[i]};
+        titles_new.push(dicTmp);
+    }
+    return titles_new;
 }
 
 function __roundNumbers(all_data, columns, precision) {
@@ -97,7 +103,11 @@ function resultslist_to_dt2_matrix(resultsListJSValues, models) {
         }
         bin_prev = bin_tmp;
     }
-    return dt2_matrix;
+
+    var model_cp = model_names.slice();
+    model_cp.unshift("");
+    var titles = __convertTitles(model_cp);
+    return [dt2_matrix, titles];
 }
 
 function __initializeEmptySlots(arr) {
