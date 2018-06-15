@@ -17,7 +17,7 @@ function resultList_to_datatable_input(json_obj) {
 function __convertTitles(titles_arr) {
     var titles_new = [];
     for(var i=0; i<titles_arr.length; i++) {
-        var dicTmp = {title : all_keys[i]};
+        var dicTmp = {title : titles_arr[i]};
         titles_new.push(dicTmp);
     }
     return titles_new;
