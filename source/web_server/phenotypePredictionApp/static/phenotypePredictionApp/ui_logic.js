@@ -4,7 +4,7 @@ function resultList_to_datatable_input(json_obj) {
     var titles = [];
 
     var all_keys = Object.keys(json_obj[0].fields);
-    titles = __convertTitles(all_keys);
+    titles = convertTitles(all_keys);
 
     for (var i=0; i<json_obj.length; i++) {
         var sub_arr = Object.values(json_obj[i].fields);
@@ -14,7 +14,7 @@ function resultList_to_datatable_input(json_obj) {
     return [titles, all_data];
 }
 
-function __convertTitles(titles_arr) {
+function convertTitles(titles_arr) {
     var titles_new = [];
     for(var i=0; i<titles_arr.length; i++) {
         var dicTmp = {title : titles_arr[i]};

@@ -8,7 +8,7 @@ function ResultFigures(resultsListJSTitles, resultsListJSValues, model_names, mo
     this.bins = bins;
 
     this.initialize_result_figures = function() {
-        var titles_table1 = this.__convertTitles(["Bin", "Model", "Prediction", "Model_Confidence", "Balanced_Accuracy"]);
+        var titles_table1 = convertTitles(["Bin", "Model", "Prediction", "Model_Confidence", "Balanced_Accuracy"]);
         var dataTable1 = this.__initialize_data_table(this.resultsListJSValues, titles_table1, "#trait_prediction_accuracy_table");
         var matrix_for_dt2 = resultslist_to_dt2_matrix(this.resultsListJSValues, this.model_names);
         var dataTable2 = this.__initialize_data_table(matrix_for_dt2[0], matrix_for_dt2[1], "#trait_prediction_table");
