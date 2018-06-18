@@ -135,8 +135,8 @@ function calcTraitCounts(resultsListJSValues, confidenceCutoff, accuracyCutoff) 
     for(var i=0; i<resultsListJSValues.length; i++) {
         var model = resultsListJSValues[i][model_column];
         var prediction = resultsListJSValues[i][prediction_column];
-        if(prediction === "false") false_dir[model] = (false_dir[model] || 0) + 1;
-        else if(prediction === "true") true_dir[model] = (true_dir[model] || 0) +1;
+        if(prediction === false) false_dir[model] = (false_dir[model] || 0) + 1;
+        else if(prediction === true) true_dir[model] = (true_dir[model] || 0) +1;
         else if (prediction === "NA") na_dir[model] = (na_dir[model] || 0) +1;
         else throw "unknown option in prediction (" + prediction + ")";
     }
