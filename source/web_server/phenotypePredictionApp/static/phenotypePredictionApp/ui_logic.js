@@ -121,6 +121,26 @@ function __initializeEmptySlots(arr) {
 }
 
 
-function calcTraitCounts(resultsListJSValues) {
-        
+function calcTraitCounts(resultsListJSValues, confidenceCutoff, accuracyCutoff) {
+    var false_dir = {};
+    var true_dir = {};
+    var na_dir = {};
+
+    var model_column = window.database_structure.bin_table.model_column;
+    var prediction_column = window.database_structure.bin_table.prediction_column;
+    var confidence_column = window.database_structure.bin_table.confidence_column;
+    var accuracy_column = window.database_structure.bin_table.accuracy_column;
+
+
+    for(var i=0; i<resultsListJSValues.length; i++) {
+        var model = resultsListJSValues[i][model_column];
+        var prediction = resultsListJSValues[i][prediction_column];
+        if(prediction === "false") false_dir[model] = (false_dir[model] || 0) + 1;
+        else if(prediction === "true") true_dir[model] = (true_dir[model] || 0) +1;
+        else if (prediction === "NA") na_dir[model] = (na_dir[model] || 0) +1;
+        else throw "unknown option in prediction (" + prediction + ")";
+    }
+    window.false_dir = false_dir;
+    window.true_dir = true_dir;
+    window.na_dir = na_dir;
 }
