@@ -18,6 +18,7 @@
             data: resultsListJSValues,
             columns: resultsListJSTitles,
             searching: true,
+            "scrollX":true,
             'dom' : '<ltp>', //controls which parts of the datatable should be rendered and in which order (e.g. paging control)
         } );
         return dataTable;
