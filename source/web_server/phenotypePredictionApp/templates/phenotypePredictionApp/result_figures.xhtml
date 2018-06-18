@@ -36,11 +36,15 @@
                     <input id="dt_results_accuracy_filter"></input>
                 </div>
             </div>
-            <div id="trait_prediction">
-                <table id="dt_results_table2" width="100%" style="display: {{ showResultCSS }}; overflow-x:auto"></table>
-            </div>
-            <div id="trait_prediction_accuracy">
-                <table id="dt_results_table" width="100%" style="display: {{ showResultCSS }}; overflow-x:auto"></table>
+            <div id="result_tables">
+                <h3>Trait Prediction</h3>
+                <div id="trait_prediction">
+                    <table id="trait_prediction_table" width="100%" style="display: {{ showResultCSS }}; overflow-x:auto"></table>
+                </div>
+                <h3>Trait Prediction + Accuracy + Probability info</h3>
+                <div id="trait_prediction_accuracy">
+                    <table id="trait_prediction_accuracy_table" width="100%" style="display: {{ showResultCSS }}; overflow-x:auto"></table>
+                </div>
             </div>
         </div>
 </div>
