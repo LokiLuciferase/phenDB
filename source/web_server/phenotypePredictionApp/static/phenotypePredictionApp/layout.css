@@ -53,3 +53,13 @@ form {
 .table_info_box {
     text-align: center;
 }
+
+.result_table {
+    overflow-x:auto;
+    width:100%;
+}
+
+.table_buttons {
+    margin-bottom: 10px;
+    text-align:right;
+}
