@@ -63,7 +63,8 @@
                             window.models_arr = all_models_to_list({{ all_models|jsonify | safe }});
                             var model_names = window.models_arr[0];
                             var model_descriptions = window.models_arr[1];
-                            ResultFigures.initialize_result_figures(resultsListJSTitles, resultsListJSValues, model_names, model_descriptions, bins);
+                            var resultFigures = new ResultFigures(resultsListJSTitles, resultsListJSValues, model_names, model_descriptions, bins);
+                            resultFigures.initialize_result_figures();
                         }
                     });
 </script>

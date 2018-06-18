@@ -1,13 +1,19 @@
-function ResultFigures()
+function ResultFigures(resultsListJSTitles, resultsListJSValues, model_names, model_descriptions, bins)
 {
 
-    this.initialize_result_figures = function(resultsListJSTitles, resultsListJSValues, model_names, model_descriptions, bins) {
+    this.resultsListJSTitles = resultsListJSTitles;
+    this.resultsListJSValues = resultsListJSValues;
+    this.model_names = model_names;
+    this.model_descriptions = model_descriptions;
+    this.bins = bins;
+
+    this.initialize_result_figures = function() {
         var titles_table1 = __convertTitles(["Bin", "Model", "Prediction", "Model_Confidence", "Balanced_Accuracy"]);
-        var dataTable1 = __initialize_data_table(resultsListJSValues, titles_table1, "#trait_prediction_accuracy_table");
-        var matrix_for_dt2 = resultslist_to_dt2_matrix(resultsListJSValues, model_names);
+        var dataTable1 = __initialize_data_table(this.resultsListJSValues, titles_table1, "#trait_prediction_accuracy_table");
+        var matrix_for_dt2 = resultslist_to_dt2_matrix(this.resultsListJSValues, this.model_names);
         var dataTable2 = __initialize_data_table(matrix_for_dt2[0], matrix_for_dt2[1], "#trait_prediction_table");
-        __initialize_pica_models_autocomplete(model_names, dataTable1);
-        __initialize_bins_autocomplete(bins, dataTable1);
+        __initialize_pica_models_autocomplete(this.model_names, dataTable1);
+        __initialize_bins_autocomplete(this.bins, dataTable1);
         __initialize_pval_cutoff_spinner(dataTable1);
         __initialize_accuracy_cutoff_spinner(dataTable1);
     };
