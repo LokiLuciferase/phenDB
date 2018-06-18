@@ -57,13 +57,10 @@ function ResultFigures()
             var all_items_htmlcoll = this.parentElement.parentElement.getElementsByTagName('li');
             var all_items = Array.prototype.slice.call(all_items_htmlcoll);
             //makes a collection of the raw text, removes empty entries and builds a regex string out of this collection
-            var search_expr = all_items.map(x = > x.textContent
-        ).
-            filter(x = > x.length > 0
-        ).
-            map(x = > '^' + x + '$'
-        ).
-            join("|");
+            var search_expr = all_items.map(x = > x.textContent)
+                                        .filter(x = > x.length > 0)
+                                        .map(x = > '^' + x + '$')
+                                        .join("|");
             dataTable
                 .columns(1)
                 .search(search_expr, true, false, true)
@@ -80,13 +77,10 @@ function ResultFigures()
             var all_items_htmlcoll = this.parentElement.parentElement.getElementsByTagName('li');
             var all_items = Array.prototype.slice.call(all_items_htmlcoll);
             //makes a collection of the raw text, removes empty entries and builds a regex string out of this collection
-            var search_expr = all_items.map(x = > x.textContent
-        ).
-            filter(x = > x.length > 0
-        ).
-            map(x = > '^' + x + '$'
-        ).
-            join("|");
+            var search_expr = all_items.map(x = > x.textContent)
+                                        .filter(x = > x.length > 0)
+                                        .map(x = > '^' + x + '$')
+                                        .join("|");
             dataTable
                 .columns(0)
                 .search(search_expr, true, false, true)
