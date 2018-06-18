@@ -120,4 +120,7 @@ function __initializeEmptySlots(arr) {
     return arr;
 }
 
-function calcTraitCounts() {}
+
+function calcTraitCounts(resultsListJSValues) {
+        
+}
