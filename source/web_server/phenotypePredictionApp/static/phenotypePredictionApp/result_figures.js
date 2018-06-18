@@ -50,12 +50,6 @@
             completeSource: model_names,
             multiple: true,
         });
-        $('#dt_results_model_filter_info').puibutton({
-            icon: 'fa-external-link-square',
-            click: function() {
-                $('#dt_results_model_filter_info_text').puidialog('show');
-            }
-        });
 
         $('#dt_results_model_filter').on('focusin focusout keyup', function() {
             var all_items_htmlcoll = this.parentElement.parentElement.getElementsByTagName('li');

@@ -64,9 +64,15 @@ function __initialize_controls() {
     $('#queue_show').puibutton({
                 icon: 'fa-external-link-square',
                 click: function() {
-                    window.open("http://phendb.csb.univie.ac.at/reports/modeloverview");
+                    $('#queue_info').puidialog('show');
                 }
             });
+    $('#dt_results_model_filter_info').puibutton({
+            icon: 'fa-external-link-square',
+            click: function() {
+                window.open("http://phendb.csb.univie.ac.at/reports/modeloverview");
+            }
+        });
     $('#dt_results_pval_filter').puispinner({step:0.05});
     $('#dt_results_accuracy_filter').puispinner({step:0.05});
 }
