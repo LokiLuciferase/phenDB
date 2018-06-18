@@ -19,9 +19,16 @@
             columns: resultsListJSTitles,
             searching: true,
             //'dom' : '<ltp>', //controls which parts of the datatable should be rendered and in which order (e.g. paging control)
-            dom: 'Bfrtip',
+            dom: 'Bltp',
             buttons: [
-                'csv'
+                {
+                    extend: 'csv',
+                    text: 'Download table as csv'
+                },
+                {
+                    extend: 'excel',
+                    text: 'Download table as Excel (.xlsx)'
+                }
             ],
         } );
         return dataTable;
