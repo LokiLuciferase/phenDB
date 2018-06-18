@@ -36,11 +36,13 @@
                     <input id="dt_results_accuracy_filter"></input>
                 </div>
             </div>
-            <table id="dt_results_table" width="100%" style="display: {{ showResultCSS }}"></table>
+            <div id="table1">
+                <table id="dt_results_table" width="100%" style="display: {{ showResultCSS }}"></table>
+            </div>
+            <div id="table2">
+                <table id="dt_results_table2" width="100%" style="display: {{ showResultCSS }}"></table>
+            </div>
         </div>
-</div>
-<div class="result_figures" id="result_figures2" title="Explore Your Results - Trait Predictions">
-    <table id="dt_results_table2" width="100%" style="display: {{ showResultCSS }}"></table>
 </div>
 <script type="text/javascript">
                     $(document).ready(function() {
