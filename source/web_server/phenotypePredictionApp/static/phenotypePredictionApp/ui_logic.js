@@ -48,6 +48,7 @@ function all_models_to_list(json_obj) {
     return [model_names, model_descriptions];
 }
 
+//OLD CODE -> TODO: remove as soon as new layout is accepted
 function models_to_infotext(titles, descriptions) {
     var infotable = "<table>";
     for(var i=0; i<titles.length; i+=2) {
@@ -66,6 +67,7 @@ function models_to_infotext(titles, descriptions) {
     infotable += "</table>";
     return infotable;
 }
+//
 
 function getAllBins(resultsListJSValues) {
     var bins = resultsListJSValues.map(x => x[0]);
@@ -116,3 +118,5 @@ function __initializeEmptySlots(arr) {
     }
     return arr;
 }
+
+function calc

@@ -1,9 +1,8 @@
     function initialize_result_figures(resultsListJSTitles, resultsListJSValues, model_names, model_descriptions, bins) {
-        var dataTable1 =  __initialize_data_table(resultsListJSValues, resultsListJSTitles, "#trait_prediction_accuracy_table");
+        var titles_table1 = __convertTitles(["Bin", "Model", "Prediction", "Model_Confidence", "Balanced_Accuracy"]);
+        var dataTable1 =  __initialize_data_table(resultsListJSValues, titles_table1, "#trait_prediction_accuracy_table");
         var matrix_for_dt2 = resultslist_to_dt2_matrix(resultsListJSValues, model_names);
-
         var dataTable2 = __initialize_data_table(matrix_for_dt2[0], matrix_for_dt2[1], "#trait_prediction_table"); //unshift adds empty item to the beginning of the array
-        __initialize_pica_models_info(model_names, model_descriptions);
         __initialize_pica_models_autocomplete(model_names, dataTable1);
         __initialize_bins_autocomplete(bins, dataTable1);
         __initialize_pval_cutoff_spinner(dataTable1);
@@ -34,6 +33,7 @@
     }
 
 
+    //OLD CODE -> TODO: remove as soon as new layout is accepted
     function __initialize_pica_models_info(model_names, model_descriptions) {
         document.getElementById('dt_results_model_filter_info_text').innerHTML = models_to_infotext(model_names, model_descriptions);
         $('#dt_results_model_filter_info_text').puidialog({
@@ -43,6 +43,7 @@
             responsive: true
         });
     }
+    //
 
     function __initialize_pica_models_autocomplete(model_names, dataTable) {
          $('#dt_results_model_filter').puiautocomplete({
