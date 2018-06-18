@@ -58,6 +58,7 @@
                             var resultsList_arr = resultList_to_datatable_input(resultListJson);
                             var resultsListJSTitles = resultsList_arr[0];
                             var resultsListJSValues = resultsList_arr[1];
+                            window.resultsListJSValues = resultsListJSValues;
                             var bins = getAllBins(resultsListJSValues);
                             window.models_arr = all_models_to_list({{ all_models|jsonify | safe }});
                             var model_names = window.models_arr[0];
