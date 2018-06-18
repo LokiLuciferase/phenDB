@@ -18,10 +18,11 @@
             data: resultsListJSValues,
             columns: resultsListJSTitles,
             searching: true,
+            //'dom' : '<ltp>', //controls which parts of the datatable should be rendered and in which order (e.g. paging control)
+            dom: 'Bfrtip',
             buttons: [
                 'csv'
             ],
-            'dom' : '<Bltp>', //controls which parts of the datatable should be rendered and in which order (e.g. paging control)
         } );
         return dataTable;
     }
