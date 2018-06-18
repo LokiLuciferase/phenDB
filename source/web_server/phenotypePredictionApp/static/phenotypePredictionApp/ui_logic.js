@@ -36,6 +36,7 @@ function __roundNumbers(all_data, columns, precision) {
 }
 
 //WARNING: This code could break if the Django model is changed
+//TODO: model description may bot be necessary anymore
 function all_models_to_list(json_obj) {
     var model_names = [];
     var model_descriptions = [];

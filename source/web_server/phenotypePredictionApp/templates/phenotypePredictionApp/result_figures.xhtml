@@ -44,7 +44,7 @@
             <div id="trait_prediction_accuracy">
                 <table id="trait_prediction_accuracy_table" style="overflow-x:auto"></table>
             </div>
-            <h3>Summary</h3>
+            <h3>Trait Count Summary</h3>
             <div id="trait_prediction_summary">
                 <table id="trait_prediction_summary_table" style="overflow-x:auto"></table>
             </div>
@@ -59,9 +59,9 @@
                             var resultsListJSTitles = resultsList_arr[0];
                             var resultsListJSValues = resultsList_arr[1];
                             var bins = getAllBins(resultsListJSValues);
-                            models_arr = all_models_to_list({{ all_models|jsonify | safe }});
-                            var model_names = models_arr[0];
-                            var model_descriptions = models_arr[1];
+                            window.models_arr = all_models_to_list({{ all_models|jsonify | safe }});
+                            var model_names = window.models_arr[0];
+                            var model_descriptions = window.models_arr[1];
                             initialize_result_figures(resultsListJSTitles, resultsListJSValues, model_names, model_descriptions, bins);
                         }
                     });
