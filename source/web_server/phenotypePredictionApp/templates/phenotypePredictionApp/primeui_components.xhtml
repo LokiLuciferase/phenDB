@@ -7,6 +7,7 @@ $(document).ready(function() {
     __initialize_widgets();
     __initialize_error_messages();
     __initialize_controls();
+    __initialize_accordions();
 });
 
 //TODO: seperate progressbar
@@ -34,6 +35,11 @@ function __initialize_popups(showProgressBar) {
                  maximizable: false,
                  resizable: false
             });
+}
+
+function __initialize_accordions() {
+    $('#trait_prediction').puiaccordion();
+    $('#trait_prediction_accuracy').puiaccordion();
 }
 
 function __initialize_widgets() {
