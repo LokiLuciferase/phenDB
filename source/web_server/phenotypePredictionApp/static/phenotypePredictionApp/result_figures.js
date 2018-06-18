@@ -19,7 +19,7 @@
             columns: resultsListJSTitles,
             searching: true,
             //'dom' : '<ltp>', //controls which parts of the datatable should be rendered and in which order (e.g. paging control)
-            dom: 'Bltp',
+            dom: '<"table_buttons"B>l<"result_table"t><"table_pagination"p>',
             buttons: [
                 {
                     extend: 'csv',
