@@ -105,7 +105,7 @@ function resultslist_to_dt2_matrix(resultsListJSValues, models) {
     }
 
     var model_cp = models.slice();
-    model_cp.unshift("");
+    model_cp.unshift("bins");
     var titles = __convertTitles(model_cp);
     return [dt2_matrix, titles];
 }
