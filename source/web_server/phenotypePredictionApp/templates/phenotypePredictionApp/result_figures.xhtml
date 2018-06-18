@@ -4,57 +4,51 @@
         display: {{ showResultCSS }};
         margin:10px 10px 10px 10px;
     }
-    .title {
-        margin:10px 10px 10px 10px;
-    }
 </style>
 <div id="result_figures" class="result_figures">
-    <h1 class="title"> Explore your results </h1>
     <div id="result_figure_trait_prediction" title="Trait Predictions">
-            <div id="dt_results">
-                <div style="padding-bottom: 30px" class="row" id="dt_results_model_filter_wrapper">
-                    <div class="column" style="width: 100px; padding-right:10px" id="dt_result_model_filter_name">Filter Models</div>
-                    <div class="column">
-                        <input id="dt_results_model_filter"></input>
-                    </div>
-                    <div class="column">
-                        <button style="height:100%; margin-bottom:3px;" id="dt_results_model_filter_info">info</button>
-                    </div>
-                    <div id="dt_results_model_filter_info_text"></div>
-                </div>
-                <div style="padding-bottom: 30px" class="row" id="dt_results_bin_filter_wrapper">
-                    <div class="column" style="width: 100px; padding-right:10px" id="dt_result_bin_filter_name">Filter Bins</div>
-                    <div class="column">
-                        <input id="dt_results_bin_filter"></input>
-                    </div>
-                </div>
-                <div style="padding-bottom: 30px" class="row" id="dt_results_pval_filter_wrapper">
-                    <div class="column" style="width: 100px; padding-right:10px" id="dt_result_pval_filter_name">PICA p-value cutoff</div>
-                    <div class="column">
-                        <input id="dt_results_pval_filter"></input>
-                    </div>
-                </div>
-                <div style="padding-bottom: 30px" class="row" id="dt_results_accuracy_filter_wrapper">
-                    <div class="column" style="width: 100px; padding-right:10px" id="dt_result_accuracy_filter_name">accuracy cutoff</div>
-                    <div class="column">
-                        <input id="dt_results_accuracy_filter"></input>
-                    </div>
-                </div>
-                <div id="result_tables">
-                    <h3>Trait Prediction</h3>
-                    <div id="trait_prediction">
-                        <table id="trait_prediction_table" style="overflow-x:auto"></table>
-                    </div>
-                    <h3>Accuracy + Probability info</h3>
-                    <div id="trait_prediction_accuracy">
-                        <table id="trait_prediction_accuracy_table" style="overflow-x:auto"></table>
-                    </div>
-                    <h3>Summary</h3>
-                    <div id="trait_prediction_summary">
-                        <table id="trait_prediction_summary_table" style="overflow-x:auto"></table>
-                    </div>
-                </div>
+        <div style="padding-bottom: 30px" class="row" id="dt_results_model_filter_wrapper">
+            <div class="column" style="width: 100px; padding-right:10px" id="dt_result_model_filter_name">Filter Models</div>
+            <div class="column">
+                <input id="dt_results_model_filter"></input>
             </div>
+            <div class="column">
+                <button style="height:100%; margin-bottom:3px;" id="dt_results_model_filter_info">info</button>
+            </div>
+            <div id="dt_results_model_filter_info_text"></div>
+        </div>
+        <div style="padding-bottom: 30px" class="row" id="dt_results_bin_filter_wrapper">
+            <div class="column" style="width: 100px; padding-right:10px" id="dt_result_bin_filter_name">Filter Bins</div>
+            <div class="column">
+                <input id="dt_results_bin_filter"></input>
+            </div>
+        </div>
+        <div style="padding-bottom: 30px" class="row" id="dt_results_pval_filter_wrapper">
+            <div class="column" style="width: 100px; padding-right:10px" id="dt_result_pval_filter_name">PICA p-value cutoff</div>
+            <div class="column">
+                <input id="dt_results_pval_filter"></input>
+            </div>
+        </div>
+        <div style="padding-bottom: 30px" class="row" id="dt_results_accuracy_filter_wrapper">
+            <div class="column" style="width: 100px; padding-right:10px" id="dt_result_accuracy_filter_name">accuracy cutoff</div>
+            <div class="column">
+                <input id="dt_results_accuracy_filter"></input>
+            </div>
+        </div>
+        <div id="result_tables">
+            <h3>Trait Prediction</h3>
+            <div id="trait_prediction">
+                <table id="trait_prediction_table" style="overflow-x:auto"></table>
+            </div>
+            <h3>Accuracy + Probability info</h3>
+            <div id="trait_prediction_accuracy">
+                <table id="trait_prediction_accuracy_table" style="overflow-x:auto"></table>
+            </div>
+            <h3>Summary</h3>
+            <div id="trait_prediction_summary">
+                <table id="trait_prediction_summary_table" style="overflow-x:auto"></table>
+            </div>
+        </div>
     </div>
 </div>
 <script type="text/javascript">
