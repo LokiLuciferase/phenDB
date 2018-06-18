@@ -57,9 +57,9 @@ function ResultFigures()
             var all_items_htmlcoll = this.parentElement.parentElement.getElementsByTagName('li');
             var all_items = Array.prototype.slice.call(all_items_htmlcoll);
             //makes a collection of the raw text, removes empty entries and builds a regex string out of this collection
-            var search_expr = all_items.map(x = > x.textContent)
-                                        .filter(x = > x.length > 0)
-                                        .map(x = > '^' + x + '$')
+            var search_expr = all_items.map(x => x.textContent)
+                                        .filter(x => x.length > 0)
+                                        .map(x => '^' + x + '$')
                                         .join("|");
             dataTable
                 .columns(1)
@@ -77,9 +77,9 @@ function ResultFigures()
             var all_items_htmlcoll = this.parentElement.parentElement.getElementsByTagName('li');
             var all_items = Array.prototype.slice.call(all_items_htmlcoll);
             //makes a collection of the raw text, removes empty entries and builds a regex string out of this collection
-            var search_expr = all_items.map(x = > x.textContent)
-                                        .filter(x = > x.length > 0)
-                                        .map(x = > '^' + x + '$')
+            var search_expr = all_items.map(x => x.textContent)
+                                        .filter(x => x.length > 0)
+                                        .map(x => '^' + x + '$')
                                         .join("|");
             dataTable
                 .columns(0)
@@ -105,7 +105,7 @@ function ResultFigures()
         $('#dt_results_pval_filter').keyup(function () {
             dataTable.draw();
         });
-    }
+    };
 
     this.__initialize_accuracy_cutoff_spinner = function(dataTable) {
         //custom filtering function
