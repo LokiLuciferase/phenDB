@@ -91,10 +91,10 @@ def check_add_precalc_job():
 def add_taxids_to_precalc_bins(los):
     from phenotypePredictionApp.models import Bin, Job
     for name, taxid, assembly_id, ftppath in los:
-        binname = "PHENDB_PRECALC_" + assembly_id + ".genomic.fna.gz"
+        binname = "PHENDB_PRECALC_" + assembly_id + ".fna.gz"
         givenbin = Bin.objects.filter(bin_name=binname)
         if not givenbin:
-            raise RuntimeError("Bin not found in database.")
+            raise RuntimeError("Bin {gb} not found in database.".format(gb=binname))
         givenbin.update(tax_id=str(taxid), assembly_id=str(assembly_id), taxon_name="", taxon_rank="")
 
 
