@@ -99,7 +99,7 @@ def delete_user_data(days):
     os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
     sys.path.append(os.path.join(PHENDB_BASEDIR, "source", "web_server"))
     django.setup()
-    from phenotypePredictionApp.models import Job, Bin, HmmerResult, PicaResult
+    from phenotypePredictionApp.models import Job, Bin, BinInJob, HmmerResult, PicaResult
 
     oldest = datetime.today() - timedelta(days=days)
 
@@ -109,13 +109,16 @@ def delete_user_data(days):
     non_precalc_aged = aged_jobs.exclude(key__icontains="PHENDB_PRECALC")
     non_precalc_aged.delete()
 
-    # look for unassociated bins and delete those too
-    orphan_bins = Bin.objects.filter(BinInJob=None)
+    # look for unassociated bins and bij and delete those too
+    orphan_bij = BinInJob.objects.filter(job=None)
+    orphan_bij.delete()
+
+    orphan_bins = Bin.objects.filter(bininjob=None)
     orphan_bins.delete()
 
     # look for unassociated result_enog and result_model
-    orphan_hmmer = HmmerResult.objects.filter(Bin=None)
-    orphan_verdict = PicaResult.objects.filter(Bin=None)
+    orphan_hmmer = HmmerResult.objects.filter(bin=None)
+    orphan_verdict = PicaResult.objects.filter(bin=None)
     orphan_hmmer.delete()
     orphan_verdict.delete()
 
