@@ -97,13 +97,14 @@ def add_taxids_to_precalc_bins(los):
     for name, taxid, assembly_id, ftppath in los:
         binname = "PHENDB_PRECALC_" + assembly_id + ".fna.gz"
         givenbin = Bin.objects.filter(bin_name=binname)
-        given_taxon = Taxon.objects.filter(tax_id=taxid)[0]
+        given_taxon = Taxon.objects.filter(tax_id=taxid)
         if not givenbin:
             raise RuntimeError("Bin {gb} not found in database.".format(gb=binname))
-        givenbin.update(tax_id=str(taxid),
-                        assembly_id=str(assembly_id),
-                        taxon_name=str(given_taxon.taxon_name),
-                        taxon_rank=str(given_taxon.taxon_rank))
+        if givenbin and given_taxon:
+            givenbin.update(tax_id=str(taxid),
+                            assembly_id=str(assembly_id),
+                            taxon_name=str(given_taxon[0].taxon_name),
+                            taxon_rank=str(given_taxon[0].taxon_rank))
 
 
 def main():

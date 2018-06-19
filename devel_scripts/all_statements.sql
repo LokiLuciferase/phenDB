@@ -60,8 +60,8 @@ WHERE picamodeltrainingdata.model_id = @MODEL_ID;
 # LIMIT 10;
 
 /*get a list of refseq pre-calculated genomes with a field which can link to the results*/
-SELECT bin.taxon_name as "Scientific Name",
-  bin.assembly_id as "Assembly Accession",
+SELECT bin.assembly_id as "Assembly Accession",
+  bin.taxon_name as "Scientific Name",
   'View' as "Link to Trait Predictions" from phenotypePredictionApp_bininjob as bininjob
   JOIN phenotypePredictionApp_bin as bin on bininjob.bin_id = bin.id
   WHERE bininjob.job_id = (select job.id from phenotypePredictionApp_job as job
