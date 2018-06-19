@@ -54,7 +54,8 @@ def get_latest_refseq_genomes(n_days, only_reference=False, max_n=None, latest=N
                 ftppath = summarydict["FtpPath_RefSeq"]
                 if ftppath != "":
                     records.append((name, taxid, assembly_id, ftppath))
-        except:
+        except Exception as e:
+            print(e)
             continue
     if max_n is not None:
         return records[:max_n]
@@ -71,6 +72,7 @@ def download_genomes(los, path):
             ftp.cwd("/{rp}".format(rp=restpath))
             genomicfile = [x for x in ftp.nlst() if "genomic.fna.gz" in x and "from" not in x][0]
             if not genomicfile:
+                print("No genome found for {n}".format(n=name))
                 continue
             fullpath_local = os.path.join(tmpname, genomicfile)
             with open(fullpath_local, "wb") as outfile:
@@ -112,7 +114,7 @@ def main():
     os.makedirs(outfolder, exist_ok=True)
     os.makedirs(logfolder, exist_ok=True)
 
-    print("Downloading newest genomes from RefSeq...")
+    print("Downloading genomes from RefSeq...")
     gtlist = get_latest_refseq_genomes(n_days=args.days_back, latest=args.latest, max_n=args.max_n)
     if len(gtlist) == 0:
         print("No new genomes found.")
@@ -126,17 +128,16 @@ def main():
                                    args=(ppath, pipeline_path, infolder, outfolder, 0.5, ""),
                                    timeout='72h',
                                    ttl='72h',
-                                   job_id="PHENDB_PRECALC"
                                    )
     while pipeline_call.result is None:
         sleep(10)
+        print(pipeline_call.result)
 
     if pipeline_call.result is 0:
         print("Precalculation was successful.")
         print("Adding taxonomic information to precalculated bins.")
         add_taxids_to_precalc_bins(gtlist)
         print("Finished. added {lolos} items to database.".format(lolos=len(gtlist)))
-
 
 if __name__ == "__main__":
     main()
