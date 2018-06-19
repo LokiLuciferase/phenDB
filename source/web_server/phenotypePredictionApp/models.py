@@ -143,7 +143,9 @@ class EnogRank(models.Model):
 
     model = models.ForeignKey(PicaModel, on_delete=models.CASCADE)
     enog = models.ForeignKey(Enog, on_delete=models.CASCADE)
-    internal_rank = models.FloatField()
+    internal_rank = models.IntegerField()
+    score = models.FloatField()
+    pred_class = models.BooleanField()
 
     def __str__(self):
         return "Enog ID: {eid}\tModel ID:" \
