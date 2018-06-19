@@ -49,7 +49,7 @@ def update_taxonomy(ppath):
     print("Rebuilding taxonomy DB...")
     Taxon.objects.all().delete()
     while len(taxonomy_entries) > 0:
-        sys.stdout.write("                {n}                entries left to add.\r".format(n=len(taxonomy_entries)))
+        sys.stdout.write("{n}          entries left to add.\r".format(n=len(taxonomy_entries)))
         sys.stdout.flush()
         subset = taxonomy_entries[-10000:]
         taxonomy_entries = taxonomy_entries[:-10000]

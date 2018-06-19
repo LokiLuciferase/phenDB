@@ -744,8 +744,11 @@ def filter_by_hierarchy(rd, bl, ml, schema, show_all=False):
         for model_name in ml:
             current_cstr = dep_dic[model_name]
             for constraint_model, c_s in current_cstr.items():
-                if rd[bin.md5sum][constraint_model]["Prediction"] not in ("ND", "NC", c_s):
-                    rd[bin.md5sum][model_name]["Prediction"] = "NC"
+                try:
+                    if rd[bin.md5sum][constraint_model]["Prediction"] not in ("ND", "NC", c_s):
+                        rd[bin.md5sum][model_name]["Prediction"] = "NC"
+                except KeyError:
+                    print("Invalid constraint definition: unknown model.")
     return rd, bl  # remove in the end
 
 # model-bin-related information
