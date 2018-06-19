@@ -7,30 +7,39 @@ import sys
 import shutil
 import ftplib
 import tempfile
+import argparse
 from time import sleep
 
 import django
 from Bio import Entrez
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 from redis import Redis
 from rq import Queue
 
 from phenotypePredictionApp.variables import PHENDB_BASEDIR, PHENDB_QUEUE, PHENDB_DEBUG
 from enqueue_job import phenDB_enqueue
 
+parser = argparse.ArgumentParser()
+parser.add_argument("-d", "--days_back", default=60, help="Precalculate sequences from refseq released up to days in the past")
+parser.add_argument("-l", "--latest", default=None, help="Latest release date of sequence to precalculate (format: YYYY/MM/DD)")
+parser.add_argument("-m", "--max_n", default=None, help="Maximum number of sequences to precalculate")
+args = parser.parse_args()
+
 Entrez.email = "test@test.com"
-DAYS_BACK = 60
 
 
-def get_latest_refseq_genomes(n_days):
+def get_latest_refseq_genomes(n_days, only_reference=False, max_n=None, latest=None):
     records = []
-    minus_n_days = date.today() - timedelta(days=n_days)
+    latest_date = date.today() if latest is None else datetime.strptime(latest, "%Y/%m/%d").date()
+    minus_n_days = latest_date - timedelta(days=n_days)
     dateformatted = minus_n_days.strftime("%Y/%m/%d")
-    todayformatted = date.today().strftime("%Y/%m/%d")
+    latestformatted = latest_date.strftime("%Y/%m/%d")
+    representative_str = "" if only_reference else "OR \"representative genome\"[filter]"
     search_string = 'bacteria[filter] ' \
-                    'AND ("reference genome"[filter] OR "representative genome"[filter]) ' \
-                    'AND ("{minus}"[SeqReleaseDate] : "{today}"[SeqReleaseDate])'.format(minus=dateformatted,
-                                                                                         today=todayformatted)
+                    'AND ("reference genome"[filter] {rs}) ' \
+                    'AND ("{minus}"[SeqReleaseDate] : "{today}"[SeqReleaseDate])'.format(rs=representative_str,
+                                                                                         minus=dateformatted,
+                                                                                         today=latestformatted)
     with Entrez.esearch(db="assembly", term=search_string, retmax=None) as handle:
         record = Entrez.read(handle)
     idlist = record["IdList"]
@@ -47,6 +56,8 @@ def get_latest_refseq_genomes(n_days):
                     records.append((name, taxid, assembly_id, ftppath))
         except:
             continue
+    if max_n is not None:
+        return records[:max_n]
     return records
 
 
@@ -102,7 +113,7 @@ def main():
     os.makedirs(logfolder, exist_ok=True)
 
     print("Downloading newest genomes from RefSeq...")
-    gtlist = get_latest_refseq_genomes(n_days=DAYS_BACK)
+    gtlist = get_latest_refseq_genomes(n_days=args.days_back, latest=args.latest, max_n=args.max_n)
     if len(gtlist) == 0:
         print("No new genomes found.")
         sys.exit(0)

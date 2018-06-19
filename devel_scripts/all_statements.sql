@@ -1,16 +1,17 @@
 
 SET @MODEL_ID = 47;  # sulfate reducer
 
-/* get all PhenDB models including their optimal mean balanced accuracy */
+/* get all current PhenDB models including their optimal mean balanced accuracy */
 SELECT model_name as "Model Name",
   model_desc AS "Model Description",
-  model_train_date AS "Model Train Date",
+  max(model_train_date) AS "Model Train Date",
   ROUND(mean_balanced_accuracy, 2) as "Maximal Accuracy"
   FROM phenotypePredictionApp_picamodel as picamodel
   JOIN phenotypePredictionApp_picamodelaccuracy AS pma
     ON pma.model_id = picamodel.id
       WHERE comple = 1
-      AND conta = 0;
+      AND conta = 0
+  GROUP BY model_name;
 
 /*get 100 most influential enogs corresponding with NO for model with id @MODEL_ID*/
 SELECT enog_name AS "Enog Name",
