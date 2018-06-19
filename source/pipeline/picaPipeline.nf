@@ -7,10 +7,10 @@ file(outdir).mkdir()
 
 models = file(params.modelfolder).listFiles()
 hmmdb = file(params.hmmdb)
-input_gzipfiles = Channel.fromPath("${params.inputfolder}/*.tar.gz")
+input_gzipfiles = Channel.fromPath("${params.inputfolder}/*.{tar.gz,tgz}")
 input_barezipfiles = Channel.fromPath("${params.inputfolder}/*.zip")
 all_input_files = Channel.fromPath("${params.inputfolder}/*")
-                  .filter{!it.name.endsWith('.tar.gz') && !it.name.endsWith('.zip')}
+                  .filter{!it.name.endsWith('.tar.gz') && !it.name.endsWith('.zip') && !it.name.endsWith('.tgz')}
 
 log.info"""
     ##################################################################################

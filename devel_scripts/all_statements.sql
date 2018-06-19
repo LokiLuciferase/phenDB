@@ -1,39 +1,43 @@
 
 SET @MODEL_ID = 47;  # sulfate reducer
 
-/* get all PhenDB models */
+/* get all PhenDB models including their optimal mean balanced accuracy */
 SELECT model_name as "Model Name",
   model_desc AS "Model Description",
-  model_train_date AS "Model Train Date"
-FROM phenotypePredictionApp_picamodel as picamodel;
+  model_train_date AS "Model Train Date",
+  ROUND(mean_balanced_accuracy, 2) as "Maximal Accuracy"
+  FROM phenotypePredictionApp_picamodel as picamodel
+  JOIN phenotypePredictionApp_picamodelaccuracy AS pma
+    ON pma.model_id = picamodel.id
+      WHERE comple = 1
+      AND conta = 0;
 
-/*get 10 most influential enogs corresponding with YES for model with id @MODEL_ID*/
+/*get 100 most influential enogs corresponding with NO for model with id @MODEL_ID*/
 SELECT enog_name AS "Enog Name",
   enog_descr AS "Enog Description",
   internal_rank AS "Rank in Model",
-  CASE WHEN pred_class = 0 THEN "NO" ELSE "YES" END "Trait Class Indicated"
+  ROUND(score, 6) AS "Weight in Model"
 FROM phenotypePredictionApp_enogrank AS enogrank
   JOIN phenotypePredictionApp_enog AS enog ON enogrank.enog_id = enog.id
 WHERE enogrank.model_id = @MODEL_ID
   AND pred_class = 0
 ORDER BY internal_rank ASC
-LIMIT 10;
+LIMIT 100;
 
-/*get 10 most influential enogs corresponding with YES for model with id @MODEL_ID*/
+/*get 100 most influential enogs corresponding with YES for model with id @MODEL_ID*/
 SELECT enog_name AS "Enog Name",
   enog_descr AS "Enog Description",
   internal_rank AS "Rank in Model",
-  CASE WHEN pred_class = 0 THEN "NO" ELSE "YES" END "Trait Class"
+  ROUND(score, 6) AS "Weight in Model"
 FROM phenotypePredictionApp_enogrank AS enogrank
   JOIN phenotypePredictionApp_enog AS enog ON enogrank.enog_id = enog.id
 WHERE enogrank.model_id = @MODEL_ID
   AND pred_class = 1
 ORDER BY internal_rank ASC
-LIMIT 10;
+LIMIT 100;
 
 /*get training data (accession ID an their associated verdict) for model with id @MODEL_ID*/
-SELECT assembly_id AS "Assembly ID",
-  picamodeltrainingdata.tax_id AS "Taxon ID",
+SELECT assembly_id AS "Genome Accession",
   taxon_name AS "Scientific Name",
   CASE WHEN verdict = 0 THEN "NO" ELSE "YES" END "Trait Presence"
 FROM phenotypePredictionApp_picamodeltrainingdata AS picamodeltrainingdata
