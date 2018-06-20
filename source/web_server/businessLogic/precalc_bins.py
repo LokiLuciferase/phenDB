@@ -61,7 +61,7 @@ def get_latest_refseq_genomes(n_days, only_reference=False, max_n=None, latest=N
     if max_n is not None:
         records = records[:max_n]
     for entry in records:
-        print("Found RefSeq entry: {e}".format(e=entry[0]))
+        print("Retrieved RefSeq entry for {e}.".format(e=entry[0]))
     return records
 
 
@@ -81,6 +81,7 @@ def download_genomes(los, path):
             with open(fullpath_local, "wb") as outfile:
                 ftp.retrbinary("RETR {file}".format(file=genomicfile), outfile.write)
             shutil.move(fullpath_local, os.path.join(tmpname, "PHENDB_PRECALC_" + assembly_id + ".fna.gz"))
+            print("Downloaded genome FASTA for {n}.".format(n=name))
         shutil.copytree(tmpname, path)
 
 
@@ -134,8 +135,8 @@ def main():
     q = Queue(PHENDB_QUEUE, connection=Redis())
     pipeline_call = q.enqueue_call(func=phenDB_enqueue,
                                    args=(ppath, pipeline_path, infolder, outfolder, 0.5, ""),
-                                   timeout='72h',
-                                   ttl='72h',
+                                   timeout='128h',
+                                   ttl='128h',
                                    )
     while pipeline_call.result is None:
         sleep(10)

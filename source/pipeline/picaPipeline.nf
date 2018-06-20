@@ -103,7 +103,7 @@ process fasta_sanity_check {
 
     tag { binname }
     errorStrategy 'ignore'  // failing files removed from pipeline
-    maxForks 5
+    maxForks 7
     scratch true
 
     input:

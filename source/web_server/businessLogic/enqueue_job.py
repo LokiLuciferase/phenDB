@@ -68,8 +68,10 @@ def clean_up_on_pipeline_fail(keyname, ppath, failtype):
     currentjob.error_type = failtype
     # delete bins belonging to failed job
     assoc_rows = BinInJob.objects.filter(job=currentjob)
-    bins_of_failed = [x.bin for x in assoc_rows if not x.bin__bin_name.startswith("PHENDB_PRECALC")]
+    bins_of_failed = [x.bin for x in assoc_rows]
     for b in bins_of_failed:
+        if b.bin_name.startswith("PHENDB_PRECALC") and b.comple != 2: # spare finished precalc bins
+            continue
         b.delete()
     assoc_rows.delete()
     currentjob.save()
