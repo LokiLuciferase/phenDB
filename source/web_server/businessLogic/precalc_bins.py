@@ -23,6 +23,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-d", "--days_back", default=60, help="Precalculate sequences from refseq released up to days in the past")
 parser.add_argument("-l", "--latest", default=None, help="Latest release date of sequence to precalculate (format: YYYY/MM/DD)")
 parser.add_argument("-m", "--max_n", default=None, help="Maximum number of sequences to precalculate")
+parser.add_argument("-t", "--update_taxids", default=False, help="Only get list of refseq entries, and add taxonomy info to those present in the DB.")
 args = parser.parse_args()
 
 Entrez.email = "lukas.lueftinger@univie.ac.at"
@@ -141,6 +142,12 @@ def main():
 
     os.makedirs(outfolder, exist_ok=True)
     os.makedirs(logfolder, exist_ok=True)
+
+    if args.update_taxids:
+        print("Only adding taxonomic info to existing bins, then exiting.")
+        gtlist = get_latest_refseq_genomes(n_days=args.days_back, latest=args.latest)
+        add_taxids_to_precalc_bins(los=gtlist)
+        os._exit(0)
 
     print("Checking if we have unadded refseq entries sitting around...")
     unadded_los = load_unadded_genome_ids(unadded_saveloc)
