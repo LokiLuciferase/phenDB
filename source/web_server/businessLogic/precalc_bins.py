@@ -126,31 +126,37 @@ def main():
     os.makedirs(outfolder, exist_ok=True)
     os.makedirs(logfolder, exist_ok=True)
 
-    print("Downloading genomes from RefSeq...")
+    print("Downloading list of genomes from RefSeq...")
     gtlist = get_latest_refseq_genomes(n_days=args.days_back, latest=args.latest, max_n=args.max_n)
-    if len(gtlist) == 0:
-        print("No new genomes found.")
-        sys.exit(0)
-    download_genomes(los=gtlist, path=infolder)
 
-    print("Submitting precalculation job. Bins in folder {inf} will be added to the database.".format(inf=infolder))
-    check_add_precalc_job()
-    q = Queue(PHENDB_QUEUE, connection=Redis())
-    pipeline_call = q.enqueue_call(func=phenDB_enqueue,
-                                   args=(ppath, pipeline_path, infolder, outfolder, 0.5, ""),
-                                   timeout='128h',
-                                   ttl='128h',
-                                   )
-    while pipeline_call.result is None:
-        sleep(10)
+    while len(gtlist) < 0:
 
-    if pipeline_call.result is 0:
-        print("Precalculation was successful.")
-        print("Adding taxonomic information to precalculated bins.")
-        add_taxids_to_precalc_bins(gtlist)
-        print("Finished. added {lolos} items to database.".format(lolos=len(gtlist)))
-    else:
-        print("Precalculation has failed!")
+        onehundred = gtlist[-100:]
+        gtlist = gtlist[:-100]
+
+        print("Downloading and processing <= 100 genomes...")
+        print("Backlog of sequences: {n}".format(n=len(gtlist)))
+
+        download_genomes(los=onehundred, path=infolder)
+
+        print("Submitting precalculation job. Bins in folder {inf} will be added to the database.".format(inf=infolder))
+        check_add_precalc_job()
+        q = Queue(PHENDB_QUEUE, connection=Redis())
+        pipeline_call = q.enqueue_call(func=phenDB_enqueue,
+                                       args=(ppath, pipeline_path, infolder, outfolder, 0.5, ""),
+                                       timeout='128h',
+                                       ttl='128h',
+                                       )
+        while pipeline_call.result is None:
+            sleep(10)
+
+        if pipeline_call.result is 0:
+            print("Precalculation was successful.")
+            print("Adding taxonomic information to precalculated bins.")
+            add_taxids_to_precalc_bins(onehundred)
+            print("Finished. added {lolos} items to database.".format(lolos=len(onehundred)))
+        else:
+            print("Precalculation has failed!")
 
 if __name__ == "__main__":
     main()
