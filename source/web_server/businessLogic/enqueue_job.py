@@ -44,7 +44,6 @@ def update_taxonomy(ppath):
     if len(taxonomy_entries) < 1700000:
         raise RuntimeError("Something went wrong during database read-in. Aborting.")
 
-
     # drop all rows from old taxonomy DB
     print("Rebuilding taxonomy DB...")
     Taxon.objects.all().delete()
@@ -69,7 +68,7 @@ def clean_up_on_pipeline_fail(keyname, ppath, failtype):
     currentjob.error_type = failtype
     # delete bins belonging to failed job
     assoc_rows = BinInJob.objects.filter(job=currentjob)
-    bins_of_failed = [x.bin for x in assoc_rows]
+    bins_of_failed = [x.bin for x in assoc_rows if not x.bin__bin_name.startswith("PHENDB_PRECALC")]
     for b in bins_of_failed:
         b.delete()
     assoc_rows.delete()
