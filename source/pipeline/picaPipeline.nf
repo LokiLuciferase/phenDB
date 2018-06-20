@@ -80,7 +80,7 @@ process unzip {
 truly_all_input_files = all_input_files.mix(tgz_unraveled_all.flatten(), zip_unraveled_all.flatten())
 
 // check if file names contain only ascii and if file size is OK
-input_files_groovy_checked = truly_all_input_files.map {
+truly_all_input_files.map {
 
     if (!( it.getBaseName() ==~ /^\p{ASCII}+$/ )) {
         asciimess = "WARNING: The filename of ${it.getName()} contains non-ASCII characters. " +
@@ -96,21 +96,25 @@ input_files_groovy_checked = truly_all_input_files.map {
         return
     }
     return it
-}
+}.into{ groovy_checked_for_count; groovy_checked_for_continue }
+
+
+// number of files for processing: before fasta checking, since waiting for this is a bottleneck
+nr_of_files = groovy_checked_for_count.count()
+
 
 // Pass every fasta file through Biopythons SeqIO to check for corrupted files
 process fasta_sanity_check {
 
     tag { binname }
     errorStrategy 'ignore'  // failing files removed from pipeline
-    maxForks 7
     scratch true
 
     input:
-    file(item) from input_files_groovy_checked
+    file(item) from groovy_checked_for_continue
 
     output:
-    set val(binname), file("sanitychecked.fasta"), stdout into sanity_check_for_continue, sanity_check_for_count
+    set val(binname), file("sanitychecked.fasta"), stdout into fasta_sanity_check_out
 
     script:
     binname = item.getName()
@@ -183,17 +187,14 @@ else:
 """
 
 }
-// number of sane files for processing
-nr_of_files = sanity_check_for_count.count()
 
 // get primary key for bins
 process md5sum {
 
     tag { binname }
-    maxForks 10
 
     input:
-    set val(binname), file(item), val(seqtype) from sanity_check_for_continue
+    set val(binname), file(item), val(seqtype) from fasta_sanity_check_out
 
     output:
     set val(binname), stdout, file(item), val(seqtype) into md5_out
@@ -208,7 +209,6 @@ process md5sum {
 process add_bin_to_db {
 
     tag { binname }
-    maxForks 10
     errorStrategy 'ignore'  // if duplicate files in same job, just drop them from pipeline
 
     input:
@@ -294,7 +294,6 @@ bin_is_not_in_db.choice( new_dna_bins, new_protein_bins ) { l -> l[3] == "DNA" ?
 process prodigal {
 
     tag { binname }
-    maxForks 5
     memory = "450 MB"
 
     input:

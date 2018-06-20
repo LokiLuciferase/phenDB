@@ -45,19 +45,22 @@ def get_latest_refseq_genomes(n_days, only_reference=False, max_n=None, latest=N
     idlist = record["IdList"]
     print("Number of entries found: ", len(idlist))
     for i in idlist:
-        try:
-            with Entrez.esummary(db="assembly", id=i) as summary_handle:
-                summary = Entrez.read(summary_handle, validate=False)
-                summarydict = summary["DocumentSummarySet"]["DocumentSummary"][-1]
-                taxid = summarydict["Taxid"]
-                name = summarydict["SpeciesName"]
-                assembly_id = summarydict["LastMajorReleaseAccession"]
-                ftppath = summarydict["FtpPath_RefSeq"]
-                if ftppath != "":
-                    records.append((name, taxid, assembly_id, ftppath))
-        except Exception as e:
-            print(e)
-            continue
+        retrycount = 5
+        for times in range(retrycount):
+            try:
+                with Entrez.esummary(db="assembly", id=i) as summary_handle:
+                    summary = Entrez.read(summary_handle, validate=False)
+                    summarydict = summary["DocumentSummarySet"]["DocumentSummary"][-1]
+                    taxid = summarydict["Taxid"]
+                    name = summarydict["SpeciesName"]
+                    assembly_id = summarydict["LastMajorReleaseAccession"]
+                    ftppath = summarydict["FtpPath_RefSeq"]
+                    if ftppath != "":
+                        records.append((name, taxid, assembly_id, ftppath))
+                break
+            except Exception as e:
+                print(e)
+                print("Retrying {n} more times...".format(n=retrycount - times))
     if max_n is not None:
         records = records[:max_n]
     for entry in records:
