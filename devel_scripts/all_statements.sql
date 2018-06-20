@@ -64,7 +64,8 @@ SELECT bin.assembly_id as "Assembly Accession",
   bin.taxon_name as "Scientific Name",
   'View' as "Link to Trait Predictions" from phenotypePredictionApp_bininjob as bininjob
   JOIN phenotypePredictionApp_bin as bin on bininjob.bin_id = bin.id
-  WHERE bininjob.job_id = (select job.id from phenotypePredictionApp_job as job
+  WHERE bin.assembly_id IS NOT NULL
+  AND bininjob.job_id = (select job.id from phenotypePredictionApp_job as job
                            WHERE job.key='PHENDB_PRECALC');
 
 

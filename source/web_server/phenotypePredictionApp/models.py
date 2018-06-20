@@ -226,6 +226,7 @@ class PicaResult(models.Model):
     verdict = models.NullBooleanField()
     pica_pval = models.FloatField()
     accuracy = models.FloatField()
+    nc_masked = models.BooleanField(default=False)
 
     def __str__(self):
         return "Bin {mds}: {v} ({acc} accuracy, " \

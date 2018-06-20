@@ -747,6 +747,10 @@ def filter_by_hierarchy(rd, bl, ml, schema, show_all=False):
                 try:
                     if rd[bin.md5sum][constraint_model]["Prediction"] not in ("ND", "NC", c_s):
                         rd[bin.md5sum][model_name]["Prediction"] = "NC"
+                        # also update all results of this bin with this model (also old ones)
+                        # NC masking in db, for web UI
+                        to_be_masked = PicaResult.objects.filter(bin=bin, model.model_name=model_name)
+                        to_be_masked.update(nc_masked=True)
                 except KeyError:
                     print("Invalid constraint definition: unknown model.")
     return rd, bl  # remove in the end
