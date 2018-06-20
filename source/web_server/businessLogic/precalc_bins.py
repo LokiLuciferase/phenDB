@@ -103,8 +103,6 @@ def add_taxids_to_precalc_bins(los):
         binname = "PHENDB_PRECALC_" + assembly_id + ".fna.gz"
         givenbin = Bin.objects.filter(bin_name=binname)
         given_taxon = Taxon.objects.filter(tax_id=taxid)
-        if not givenbin:
-            raise RuntimeError("Bin {gb} not found in database.".format(gb=binname))
         if givenbin and given_taxon:
             givenbin.update(tax_id=str(taxid),
                             assembly_id=str(assembly_id),
@@ -112,7 +110,25 @@ def add_taxids_to_precalc_bins(los):
                             taxon_rank=str(given_taxon[0].taxon_rank))
 
 
+def save_unadded_genome_ids(savepath, los):
+    with open(savepath, "w") as outfile:
+        for entry in los:
+            outfile.write("\t".join(entry))
+            outfile.write("\n")
+
+
+def load_unadded_genome_ids(savepath):
+    if os.path.exists(savepath):
+        with open(savepath, "r") as infile:
+            los = [x.strip().split("\t") for x in infile.readlines()]
+        os.remove(savepath)
+        return los
+    return None
+
+
 def main():
+
+    unadded_saveloc = os.path.join(PHENDB_BASEDIR, "logs/unadded_refseq_genomes.tsv")
     ppath = PHENDB_BASEDIR + "/source/web_server:$PYTHONPATH"
     infolder = os.path.join(PHENDB_BASEDIR, "data/uploads/PHENDB_PRECALC")
     outfolder = os.path.join(PHENDB_BASEDIR, "data/results/PHENDB_PRECALC_results")
@@ -126,35 +142,47 @@ def main():
     os.makedirs(outfolder, exist_ok=True)
     os.makedirs(logfolder, exist_ok=True)
 
-    print("Downloading list of genomes from RefSeq...")
-    gtlist = get_latest_refseq_genomes(n_days=args.days_back, latest=args.latest, max_n=args.max_n)
+    print("Checking if we have unadded refseq entries sitting around...")
+    unadded_los = load_unadded_genome_ids(unadded_saveloc)
+    if unadded_los:
+        print("Found unadded entries. Using these instead of requesting new ones.")
+        gtlist = unadded_los
+    else:
+        print("Downloading list of genomes from RefSeq...")
+        gtlist = get_latest_refseq_genomes(n_days=args.days_back, latest=args.latest, max_n=args.max_n)
 
     while len(gtlist) < 0:
+        print("To end precalculation now, press Ctrl+C within the next 30 sec.")
+        try:
+            sleep(30)
+        except KeyboardInterrupt:
+            print("Precalculation interrupted. "
+                  "{n} entries will be written to the backup file to be added later.".format(n=len(gtlist)))
+            save_unadded_genome_ids(savepath=unadded_saveloc, los=gtlist)
+            os._exit(0)
 
-        onehundred = gtlist[-100:]
-        gtlist = gtlist[:-100]
+        fifty = gtlist[-50:]
+        gtlist = gtlist[:-50]
 
-        print("Downloading and processing <= 100 genomes...")
+        print("Downloading and processing <= 50 genomes...")
         print("Backlog of sequences: {n}".format(n=len(gtlist)))
-
-        download_genomes(los=onehundred, path=infolder)
-
+        download_genomes(los=fifty, path=infolder)
         print("Submitting precalculation job. Bins in folder {inf} will be added to the database.".format(inf=infolder))
         check_add_precalc_job()
         q = Queue(PHENDB_QUEUE, connection=Redis())
         pipeline_call = q.enqueue_call(func=phenDB_enqueue,
                                        args=(ppath, pipeline_path, infolder, outfolder, 0.5, ""),
-                                       timeout='128h',
-                                       ttl='128h',
+                                       timeout='72h',
+                                       ttl='72h',
                                        )
         while pipeline_call.result is None:
-            sleep(10)
+            sleep(30)
 
         if pipeline_call.result is 0:
             print("Precalculation was successful.")
             print("Adding taxonomic information to precalculated bins.")
-            add_taxids_to_precalc_bins(onehundred)
-            print("Finished. added {lolos} items to database.".format(lolos=len(onehundred)))
+            add_taxids_to_precalc_bins(fifty)
+            print("Batch finished. added {lolos} items to database.".format(lolos=len(fifty)))
         else:
             print("Precalculation has failed!")
 
