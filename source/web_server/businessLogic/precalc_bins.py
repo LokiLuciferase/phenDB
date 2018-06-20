@@ -25,7 +25,7 @@ parser.add_argument("-l", "--latest", default=None, help="Latest release date of
 parser.add_argument("-m", "--max_n", default=None, help="Maximum number of sequences to precalculate")
 args = parser.parse_args()
 
-Entrez.email = "test@test.com"
+Entrez.email = "lukas.lueftinger@univie.ac.at"
 
 
 def get_latest_refseq_genomes(n_days, only_reference=False, max_n=None, latest=None):
@@ -40,9 +40,10 @@ def get_latest_refseq_genomes(n_days, only_reference=False, max_n=None, latest=N
                     'AND ("{minus}"[SeqReleaseDate] : "{today}"[SeqReleaseDate])'.format(rs=representative_str,
                                                                                          minus=dateformatted,
                                                                                          today=latestformatted)
-    with Entrez.esearch(db="assembly", term=search_string, retmax=None) as handle:
+    with Entrez.esearch(db="assembly", term=search_string, retmax=9999999) as handle:
         record = Entrez.read(handle)
     idlist = record["IdList"]
+    print("Number of entries found: ", len(idlist))
     for i in idlist:
         try:
             with Entrez.esummary(db="assembly", id=i) as summary_handle:
