@@ -18,7 +18,8 @@ def upload_function_results(instance, givenname):
     return filename
 
 # ----------------Models--------------------------------------
-
+# Contains information on the job submitted and file uploaded by the user,
+# as well as the output file to be accessed.
 class Job(models.Model):
 
     class Meta:
@@ -45,6 +46,8 @@ class Job(models.Model):
         return "results/%s/" % self.key
 
 
+# Contains information on uploaded genomes.
+# Uniquely identified by md5sum hash of genome file.
 class Bin(models.Model):
 
     class Meta:
@@ -72,6 +75,8 @@ class Bin(models.Model):
         return self.bin_name
 
 
+# Correlates Jobs with Bins; each bin has an alias
+# which is the name of the file when it was submitted with the given job
 class BinInJob(models.Model):
 
     class Meta:
@@ -90,6 +95,7 @@ class BinInJob(models.Model):
         return "Bin: {bin} in Job {job}".format(bin=self.bin, job=self.job)
 
 
+# Contains information on EggNOG Enogs (clusters of orthologous groups) which are the features used by PICA
 class Enog(models.Model):
 
     class Meta:
@@ -105,6 +111,8 @@ class Enog(models.Model):
                                                      ed=self.enog_descr)
 
 
+# Contains information on PICA models used for predicting traits,
+# uniquely identified by name of the model and date of training.
 class PicaModel(models.Model):
 
     class Meta:
@@ -130,6 +138,8 @@ class PicaModel(models.Model):
         return self.model_name
 
 
+# Contains the ranking of PICA model features (meaning,
+# the importance of any enog in the model for the decision of that model).
 class EnogRank(models.Model):
 
     class Meta:
@@ -155,6 +165,8 @@ class EnogRank(models.Model):
                                                                     mtd=str(self.model.model_train_date))
 
 
+# Contains precomputed estimated accuracy values of any PICA model
+# at a certain completeness and contamination level of the bin in question.
 class PicaModelAccuracy(models.Model):
     class Meta:
         unique_together = ('model', 'comple', 'conta')
@@ -176,6 +188,9 @@ class PicaModelAccuracy(models.Model):
                                                                   conta=self.conta,
                                                                   balac=self.mean_balanced_accuracy)
 
+
+# Contains training instances for each PICA model,
+# incl. taxon id, assembly id and the class of the training instance (YES or NO)
 class PicaModelTrainingData(models.Model):
     class Meta:
         unique_together = ('model', 'tax_id', 'assembly_id')
@@ -194,6 +209,7 @@ class PicaModelTrainingData(models.Model):
                                                                          yn=self.verdict)
 
 
+# Contains Enogs present in a given bin, as found by HMMER.
 class HmmerResult(models.Model):
 
     class Meta:
@@ -207,11 +223,11 @@ class HmmerResult(models.Model):
     bin = models.ForeignKey(Bin, on_delete=models.CASCADE)
 
     def __str__(self):
-        return "Enog {eid} contained in the bin {mds} of Job {Jb}".format(eid=self.enog_id,
-                                                                          mds=self.bin_id,
-                                                                          jb=self.bin.key)
+        return "Enog {eid} contained in the bin {mds}.".format(eid=self.enog_id,
+                                                               mds=self.bin_id)
 
 
+# Contains predictions of trait presence or absence for a given bin and model, including confidence scores
 class PicaResult(models.Model):
 
     class Meta:
@@ -238,6 +254,8 @@ class PicaResult(models.Model):
                                                                                mtd=str(self.model.model_train_date))
 
 
+# Contains a stripped down version of the NCBI Taxonomy Names table,
+# which only contains Scientific Names and their correlated Taxon IDs.
 class Taxon(models.Model):
 
     class Meta:

@@ -12,6 +12,7 @@ from phenotypePredictionApp.variables import PHENDB_BASEDIR, PHENDB_QUEUE, PHEND
 TAXONOMY_NAMES_FILE = "/var/www/krona_taxonomy/taxonomy.tab"  # using kronatools taxonomy names, easily updatable
 
 
+# update kronatools taxonomy file via subprocess, then use updated file to rebuild Taxon table in PhenDB DB.
 def update_taxonomy(ppath):
     import django
     os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
@@ -56,8 +57,9 @@ def update_taxonomy(ppath):
     print("Finished updating Taxonomy Table.")
 
 
+# delete bins and results in database if their parent job has failed with unknown reason.
+# Make a distinction for precalculated refseq genomes: spare already finished precalculation bins
 def clean_up_on_pipeline_fail(keyname, ppath, failtype):
-
     import django
     os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
     sys.path.append(str(ppath))
@@ -70,7 +72,7 @@ def clean_up_on_pipeline_fail(keyname, ppath, failtype):
     assoc_rows = BinInJob.objects.filter(job=currentjob)
     bins_of_failed = [x.bin for x in assoc_rows]
     for b in bins_of_failed:
-        if b.bin_name.startswith("PHENDB_PRECALC") and b.comple != 2: # spare finished precalc bins
+        if b.bin_name.startswith("PHENDB_PRECALC") and b.comple != 2:
             continue
         b.delete()
     assoc_rows.delete()
@@ -79,7 +81,6 @@ def clean_up_on_pipeline_fail(keyname, ppath, failtype):
 
 # delete temporary files and uploads after each finished job
 def remove_temp_files(infolder=None):
-
     if PHENDB_DEBUG:
         return
     logfolder = os.path.join(PHENDB_BASEDIR, 'logs')
@@ -88,9 +89,8 @@ def remove_temp_files(infolder=None):
         shutil.rmtree(infolder)
 
 
-# delete user submitted data after days
+# delete user submitted data after n days
 def delete_user_data(days):
-
     import django
     from django.utils.timezone import make_aware
     from datetime import datetime, timedelta
@@ -104,8 +104,8 @@ def delete_user_data(days):
 
     oldest = datetime.today() - timedelta(days=days)
 
-    # delete Jobs older than oldest; association rows deleted automatically
-    # spare those Jobs that have been pre-calculated
+    # delete Jobs older than oldest
+    # spare those bins and results that have been pre-calculated from refseq genomes
     aged_jobs = Job.objects.filter(job_date__lte=make_aware(oldest))
     non_precalc_aged = aged_jobs.exclude(key__icontains="PHENDB_PRECALC")
     non_precalc_aged.delete()
@@ -132,6 +132,7 @@ def delete_user_data(days):
             shutil.rmtree(folder)
 
 
+# submit a PhenDB job to Redis queue for later calculation.
 def phenDB_enqueue(ppath, pipeline_path, infolder, outfolder, pica_cutoff, node_offs):
 
     # set environmental variables
@@ -156,7 +157,6 @@ def phenDB_enqueue(ppath, pipeline_path, infolder, outfolder, pica_cutoff, node_
             remove_temp_files()  # don't delete infolder if failure reason is unknown
             clean_up_on_pipeline_fail(key, ppath, failtype="UNKNOWN")
             raise RuntimeError("Pipeline run has failed. Error status in DB has been updated.")
-
         remove_temp_files(infolder)
 
         # if no output file has been generated despite no pipeline error
@@ -164,5 +164,4 @@ def phenDB_enqueue(ppath, pipeline_path, infolder, outfolder, pica_cutoff, node_
         if not os.path.exists(os.path.join(outfolder, "{k}.zip".format(k=key))):
             clean_up_on_pipeline_fail(key, ppath, failtype="ALL_DROPPED")
             raise RuntimeError("No input files have passed error checking.")
-
         return pipeline_call.returncode

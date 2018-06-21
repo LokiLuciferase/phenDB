@@ -2,7 +2,6 @@
 #
 # Created by Lukas Lüftinger on 19/02/2018.
 #
-
 import os
 import sys
 
@@ -14,7 +13,6 @@ sys.path.append("/apps/phenDB_devel_LL/source/web_server")
 
 from phenotypePredictionApp.variables import PHENDB_QUEUE, PHENDB_BASEDIR
 from enqueue_job import delete_user_data
-
 
 # enqueue a call to delete_user_data() into the redis queue
 # which deletes all user data older than days_back

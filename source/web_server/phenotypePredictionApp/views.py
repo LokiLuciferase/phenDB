@@ -175,7 +175,6 @@ def getResults(request):
         refresh = False
         showProgressBar = False
 
-    print("len resultsDic " + str(len(resultsList)))
     context = {'result' : 'download/',
                'showResultCSS' : showResultCSS,
                'showNotification' : True if numAccessed == 1 else False,
@@ -194,8 +193,6 @@ def getResults(request):
                'resultsList' : resultsList,
                'all_models' : PicaModel.objects.all}
 
-    #pprint(context)
-
     return HttpResponse(template.render(context, request))
 
 def fileDownload(request):
@@ -206,7 +203,7 @@ def fileDownload(request):
     return response
 
 
-#---------------VIEWS-ERRORS--------------------------------------
+# ---------------VIEWS-ERRORS--------------------------------------
 
 def permissionDenied(request):
     context = {'errorMessage' : 'You do not have permission to access this site'}

@@ -5,6 +5,7 @@ import os
 from .models import Job, PicaModel, Bin
 
 
+# create a display for the Job table
 class JobDisplay(admin.ModelAdmin):
 
     def bal_acc_cutoff(obj):
@@ -41,6 +42,7 @@ class JobDisplay(admin.ModelAdmin):
     search_fields = ('user_email', 'user_ip', 'filename')
 
 
+# create a display for the PicaModel table
 class ModelDisplay(admin.ModelAdmin):
 
     def has_add_permissions(self, request):
@@ -54,6 +56,7 @@ class ModelDisplay(admin.ModelAdmin):
     actions = None
 
 
+# create a display for the Bin table
 class BinDisplay(admin.ModelAdmin):
 
     def has_add_permissions(self, request):
