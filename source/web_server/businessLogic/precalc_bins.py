@@ -204,7 +204,7 @@ def main():
         print("Downloading list of genomes from RefSeq...")
         gtlist = get_latest_refseq_genomes(n_days=args.days_back, latest=args.latest, max_n=args.max_n)
 
-    while len(gtlist) < 0:
+    while len(gtlist) > 0:
         print("To end precalculation now and save unadded refseq IDs, press Ctrl+C within the next 30 sec.")
         try:
             sleep(30)
