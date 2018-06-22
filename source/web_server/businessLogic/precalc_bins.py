@@ -32,6 +32,7 @@ parser.add_argument("-d", "--days_back", default=60, help="Precalculate sequence
                                                           "from refseq released up to days in the past")
 parser.add_argument("-l", "--latest", default=None, help="Latest release date of sequence "
                                                          "to precalculate (format: YYYY/MM/DD)")
+parser.add_argument("-b", "--n_batches", default=999999, help="How many 50-genome batches to process until stopping")
 parser.add_argument("-m", "--max_n", default=None, help="Maximum number of sequences to precalculate")
 parser.add_argument("-t", "--update_taxids", default=False, help="Only get list of refseq entries, "
                                                                  "and add taxonomy info to those present in the DB.")
@@ -209,8 +210,18 @@ def main():
         print("Downloading list of genomes from RefSeq...")
         gtlist = get_latest_refseq_genomes(n_days=args.days_back, latest=args.latest, max_n=args.max_n)
 
+    init_batches = args.n_batches
     while len(gtlist) > 0:
-        print("To end precalculation now and save unadded refseq IDs, press Ctrl+C within the next 30 sec.")
+        if init_batches <= 0:
+            sys.stdout.write("Finishing after reaching max number of batches to process.\n"
+                             "{n} entries will be written to the backup file to be added later.\n".format(n=len(gtlist)))
+            sys.stdout.flush()
+            save_unadded_genome_ids(savepath=unadded_saveloc, los=gtlist)
+            os._exit(0)
+
+        sys.stdout.write("To end precalculation now and save unadded refseq IDs, "
+                         "press Ctrl+C within the next 30 sec.\n")
+        sys.stdout.flush()
         try:
             sleep(30)
         except KeyboardInterrupt:
@@ -232,6 +243,7 @@ def main():
             print("Adding taxonomic information to precalculated bins.")
             add_taxids_to_precalc_bins(fifty)
             print("Batch finished. added {lolos} items to database.".format(lolos=len(fifty)))
+            init_batches -= 1
 
 
 if __name__ == "__main__":
