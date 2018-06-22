@@ -210,7 +210,7 @@ def main():
         print("Downloading list of genomes from RefSeq...")
         gtlist = get_latest_refseq_genomes(n_days=args.days_back, latest=args.latest, max_n=args.max_n)
 
-    init_batches = args.n_batches
+    init_batches = int(args.n_batches)
     while len(gtlist) > 0:
         if init_batches <= 0:
             sys.stdout.write("Finishing after reaching max number of batches to process.\n"
