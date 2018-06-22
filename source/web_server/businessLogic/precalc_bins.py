@@ -90,26 +90,28 @@ def download_genomes(los, path):
         for genome in glob.glob(os.path.join(path, "*.fna.gz")):
             shutil.move(genome, REFSEQ_GENOMES_BACKUP_LOC)
         shutil.rmtree(path)
-        with tempfile.TemporaryDirectory() as tmpname:
-            for name, taxid, assembly_id, ftppath in los:
-                for times in range(5):
-                    try:
-                        ftp = ftplib.FTP("ftp.ncbi.nlm.nih.gov", "anonymous", "password")
-                        restpath = "/".join(ftppath.split("/")[3:])
-                        ftp.cwd("/{rp}".format(rp=restpath))
-                        genomicfile = [x for x in ftp.nlst() if "genomic.fna.gz" in x and "from" not in x][0]
-                        if not genomicfile:
-                            print("No genome found for {n}".format(n=name))
-                            continue
-                        fullpath_local = os.path.join(tmpname, genomicfile)
-                        with open(fullpath_local, "wb") as outfile:
-                            ftp.retrbinary("RETR {file}".format(file=genomicfile), outfile.write)
-                        shutil.move(fullpath_local, os.path.join(tmpname, "PHENDB_PRECALC_" + assembly_id + ".fna.gz"))
-                        print("Downloaded genome FASTA for {n}.".format(n=name))
-                        break
-                    except ftplib.error_temp:
-                        print("Trying again after FTP temporary error.")
-            shutil.copytree(tmpname, path)
+    with tempfile.TemporaryDirectory() as tmpname:
+        for name, taxid, assembly_id, ftppath in los:
+            finished = False
+            while not finished:
+                try:
+                    ftp = ftplib.FTP("ftp.ncbi.nlm.nih.gov", "anonymous", "password")
+                    restpath = "/".join(ftppath.split("/")[3:])
+                    ftp.cwd("/{rp}".format(rp=restpath))
+                    genomicfile = [x for x in ftp.nlst() if "genomic.fna.gz" in x and "from" not in x][0]
+                    if not genomicfile:
+                        print("No genome found for {n}".format(n=name))
+                        continue
+                    fullpath_local = os.path.join(tmpname, genomicfile)
+                    with open(fullpath_local, "wb") as outfile:
+                        ftp.retrbinary("RETR {file}".format(file=genomicfile), outfile.write)
+                    shutil.move(fullpath_local, os.path.join(tmpname, "PHENDB_PRECALC_" + assembly_id + ".fna.gz"))
+                    print("Downloaded genome FASTA for {n}.".format(n=name))
+                    finished = True
+                except ftplib.error_temp:
+                    print("Trying again after FTP temporary error. Sleeping 30 sec first.")
+                    sleep(30)
+        shutil.copytree(tmpname, path)
 # check if a job with id "PHENDB_PRECALC" exists in the DB; if not, create it (required for phenDB pipeline)
 def check_add_precalc_job():
     try:
