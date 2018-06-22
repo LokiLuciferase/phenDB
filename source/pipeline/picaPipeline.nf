@@ -109,6 +109,7 @@ process fasta_sanity_check {
     tag { binname }
     errorStrategy 'ignore'  // failing files removed from pipeline
     scratch true
+    maxForks 5
 
     input:
     file(item) from groovy_checked_for_continue
@@ -278,7 +279,7 @@ try:
     assoc= BinInJob(bin=thisbin, job=parentjob, bin_alias="${binname}")
     assoc.save()
 except IntegrityError:
-    sys.exit("Cannot add bin to db: An identical file (same md5sum) from the same job is already in the db. Please remove duplicate files from your input!")
+    pass
 """
 
 }
@@ -295,6 +296,7 @@ process prodigal {
 
     tag { binname }
     memory = "450 MB"
+    maxForks 5
 
     input:
     set val(binname), val(mdsum), file(sanitychecked), val(seqtype), val(calc_bin_or_not), file(reconstr_hmmer), file(reconst_cc) from new_dna_bins

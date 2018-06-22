@@ -89,7 +89,10 @@ def get_latest_refseq_genomes(n_days, only_reference=False, max_n=None, latest=N
 def download_genomes(los, path):
     if os.path.exists(path):
         for genome in glob.glob(os.path.join(path, "*.fna.gz")):
-            shutil.move(genome, REFSEQ_GENOMES_BACKUP_LOC)
+            try:
+                shutil.move(genome, REFSEQ_GENOMES_BACKUP_LOC)
+            except shutil.Error:
+                pass
         shutil.rmtree(path)
     with tempfile.TemporaryDirectory() as tmpname:
         for name, taxid, assembly_id, ftppath in los:
