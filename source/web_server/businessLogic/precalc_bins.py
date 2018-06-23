@@ -116,6 +116,8 @@ def download_genomes(los, path):
                     print("Trying again after FTP temporary error. Sleeping 30 sec first.")
                     sleep(30)
         shutil.copytree(tmpname, path)
+
+
 # check if a job with id "PHENDB_PRECALC" exists in the DB; if not, create it (required for phenDB pipeline)
 def check_add_precalc_job():
     try:
@@ -215,22 +217,19 @@ def main():
 
     init_batches = int(args.n_batches)
     while len(gtlist) > 0:
+        save_unadded_genome_ids(savepath=unadded_saveloc, los=gtlist)
         if init_batches <= 0:
             sys.stdout.write("Finishing after reaching max number of batches to process.\n"
                              "{n} entries will be written to the backup file to be added later.\n".format(n=len(gtlist)))
             sys.stdout.flush()
-            save_unadded_genome_ids(savepath=unadded_saveloc, los=gtlist)
             os._exit(0)
 
-        sys.stdout.write("To end precalculation now and save unadded refseq IDs, "
+        sys.stdout.write("Remaining genome IDs saved. To end precalculation now, "
                          "press Ctrl+C within the next 30 sec.\n")
         sys.stdout.flush()
         try:
             sleep(30)
         except KeyboardInterrupt:
-            print("Precalculation interrupted. "
-                  "{n} entries will be written to the backup file to be added later.".format(n=len(gtlist)))
-            save_unadded_genome_ids(savepath=unadded_saveloc, los=gtlist)
             os._exit(0)
 
         fifty = gtlist[-50:]
