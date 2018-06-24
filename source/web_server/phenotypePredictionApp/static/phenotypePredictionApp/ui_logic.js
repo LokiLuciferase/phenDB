@@ -121,7 +121,7 @@ function __initializeEmptySlots(arr) {
 }
 
 
-function calcTraitCounts(resultsListJSValues, confidenceCutoff, accuracyCutoff) {
+function calcTraitCounts(resultsListJSValues, confidenceCutoff, accuracyCutoff, models) {
     var false_dir = {};
     var true_dir = {};
     var nd_dir = {};
@@ -145,4 +145,26 @@ function calcTraitCounts(resultsListJSValues, confidenceCutoff, accuracyCutoff) 
     window.true_dir = true_dir;
     window.nd_dir = nd_dir;
     window.nc_dir = nc_dir;
+
+    var result_matrix = [];
+
+    for(var i=0; i<models.length; i++) {
+        var row = [];
+        var model_tmp = models[i];
+
+        row.push(model_tmp);
+
+        if (true_dir[model_tmp] == undefined) row.push(0);
+        else row.push(true_dir[model_tmp]);
+
+        if(false_dir[model_tmp] == undefined) row.push(0);
+        else row.push(false_dir[model_tmp]);
+
+        if(nd_dir[model_tmp] == undefined) row.push(0);
+        else row.push(nd_dir[model_tmp]);
+
+        result_matrix.push(row);
+    }
+
+    window.result_matrix = result_matrix;
 }
