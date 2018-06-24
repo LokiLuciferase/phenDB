@@ -124,23 +124,44 @@ function __initializeEmptySlots(arr) {
 function calcTraitCounts(resultsListJSValues, confidenceCutoff, accuracyCutoff) {
     var false_dir = {};
     var true_dir = {};
-    var na_dir = {};
+    var nd_dir = {};
+    var nc_dir = {};
 
     var model_column = window.database_structure.bin_table.model_column;
     var prediction_column = window.database_structure.bin_table.prediction_column;
     var confidence_column = window.database_structure.bin_table.confidence_column;
     var accuracy_column = window.database_structure.bin_table.accuracy_column;
 
+    window.true_dir_ = resultsListJSValues
+                                .filter(x => x[prediction_column] === true)
+                                //.filter(x => x[confidence_column] >= confidenceCutoff)
+                                //.filter(x => x[accuracy_column] >= accuracyCutoff)
+                                .length;
+    window.false_dir_ = resultsListJSValues
+                                .filter(x => x[prediction_column] === false)
+                                 //.filter(x => x[confidence_column] >= confidenceCutoff)
+                                //.filter(x => x[accuracy_column] >= accuracyCutoff)
+                                .length;
+
+    window.nd_dir_ = resultsListJSValues
+                                 .filter(x => x[confidence_column] < confidenceCutoff)
+                                .length;
+
+    window.nc_dir_ = resultsListJSValues
+                                .filter(x => x[accuracy_column] < accuracyCutoff)
+                                .length;
 
     for(var i=0; i<resultsListJSValues.length; i++) {
         var model = resultsListJSValues[i][model_column];
         var prediction = resultsListJSValues[i][prediction_column];
         if(prediction === false) false_dir[model] = (false_dir[model] || 0) + 1;
         else if(prediction === true) true_dir[model] = (true_dir[model] || 0) +1;
-        else if (prediction === "NA") na_dir[model] = (na_dir[model] || 0) +1;
+        else if (prediction === "ND") nd_dir[model] = (nd_dir[model] || 0) +1;
+        else if (prediction === "NC") nc_dir[model] = (nc_dir[model] || 0) +1;
         else throw "unknown option in prediction (" + prediction + ")";
     }
     window.false_dir = false_dir;
     window.true_dir = true_dir;
-    window.na_dir = na_dir;
+    window.nd_dir = nd_dir;
+    window.nc_dir = nc_dir;
 }
