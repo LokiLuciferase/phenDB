@@ -15,8 +15,8 @@ function ResultFigures(resultsListJSTitles, resultsListJSValues, model_names, mo
         var matrix_for_dt2 = resultslist_to_dt2_matrix(this.resultsListJSValues, this.model_names);
         var dataTable2 = this.__initialize_data_table(matrix_for_dt2[0], matrix_for_dt2[1], "#trait_prediction_table");
         //DATATABLE 3 (Trait Count summary)
-        calcTraitCounts(this.resultsListJSValues, 0.5, 0.7, this.model_names); //TODO: change values
-        var dataTable3;
+        var count_summary_matrix = calcTraitCounts(this.resultsListJSValues, 0.5, 0.7, this.model_names); //TODO: change values
+        var dataTable3 = this.__initialize_data_table(count_summary_matrix[0], count_summary_matrix[1], "#trait_prediction_summary_table");
         //FILTER / AUTOCOMPLETE / INFO
         this.__initialize_pica_models_autocomplete(this.model_names, dataTable1);
         this.__initialize_bins_autocomplete(this.bins, dataTable1);

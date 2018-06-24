@@ -167,4 +167,6 @@ function calcTraitCounts(resultsListJSValues, confidenceCutoff, accuracyCutoff, 
     }
 
     window.result_matrix = result_matrix;
+    var titles = ["", "YES", "NO", "ND"];
+    return [result_matrix, titles];
 }
