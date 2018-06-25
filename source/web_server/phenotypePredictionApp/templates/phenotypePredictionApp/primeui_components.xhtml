@@ -24,7 +24,7 @@ function __initialize_popups(showProgressBar) {
                 $('#progressbar').puiprogressbar({
                     value : {{  progress|default:0}},
                     {% if queuePos > 0 %}
-                        labelTemplate: "Queue: {{ queuePos }} jobs prior to your job",
+                        labelTemplate: "Queue: {{ queuePos }} job(s) prior to your job",
                     {% elif total_bins != 0  %}
                         labelTemplate: "Finished/Total: " + "{{ finished_bins }}/{{ total_bins }}",
                     {% endif %}

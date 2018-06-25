@@ -78,6 +78,25 @@ function getAllBins(resultsListJSValues) {
     return unique_bins;
 }
 
+/*
+function resultslist_to_dt2_matrix(resultsListJSValues) {
+    var bin_column = window.database_structure.bin_table.bin_column;
+    var model_column = window.database_structure.bin_table.model_column;
+
+    function unique(value, index, self) {
+        return self.indexOf(value) === index;
+    }
+
+    var bins = resultsListJSValues
+                        .map(x => x[bin_column])
+                        .filter(unique);
+
+    var models = resultsListJSValues
+                        .map(x => x[model_column])
+                        .filter(unique);
+} */
+
+
 function resultslist_to_dt2_matrix(resultsListJSValues, models) {
     resultsListJSValues.sort(function (a, b) {
         if (a[0] < b[0]) return -1;
