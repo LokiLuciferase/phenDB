@@ -110,9 +110,11 @@ function resultslist_to_dt2_matrix(resultsListJSValues, models) {
     var row_index = 0;
     var row = [];
     row[0] = bin_prev;
+
+
     for(var i=0; i<resultsListJSValues.length; i++) {
         var bin_tmp = resultsListJSValues[i][0];
-        if(bin_prev != bin_tmp || i == resultsListJSValues.length-1) {
+        if(bin_prev != bin_tmp) {
             dt2_matrix[row_index] = row;
             row = [];
             row[0] = bin_tmp;
@@ -125,6 +127,7 @@ function resultslist_to_dt2_matrix(resultsListJSValues, models) {
         row[model_index+1] = verdict;
         bin_prev = bin_tmp;
     }
+    dt2_matrix[row_index] = row;
 
     var model_cp = models.slice();
     model_cp.unshift("bins");
