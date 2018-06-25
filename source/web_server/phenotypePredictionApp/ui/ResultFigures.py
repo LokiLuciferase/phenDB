@@ -7,7 +7,7 @@ class ResultFigures:
         all_bins = BinInJob.objects.filter(job=job)
         db_data = list(map(lambda x: PicaResult.objects.filter(bin=x.bin), all_bins))
         resultFigures = ResultFigures()
-        #resultFigures.__buildTraitPredictionTable(db_data)
+        resultFigures.__buildTraitPredictionTable(db_data)
         return resultFigures
 
     def __buildTraitPredictionTable(self, db_data):
