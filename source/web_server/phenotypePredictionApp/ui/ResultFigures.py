@@ -5,7 +5,7 @@ from django.core.serializers import serialize
 class ResultFigures:
     def initialize(job):
         resultFigures = ResultFigures()
-        resultsDir = resultFigures.__createPicaResultDic()
+        resultsDir = resultFigures.__createPicaResultDic(job=job)
         resultFigures.__buildTraitPredictionTable(resultsDir)
         return resultFigures
 
