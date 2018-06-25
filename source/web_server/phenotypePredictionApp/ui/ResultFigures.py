@@ -18,6 +18,7 @@ class ResultFigures:
 
     def __buildTraitPredictionTable(self, resultsDir):
         #TODO: change
+        print(resultsDir)
         self.traitPredictionTable = serialize('json', resultsDir)
 
     def getTraitPredictionTable(self):
