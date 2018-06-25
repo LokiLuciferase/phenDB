@@ -5,8 +5,10 @@ class ResultFigures:
     def initialize(job):
         all_bins = BinInJob.objects.filter(job=job)
         db_data = list(map(lambda x: PicaResult.objects.filter(bin=x.bin), all_bins))
+        print(db_data)
         resultFigures = ResultFigures()
-        resultFigures.__buildTraitPredictionTable(db_data)
+        #resultFigures.__buildTraitPredictionTable(db_data)
+        return resultFigures
 
     def __buildTraitPredictionTable(self, db_data):
         #TODO: change
@@ -14,5 +16,5 @@ class ResultFigures:
         self.traitPredictionTable = json_data
 
     def getTraitPredictionTable(self):
-        return self.traitPredictionTable
-
+        #return self.traitPredictionTable
+        return ""
