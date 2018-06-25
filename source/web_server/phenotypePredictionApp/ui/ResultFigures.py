@@ -4,7 +4,7 @@ from phenotypePredictionApp.models import Job, PicaResult, BinInJob, PicaModel
 class ResultFigures:
     def initialize(job):
         all_bins = BinInJob.objects.filter(job=job)
-        db_data = dict(map(lambda x: PicaResult.objects.filter(bin=x.bin), all_bins))
+        db_data = list(map(lambda x: PicaResult.objects.filter(bin=x.bin), all_bins))
         resultFigures = ResultFigures()
         resultFigures.__buildTraitPredictionTable(db_data)
 
