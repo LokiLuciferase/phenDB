@@ -2,7 +2,6 @@ from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
 from django.urls import reverse
-from .ui.ResultFigures import ResultFigures
 from .forms import FileForm
 from .variables import PHENDB_BASEDIR, PHENDB_QUEUE, PHENDB_DEBUG
 from django.shortcuts import redirect
@@ -139,7 +138,6 @@ def getResults(request):
         all_bins = BinInJob.objects.filter(job=obj)
         for bin_obj in all_bins:
             resultsList += PicaResult.objects.filter(bin=bin_obj.bin)
-        test_obj = ResultFigures.initialize(job=obj)
     else:
         numAccessed = 0
         showResultCSS = 'none'
@@ -195,8 +193,7 @@ def getResults(request):
                'queuePos' : queuePos + 1,
                'queueLen' : queueLen,
                'resultsList' : resultsList,
-               'all_models' : PicaModel.objects.all,
-               'test_obj' : test_obj.getTraitPredictionTable()}
+               'all_models' : PicaModel.objects.all}
 
     return HttpResponse(template.render(context, request))
 
