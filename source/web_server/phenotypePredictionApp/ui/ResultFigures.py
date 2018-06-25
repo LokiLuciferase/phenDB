@@ -13,7 +13,7 @@ class ResultFigures:
         resultsDir = {}
         all_bins = BinInJob.objects.filter(job=job)
         for bin_obj in all_bins:
-            resultsDir[bin_obj.bin.bin_name] = serialize('json', PicaResult.objects.filter(bin=bin_obj.bin))
+            resultsDir[bin_obj.bin.bin_name] = PicaResult.objects.filter(bin=bin_obj.bin)
         return resultsDir
 
     def __buildTraitPredictionTable(self, resultsDir):
