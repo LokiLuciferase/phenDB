@@ -195,7 +195,7 @@ def getResults(request):
                'queuePos' : queuePos + 1,
                'queueLen' : queueLen,
                'resultsList' : resultsList,
-               'all_models' : PicaModel.objects.all
+               'all_models' : PicaModel.objects.all,
                'test_obj' : test_obj}
 
     return HttpResponse(template.render(context, request))
