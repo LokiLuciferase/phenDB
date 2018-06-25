@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
 from django.urls import reverse
+from .ui.ResultFigures import ResultFigures
 from .forms import FileForm
 from .variables import PHENDB_BASEDIR, PHENDB_QUEUE, PHENDB_DEBUG
 from django.shortcuts import redirect
@@ -112,6 +113,8 @@ def getResults(request):
     queueLen = None
     resultsList = []
 
+    test_obj = None;
+
     if obj.finished_bins == obj.total_bins and obj.total_bins != 0:
         try:
             numAccessed = accessed[key]
@@ -136,6 +139,7 @@ def getResults(request):
         all_bins = BinInJob.objects.filter(job=obj)
         for bin_obj in all_bins:
             resultsList += PicaResult.objects.filter(bin=bin_obj.bin)
+        test_obj = ResultFigures
     else:
         numAccessed = 0
         showResultCSS = 'none'
@@ -179,7 +183,7 @@ def getResults(request):
                'showResultCSS' : showResultCSS,
                'showNotification' : True if numAccessed == 1 else False,
                'showProgressBar' : showProgressBar,
-               'progress' : (obj.finished_bins * 1.0 / obj.total_bins) * 100 if (obj.total_bins!=0 and obj.finished_bins != 0) else 0.001,
+               'progress' : (obj.finished_bins * 1.0 / obj.total_bins) * 100,
                'finished_bins' : str(obj.finished_bins),
                'total_bins' : str(obj.total_bins),
                'refresh' : refresh,
@@ -191,7 +195,8 @@ def getResults(request):
                'queuePos' : queuePos + 1,
                'queueLen' : queueLen,
                'resultsList' : resultsList,
-               'all_models' : PicaModel.objects.all}
+               'all_models' : PicaModel.objects.all
+               'test_obj' : test_obj}
 
     return HttpResponse(template.render(context, request))
 

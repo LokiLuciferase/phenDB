@@ -53,6 +53,7 @@
 </div>
 <script type="text/javascript">
                     $(document).ready(function() {
+                        window.test_obj = {{ test_obj }};
                         var resultListJson = {{ resultsList|jsonify | safe}};
                         window.resultListJson = resultListJson;
                         if(resultListJson.length != 0) {
