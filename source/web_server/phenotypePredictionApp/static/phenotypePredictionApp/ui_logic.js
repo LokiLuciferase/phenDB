@@ -14,6 +14,7 @@ function resultList_to_datatable_input(json_obj) {
     return [titles, all_data];
 }
 
+
 function convertTitles(titles_arr) {
     var titles_new = [];
     for(var i=0; i<titles_arr.length; i++) {
@@ -111,18 +112,17 @@ function resultslist_to_dt2_matrix(resultsListJSValues, models) {
     row[0] = bin_prev;
     for(var i=0; i<resultsListJSValues.length; i++) {
         var bin_tmp = resultsListJSValues[i][0];
-        var verdict = resultsListJSValues[i][2];
-        var model = resultsListJSValues[i][1];
-        var model_index = models.indexOf(model);
-        if(model_index == -1) throw "model not in model set";
-        row[model_index+1] = verdict;
         if(bin_prev != bin_tmp || i == resultsListJSValues.length-1) {
-            row = __initializeEmptySlots(row);
             dt2_matrix[row_index] = row;
             row = [];
             row[0] = bin_tmp;
             ++row_index;
         }
+        var verdict = resultsListJSValues[i][2];
+        var model = resultsListJSValues[i][1];
+        var model_index = models.indexOf(model);
+        if(model_index == -1) throw "model not in model set";
+        row[model_index+1] = verdict;
         bin_prev = bin_tmp;
     }
 
