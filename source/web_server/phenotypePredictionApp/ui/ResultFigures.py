@@ -11,5 +11,8 @@ class ResultFigures:
     def __buildTraitPredictionTable(self, db_data):
         #TODO: change
         json_data = json.dumps(db_data)
-        return json_data
+        self.traitPredictionTable = json_data
+
+    def getTraitPredictionTable(self):
+        return self.traitPredictionTable
 

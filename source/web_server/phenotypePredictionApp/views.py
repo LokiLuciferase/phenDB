@@ -139,7 +139,7 @@ def getResults(request):
         all_bins = BinInJob.objects.filter(job=obj)
         for bin_obj in all_bins:
             resultsList += PicaResult.objects.filter(bin=bin_obj.bin)
-        test_obj = ResultFigures
+        test_obj = ResultFigures.initialize(job=obj)
     else:
         numAccessed = 0
         showResultCSS = 'none'
@@ -196,7 +196,7 @@ def getResults(request):
                'queueLen' : queueLen,
                'resultsList' : resultsList,
                'all_models' : PicaModel.objects.all,
-               'test_obj' : test_obj}
+               'test_obj' : test_obj.getTraitPredictionTable()}
 
     return HttpResponse(template.render(context, request))
 
