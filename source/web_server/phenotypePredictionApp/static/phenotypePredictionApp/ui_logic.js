@@ -141,10 +141,6 @@ function calcTraitCounts(resultsListJSValues, confidenceCutoff, accuracyCutoff, 
         else if(prediction === false) false_dir[model] = (false_dir[model] || 0) + 1;
         else if(prediction === true) true_dir[model] = (true_dir[model] || 0) +1;
     }
-    window.false_dir = false_dir;
-    window.true_dir = true_dir;
-    window.nd_dir = nd_dir;
-    window.nc_dir = nc_dir;
 
     var result_matrix = [];
 
@@ -166,7 +162,6 @@ function calcTraitCounts(resultsListJSValues, confidenceCutoff, accuracyCutoff, 
         result_matrix.push(row);
     }
 
-    window.result_matrix = result_matrix;
     var titles = convertTitles(["", "YES", "NO", "ND"]);
     return [result_matrix, titles];
 }

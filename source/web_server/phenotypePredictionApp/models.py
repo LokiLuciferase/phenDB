@@ -18,7 +18,8 @@ def upload_function_results(instance, givenname):
     return filename
 
 # ----------------Models--------------------------------------
-
+# Contains information on the job submitted and file uploaded by the user,
+# as well as the output file to be accessed.
 class Job(models.Model):
 
     class Meta:
@@ -45,6 +46,8 @@ class Job(models.Model):
         return "results/%s/" % self.key
 
 
+# Contains information on uploaded genomes.
+# Uniquely identified by md5sum hash of genome file.
 class Bin(models.Model):
 
     class Meta:
@@ -65,13 +68,15 @@ class Bin(models.Model):
     assembly_id = models.TextField(null=True, blank=True)  # TODO: migrate this!
 
     def __str__(self):
-        return str(self.bin_name) + " " + str(self.md5sum) + " " + str(self.tax_id) + " " + str(self.taxon_name) + " " + str(self.taxon_rank) + " " + str(self.comple) + " " + str(self.conta) + " " + str(self.strainhet)
-        #return "File name: {fn}".format(fn=self.bin_name)
+        return " ".join([str(x) for x in (self.bin_name, self.md5sum, self.tax_id, self.taxon_name,
+                                          self.taxon_rank, self.comple, self.conta, self.strainhet)])
 
     def natural_key(self):
-        return (self.bin_name)
+        return self.bin_name
 
 
+# Correlates Jobs with Bins; each bin has an alias
+# which is the name of the file when it was submitted with the given job
 class BinInJob(models.Model):
 
     class Meta:
@@ -80,15 +85,17 @@ class BinInJob(models.Model):
             models.Index(fields=['bin', 'job']),
             models.Index(fields=['bin',]),
             models.Index(fields=['job',])
-       ]
+        ]
 
-    bin = models.ForeignKey(Bin, on_delete=models.CASCADE)  # delete bins if we delete the association row
-    job = models.ForeignKey(Job)
+    bin = models.ForeignKey(Bin, on_delete=models.CASCADE)
+    job = models.ForeignKey(Job, on_delete=models.CASCADE)
+    bin_alias = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return "Bin: {bin} in Job {job}".format(bin=self.bin, job=self.job)
 
 
+# Contains information on EggNOG Enogs (clusters of orthologous groups) which are the features used by PICA
 class Enog(models.Model):
 
     class Meta:
@@ -104,10 +111,12 @@ class Enog(models.Model):
                                                      ed=self.enog_descr)
 
 
+# Contains information on PICA models used for predicting traits,
+# uniquely identified by name of the model and date of training.
 class PicaModel(models.Model):
 
     class Meta:
-        unique_together = ('model_name', 'model_train_date')  # composite primary key
+        unique_together = ('model_name', 'model_train_date')
         indexes = [
             models.Index(fields=['model_name', 'model_train_date'])
         ]
@@ -122,17 +131,19 @@ class PicaModel(models.Model):
 
     def __str__(self):
         return "Name: {mid}\t Description: {md}\tDate of Training: {mtd} \t " \
-               "Type= {type}".format(mid=self.model_name,md=self.model_desc, mtd=str(self.model_train_date),
-                                         type=self.type)
+               "Type= {type}".format(mid=self.model_name, md=self.model_desc,
+                                     mtd=str(self.model_train_date), type=self.type)
 
     def natural_key(self):
-        return (self.model_name)
+        return self.model_name
 
 
+# Contains the ranking of PICA model features (meaning,
+# the importance of any enog in the model for the decision of that model).
 class EnogRank(models.Model):
-#todo: change PK to model and enog alone
+
     class Meta:
-        unique_together = ('model', 'enog')  # composite primary key
+        unique_together = ('model', 'enog')
         indexes = [
             models.Index(fields=['model', 'enog']),
             models.Index(fields=['model',]),
@@ -140,40 +151,46 @@ class EnogRank(models.Model):
             models.Index(fields=['internal_rank',])
         ]
 
-    model = models.ForeignKey(PicaModel)
-    enog = models.ForeignKey(Enog)
-    internal_rank = models.FloatField()
+    model = models.ForeignKey(PicaModel, on_delete=models.CASCADE)
+    enog = models.ForeignKey(Enog, on_delete=models.CASCADE)
+    internal_rank = models.IntegerField()
+    score = models.FloatField()
+    pred_class = models.BooleanField()
 
     def __str__(self):
-        return "Enog ID: {eid}\tModel ID: {mid}\tRank {ir}\t(Model trained on {mtd})".format(eid=self.enog_id,
-                                                                                           mid=self.model.model_name,
-                                                                                           ir=str(self.internal_rank),
-                                                                                           mtd=str(self.model.model_train_date))
+        return "Enog ID: {eid}\tModel ID:" \
+               " {mid}\tRank {ir}\t(Model trained on {mtd})".format(eid=self.enog_id,
+                                                                    mid=self.model.model_name,
+                                                                    ir=str(self.internal_rank),
+                                                                    mtd=str(self.model.model_train_date))
 
 
+# Contains precomputed estimated accuracy values of any PICA model
+# at a certain completeness and contamination level of the bin in question.
 class PicaModelAccuracy(models.Model):
     class Meta:
-        unique_together = ('model', 'comple', 'conta')  # composite primary key
+        unique_together = ('model', 'comple', 'conta')
         indexes = [
             models.Index(fields=['model', 'comple', 'conta'])
         ]
 
-    model = models.ForeignKey(PicaModel)
+    model = models.ForeignKey(PicaModel, on_delete=models.CASCADE)
     comple = models.FloatField()
     conta = models.FloatField()
     mean_balanced_accuracy  = models.FloatField()
     mean_fp_rate = models.FloatField()
     mean_fn_rate = models.FloatField()
 
-
     def __str__(self):
         return "Name: {mid}\t type= {type} \t Completeness: {comple} \t " \
                "Contamination {conta} \t bal. acc {balac}".format(mid=self.model.model_name,
-                                                                      type=self.model.type, comple=self.comple,
-                                                                      conta=self.conta,
-                                                                      balac=self.mean_balanced_accuracy
-                                                                              )
+                                                                  type=self.model.type, comple=self.comple,
+                                                                  conta=self.conta,
+                                                                  balac=self.mean_balanced_accuracy)
 
+
+# Contains training instances for each PICA model,
+# incl. taxon id, assembly id and the class of the training instance (YES or NO)
 class PicaModelTrainingData(models.Model):
     class Meta:
         unique_together = ('model', 'tax_id', 'assembly_id')
@@ -181,7 +198,7 @@ class PicaModelTrainingData(models.Model):
             models.Index(fields=['model', 'tax_id'])
         ]
 
-    model = models.ForeignKey(PicaModel)
+    model = models.ForeignKey(PicaModel, on_delete=models.CASCADE)
     tax_id = models.CharField(max_length=10)
     assembly_id = models.CharField(max_length=20)
     verdict = models.NullBooleanField()
@@ -192,6 +209,7 @@ class PicaModelTrainingData(models.Model):
                                                                          yn=self.verdict)
 
 
+# Contains Enogs present in a given bin, as found by HMMER.
 class HmmerResult(models.Model):
 
     class Meta:
@@ -201,14 +219,15 @@ class HmmerResult(models.Model):
             models.Index(fields=['bin'])
         ]
 
-    enog = models.ForeignKey(Enog)
-    bin = models.ForeignKey(Bin)
+    enog = models.ForeignKey(Enog, on_delete=models.CASCADE)
+    bin = models.ForeignKey(Bin, on_delete=models.CASCADE)
 
     def __str__(self):
-        return "Enog {eid} contained in the bin {mds} of Job {Jb}".format(eid=self.enog_id,
-                                                              mds=self.bin_id, jb=self.bin.key)
+        return "Enog {eid} contained in the bin {mds}.".format(eid=self.enog_id,
+                                                               mds=self.bin_id)
 
 
+# Contains predictions of trait presence or absence for a given bin and model, including confidence scores
 class PicaResult(models.Model):
 
     class Meta:
@@ -218,21 +237,25 @@ class PicaResult(models.Model):
             models.Index(fields=['bin'])
         ]
 
-    bin = models.ForeignKey(Bin)
-    model = models.ForeignKey(PicaModel)
+    bin = models.ForeignKey(Bin, on_delete=models.CASCADE)
+    model = models.ForeignKey(PicaModel, on_delete=models.CASCADE)
     verdict = models.NullBooleanField()
     pica_pval = models.FloatField()
     accuracy = models.FloatField()
+    nc_masked = models.BooleanField(default=False)
 
     def __str__(self):
-        return "Bin {mds}: {v} ({acc} accuracy, {pval} pica_p_value) for model {mid} trained on {mtd}.".format(mds=self.bin.bin_name,
-                                                                                          v=str(self.verdict),
-                                                                                          acc=str(self.accuracy),
-                                                                                        pval=str(self.pica_pval),
-                                                                                          mid=self.model.model_name,
-                                                                                          mtd=str(self.model.model_train_date))
+        return "Bin {mds}: {v} ({acc} accuracy, " \
+               "{pval} pica_p_value) for model {mid} trained on {mtd}.".format(mds=self.bin.bin_name,
+                                                                               v=str(self.verdict),
+                                                                               acc=str(self.accuracy),
+                                                                               pval=str(self.pica_pval),
+                                                                               mid=self.model.model_name,
+                                                                               mtd=str(self.model.model_train_date))
 
 
+# Contains a stripped down version of the NCBI Taxonomy Names table,
+# which only contains Scientific Names and their correlated Taxon IDs.
 class Taxon(models.Model):
 
     class Meta:

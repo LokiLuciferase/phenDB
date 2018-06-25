@@ -2,18 +2,17 @@
 #
 # Created by Lukas Lüftinger on 6/12/18.
 #
-
 import os
 import sys
 
 from redis import Redis
 from rq import Queue
 
-from enqueue_job import update_taxonomy
-from phenotypePredictionApp.variables import PHENDB_QUEUE, PHENDB_BASEDIR
-
 os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
-sys.path.append(PHENDB_BASEDIR)
+sys.path.append("/apps/phenDB_devel_LL/source/web_server")
+
+from phenotypePredictionApp.variables import PHENDB_QUEUE, PHENDB_BASEDIR
+from enqueue_job import update_taxonomy
 
 # enqueue a call to update_taxonomy() into redis queue
 # which updates kronaTools taxonomy.tab and drops and rebuilds Taxon table in database

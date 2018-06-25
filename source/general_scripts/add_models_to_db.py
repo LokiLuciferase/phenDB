@@ -36,21 +36,21 @@ def rankfile_to_list(rankfile, groupfile, db_enogs):
         featuregroup_dict[groupname] = enogs_in_group
 
     # skip first line
-    counter = 0
-    for line in rankfile:
-        counter += 1
-        if counter == 1:
+    for counter, line in enumerate(rankfile):
+        if counter == 0:
             continue
-
-        enog_name, rank, verdict = line.split()
+        enog_name, score, verdict = line.split()
 
         try:
             # check if the enog is contained in the database, if yes, add the enog_ranks object to the enog_rank_list try:
-            new_enog_rank = EnogRank(model=newmodel, enog=db_enogs[enog_name], internal_rank=float(rank))
+            new_enog_rank = EnogRank(model=newmodel,
+                                     enog=db_enogs[enog_name],
+                                     internal_rank=counter,
+                                     score=float(score),
+                                     pred_class=(False if float(score) <= 0 else True))
             enog_rank_list.append(new_enog_rank)
             sys.stdout.write("Added Enog Nr. {nr}        of {totnr}.\r".format(nr=counter, totnr=num_lines_ranksfile))
             sys.stdout.flush()
-
         # If the "enog" is not contained in the db, it might actually be a "feature group"
         # check this by looking up in the feature_group dict. If it is the case, add all enogs in the
         # feature group to the db, each with a rank of "rank of fg"/"number of enogs in fg"
@@ -61,7 +61,9 @@ def rankfile_to_list(rankfile, groupfile, db_enogs):
                     try:
                         new_enog_rank = EnogRank(model=newmodel,
                                                  enog=db_enogs[fg_enog],
-                                                 internal_rank=float(rank) / nr_of_enogs_in_fg)
+                                                 internal_rank=counter,
+                                                 score=float(score) / nr_of_enogs_in_fg,
+                                                 pred_class=(False if float(score) <= 0 else True))
                         enog_rank_list.append(new_enog_rank)
                     except KeyError:
                         sys.exit("\n ERROR: The .rank.groups file of the model contained {fg_enog} which could not "

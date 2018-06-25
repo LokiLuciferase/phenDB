@@ -1,23 +1,10 @@
 ###Global todo file for this project
 ##feel free to enter TODOs and sign in to stuff you are tackling
 
-Computational framework:
--Singularity or Docker container for perfect encapsulation and reproducibility ( )
-
-
 Pipeline:
--Allow .faa files to be processed (bypass prodigal with ifclause)
 -Allow outputting of .faa files together with prediction
 
 Web server:
-
-Database ( ) (LL):
--better names for "model" model
-
-Singularity:
-- enable hmmer calculation inside container (remodel hmmc.py?)
-- download models automatically
--
 
 Other stuff:
 - model: appear, disappear, change. Upon update: overwrite and check dates against dates in databases
