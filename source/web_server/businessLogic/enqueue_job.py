@@ -75,7 +75,6 @@ def clean_up_on_pipeline_fail(keyname, ppath, failtype):
         if b.bin_name.startswith("PHENDB_PRECALC") and b.comple != 2:
             continue
         b.delete()
-    assoc_rows.delete()
     currentjob.save()
 
 
