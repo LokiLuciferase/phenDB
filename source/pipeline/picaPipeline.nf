@@ -365,9 +365,11 @@ process hmmer {
 
     tag { binname }
     scratch true
-
     maxForks 1  //do not parallelize!
-    time '10 m'
+
+    errorStrategy 'retry'
+    maxRetries 3
+    time { 10.m * task.attempt }
 
     input:
     set val(binname), val(mdsum), file(item), val(seqtype), val(calc_bin_or_not), file(reconstr_hmmer), file(reconst_cc) from all_protein_files
