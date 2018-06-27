@@ -71,7 +71,7 @@ class BinDisplay(admin.ModelAdmin):
     def contamination(obj):
         return obj.conta
 
-    list_display = ('bin_name', completeness, contamination, "strainhet", "tax_id", "taxon_name", "taxon_rank")
+    list_display = ('md5sum', completeness, contamination, "strainhet", "tax_id")
 
 
 admin.site.site_header = "PhenDB Admin Pages"

@@ -57,22 +57,17 @@ class Bin(models.Model):
         verbose_name = 'PhenDB bin'
         verbose_name_plural = 'PhenDB bins'
 
-    bin_name = models.TextField()
     md5sum = models.CharField(unique=True, max_length=32)
     tax_id = models.TextField(null=True, blank=True)
-    taxon_name = models.TextField(default="")
-    taxon_rank = models.TextField(default="")
+    assembly_id = models.TextField(null=True, blank=True)
     comple = models.FloatField()
     conta = models.FloatField()
     strainhet = models.FloatField()
-    assembly_id = models.TextField(null=True, blank=True)  # TODO: migrate this!
+
 
     def __str__(self):
-        return " ".join([str(x) for x in (self.bin_name, self.md5sum, self.tax_id, self.taxon_name,
-                                          self.taxon_rank, self.comple, self.conta, self.strainhet)])
-
-    def natural_key(self):
-        return self.bin_name
+        return " ".join([str(x) for x in (self.md5sum, self.tax_id, self.comple,
+                                          self.conta, self.strainhet)])
 
 
 # Correlates Jobs with Bins; each bin has an alias
@@ -133,9 +128,6 @@ class PicaModel(models.Model):
         return "Name: {mid}\t Description: {md}\tDate of Training: {mtd} \t " \
                "Type= {type}".format(mid=self.model_name, md=self.model_desc,
                                      mtd=str(self.model_train_date), type=self.type)
-
-    def natural_key(self):
-        return self.model_name
 
 
 # Contains the ranking of PICA model features (meaning,
@@ -246,7 +238,7 @@ class PicaResult(models.Model):
 
     def __str__(self):
         return "Bin {mds}: {v} ({acc} accuracy, " \
-               "{pval} pica_p_value) for model {mid} trained on {mtd}.".format(mds=self.bin.bin_name,
+               "{pval} pica_p_value) for model {mid} trained on {mtd}.".format(mds=self.bin.md5sum,
                                                                                v=str(self.verdict),
                                                                                acc=str(self.accuracy),
                                                                                pval=str(self.pica_pval),
@@ -263,7 +255,7 @@ class Taxon(models.Model):
             models.Index(fields=['tax_id', ]),
         ]
 
-    tax_id = models.CharField(max_length=10)
+    tax_id = models.CharField(unique=True, max_length=10)
     taxon_rank = models.TextField(default="")
     taxon_name = models.TextField()
 

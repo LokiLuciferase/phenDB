@@ -135,12 +135,10 @@ def add_taxids_to_precalc_bins(los):
         given_taxon = Taxon.objects.filter(tax_id=taxid)
         if givenbin and given_taxon:
             givenbin.update(tax_id=str(taxid),
-                            assembly_id=str(assembly_id),
-                            taxon_name=str(given_taxon[0].taxon_name),
-                            taxon_rank=str(given_taxon[0].taxon_rank))
+                            assembly_id=str(assembly_id))
 
 
-# if precalculation is interrupted, save all remaining refseq FTP paths and ids to a file
+# if precalculation is interrupted at save point, save all remaining refseq FTP paths and ids to a file
 def save_unadded_genome_ids(savepath, los):
     with open(savepath, "w") as outfile:
         for entry in los:

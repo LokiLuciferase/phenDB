@@ -38,22 +38,24 @@ def update_taxonomy(ppath):
             sys.stdout.flush()
             counter += 1
             tax_id, other, parent, rank, namestring = line.strip().split("\t")
-            new_taxon = Taxon(tax_id=tax_id, taxon_rank=rank, taxon_name=namestring)
-            taxonomy_entries.append(new_taxon)
+            new_taxon_tup = (tax_id, rank, namestring)
+            taxonomy_entries.append(new_taxon_tup)
     print("Done.")
 
     if len(taxonomy_entries) < 1700000:
         raise RuntimeError("Something went wrong during database read-in. Aborting.")
 
     # drop all rows from old taxonomy DB
-    print("Rebuilding taxonomy DB...")
-    Taxon.objects.all().delete()
+    print("Updating taxonomy DB...")
     while len(taxonomy_entries) > 0:
         sys.stdout.write("{n}          entries left to add.\r".format(n=len(taxonomy_entries)))
         sys.stdout.flush()
         subset = taxonomy_entries[-10000:]
         taxonomy_entries = taxonomy_entries[:-10000]
-        Taxon.objects.bulk_create(subset)
+        for e in subset:
+            pk = e[0]
+            dflt = {"taxon_rank": e[1], "taxon_name": e[2]}
+            Taxon.objects.update_or_create(pk, defaults=dflt)
     print("Finished updating Taxonomy Table.")
 
 

@@ -242,15 +242,19 @@ try:
 except ObjectDoesNotExist:
     sys.exit("Job not found.")
 
-# if the bin exists, calculate it's hmmer and compleconta file from the db entries
+# if the bin exists, calculate its hmmer and compleconta file from the db entries
 try:
     thisbin=Bin.objects.get(md5sum="${mdsum}")
+    
     with open("reconstructed_hmmer_file.txt", "w") as hmmer:
         for entry in HmmerResult.objects.filter(bin=thisbin):
             hmmer.write("dummy\\t"+entry.enog.enog_name+"\\tdummy\\n")
 
     with open("reconstructed_compleconta_file.txt", "w") as complecon:
-        recon_cc_string = "\\t".join([str(x) for x in (thisbin.comple, thisbin.conta, thisbin.strainhet, thisbin.tax_id, thisbin.taxon_name, thisbin.taxon_rank)])
+        recon_cc_string = "\\t".join([str(x) for x in (thisbin.comple, 
+                                                       thisbin.conta, 
+                                                       thisbin.strainhet, 
+                                                       thisbin.tax_id, " ", " ")])
         complecon.write(recon_cc_string)
 
     print("NO", end='')
@@ -265,7 +269,7 @@ try:
 
 except ObjectDoesNotExist:
     # write impossible Nr. for comple and conta that would cause an error during get_accuracy if not overwritten:
-    thisbin = Bin(bin_name="${binname}", md5sum="${mdsum}", comple=2, conta=2, strainhet=2)
+    thisbin = Bin(md5sum="${mdsum}", comple=2, conta=2, strainhet=2)
     thisbin.save()
     print("YES", end='')
 
@@ -279,7 +283,9 @@ try:
     assoc= BinInJob(bin=thisbin, job=parentjob, bin_alias="${binname}")
     assoc.save()
 except IntegrityError:
-    pass
+    if "${binname}".startswith("PHENDB_PRECALC"):  # allow muliple identical files in same job if precalculation job
+        pass
+    raise
 """
 
 }
@@ -319,8 +325,10 @@ process prodigal {
 all_protein_files = prodigalout.mix( new_protein_bins.filter{ it[4] == "YES" } )
 
 // if the bin has already been in our db:
+//TODO: this is horribly inefficient, think about batch solution
 process determine_models_that_need_recalculation {
 
+    tag { "${binname}_${model.getBaseName()}" }
     errorStrategy 'ignore'
 
     input:
@@ -548,15 +556,20 @@ process accuracy {
         if cc[i] > 1:
             cc[i] = 1
 
+    # get taxonomic information
+    try:
+        taxon_entry = Taxon.objects.get(tax_id=taxid)
+        tid = taxon_entry.tax_id
+    except ObjectDoesNotExist:
+        tid = "1"
+    
+    # update bin with taxonomic and compleconta information
     try:
         parentbin = Bin.objects.get(md5sum="${mdsum}")
         parentbin.comple = float(cc[0])
         parentbin.conta = float(cc[1])
         parentbin.strainhet = float(cc[2])
-        parentbin.tax_id = taxid
-        parentbin.taxon_name = tname
-        parentbin.taxon_rank = trank
-
+        parentbin.tax_id = tid
         parentbin.save()
 
     except ObjectDoesNotExist:
@@ -690,7 +703,7 @@ import os
 
 os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
 django.setup()
-from phenotypePredictionApp.models import Job, Bin, BinInJob, PicaModel, PicaResult
+from phenotypePredictionApp.models import Job, Bin, BinInJob, PicaModel, PicaResult, Taxon
 
 BALAC_CUTOFF = ${params.accuracy_cutoff}
 PICA_CONF_CUTOFF = ${params.pica_conf_cutoff}
@@ -721,8 +734,6 @@ def filter_by_hierarchy(rd, bl, ml, schema, show_all=False):
     for bin in bl:
         if rd[bin.md5sum]["ARCHAEA"]["Prediction"] == "YES":
             bin.tax_id = "2157"
-            bin.taxon_name = "Archaea"
-            bin.taxon_rank = "superkingdom"
             bin.save()
     if show_all:
         return rd, bl
@@ -760,9 +771,8 @@ def filter_by_hierarchy(rd, bl, ml, schema, show_all=False):
 
 # model-bin-related information
 parentjob = Job.objects.get(key=JOB_ID)
-job_bins = sorted(Bin.objects.filter(md5sum__in=BIN_MDSUMS), key=lambda x: x.bin_name)
+job_bins = list(Bin.objects.filter(md5sum__in=BIN_MDSUMS))
 job_bins_aliases = [BinInJob.objects.get(bin=x, job=parentjob).bin_alias for x in job_bins]
-job_bins_aliases = [x if x else job_bins[i].bin_name for i, x in enumerate(job_bins_aliases)]
 jam = {x.md5sum: y for x, y in zip(job_bins, job_bins_aliases)}
 all_job_results = PicaResult.objects.filter(bin__in=job_bins)
 all_model_names = sorted(list(set([x.model_name for x in PicaModel.objects.filter()])))
@@ -844,13 +854,22 @@ with open("trait_counts.csv", "w") as count_table:
 with open("bin_summary.csv", "w") as taxfile:
     taxfile.write(BIN_SUMMARY_HEADER)
     for bin in bins_tax_fixed:
+        try:
+            taxon_entry = Taxon.objects.get(tax_id=bin.tax_id)
+            tid = taxon_entry.tax_id
+            tname = taxon_entry.taxon_name
+            trank = taxon_entry.taxon_rank
+        except ObjectDoesNotExist:
+            tid = "1"
+            tname = "root"
+            trank = "no rank"
         taxfile.write("{bn}\\t{com}\\t{con}\\t{sh}\\t{ti}\\t{tn}\\t{tr}\\n".format(bn=jam[bin.md5sum],
                                                                                    com=bin.comple,
                                                                                    con=bin.conta,
                                                                                    sh=bin.strainhet,
-                                                                                   ti=bin.tax_id,
-                                                                                   tn=bin.taxon_name,
-                                                                                   tr=bin.taxon_rank))
+                                                                                   ti=tid,
+                                                                                   tn=tname,
+                                                                                   tr=trank))
 with open("taxonomy_krona.tsv", "w") as tax_krona:
     tax_krona.write(KRONA_FILE_HEADER)
     for bin in bins_tax_fixed:
