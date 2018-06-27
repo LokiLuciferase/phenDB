@@ -75,7 +75,7 @@ SELECT bin.id as 'bin_id',
 SET @BIN_ID = 14; # one of precalculated refseq genomes
 SET @ACC_CO = 0.8; # MBA cutoff
 SET @CONF_CO = 0.8; # PICA confidence cutoff
-SELECT model.id as 'model_id',#
+SELECT model.id as 'model_id',
        model.model_name AS 'trait_name',
        CASE
        WHEN pr.nc_masked = 0 THEN (CASE
