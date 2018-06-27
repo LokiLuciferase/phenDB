@@ -24,7 +24,7 @@ ppath = PHENDB_BASEDIR + "/source/web_server:$PYTHONPATH"
 os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
 sys.path.append(ppath)
 django.setup()
-from phenotypePredictionApp.models import Bin, Job, Taxon
+from phenotypePredictionApp.models import Bin, Job, BinInJob, Taxon
 
 
 parser = argparse.ArgumentParser()
@@ -128,15 +128,17 @@ def check_add_precalc_job():
 
 
 # attempt to add scientific names, taxids and accession ids to bins with the given name in the DB. Using Taxon table
-#TODO: this does not work due to bin_name!
 def add_taxids_to_precalc_bins(los):
+    precalc_job = Job.objects.get(key="PHENDB_PRECALC")
     for name, taxid, assembly_id, ftppath in los:
-        binname = "PHENDB_PRECALC_" + assembly_id + ".fna.gz"
-        givenbin = Bin.objects.filter(bin_name=binname)
+        bin_alias = "PHENDB_PRECALC_" + assembly_id + ".fna.gz"
+        givenbij = BinInJob.objects.filter(bin_alias=bin_alias, job=precalc_job)
         given_taxon = Taxon.objects.filter(tax_id=taxid)
-        if givenbin and given_taxon:
-            givenbin.update(tax_id=str(taxid),
-                            assembly_id=str(assembly_id))
+        if givenbij and given_taxon:
+            givenbin = givenbij[0].bin
+            givenbin.tax_id = str(taxid)
+            givenbin.assembly_id = str(assembly_id)
+            givenbin.save()
 
 
 # if precalculation is interrupted at save point, save all remaining refseq FTP paths and ids to a file
