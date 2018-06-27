@@ -372,12 +372,8 @@ accuracy_in_from_old_model = calc_model.filter{ it[3] == "YES" }.map{ l -> [l[0]
 process hmmer {
 
     tag { binname }
-    scratch true
     maxForks 1  //do not parallelize!
-
-    errorStrategy 'retry'
-    maxRetries 3
-    time { 10.m * task.attempt }
+    time 10.m
 
     input:
     set val(binname), val(mdsum), file(item), val(seqtype), val(calc_bin_or_not), file(reconstr_hmmer), file(reconst_cc) from all_protein_files
@@ -395,7 +391,7 @@ process hmmer {
     fi
     echo \$HMM_DAEMONCLIENTS
 
-    hmmc.py -i ${item} -d $hmmdb -s \$HMM_DAEMONCLIENTS -n 100 -q 5 -m 1 -o hmmer.out
+    hmmc.py -i ${item} -d $hmmdb -s \$HMM_DAEMONCLIENTS -n 100 -q 5 -m 1 -f 240 -o hmmer.out 
     """
 }
 
