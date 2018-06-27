@@ -40,6 +40,7 @@ SET @MODEL_ID = 47;  # sulfate reducer
 SET @ACC_CO =  0.8; # MBA cutoff
 SET @CONF_CO = 0.8; # PICA confidence cutoff
 SELECT bin.assembly_id as 'assembly_id',
+  bin.tax_id as 'taxon_id',
   taxon.taxon_name as 'scientific_name',
   CASE WHEN pr.verdict = 0 THEN 'NO' ELSE 'YES' END 'prediction',
   ROUND(pr.pica_pval, 2) AS 'prediction_confidence',
@@ -74,7 +75,8 @@ SELECT bin.id as 'bin_id',
 SET @BIN_ID = 14; # one of precalculated refseq genomes
 SET @ACC_CO = 0.8; # MBA cutoff
 SET @CONF_CO = 0.8; # PICA confidence cutoff
-SELECT model.model_name AS 'trait_name',
+SELECT model.id as 'model_id',#
+       model.model_name AS 'trait_name',
        CASE
        WHEN pr.nc_masked = 0 THEN (CASE
                                    WHEN pr.pica_pval < @CONF_CO OR pr.accuracy < @CONF_CO
@@ -92,4 +94,5 @@ SELECT model.model_name AS 'trait_name',
        model.model_desc as 'model_description' FROM phenotypePredictionApp_picaresult AS pr
   JOIN phenotypePredictionApp_picamodel AS model ON pr.model_id = model.id
   WHERE pr.bin_id = @BIN_ID
+  GROUP BY model.model_name
   ORDER BY model.model_train_date;
