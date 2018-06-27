@@ -65,21 +65,13 @@ class BinDisplay(admin.ModelAdmin):
     def has_delete_permissions(self, request, obj=None):
         return False
 
-    # return
-    def bin_alias(obj):
-        aliases = BinInJob.objects.filter(bin=obj)
-        if aliases:
-            return aliases[0].bin_alias
-        else:
-            return "-"
-
     def completeness(obj):
         return obj.comple
 
     def contamination(obj):
         return obj.conta
 
-    list_display = (bin_alias, completeness, contamination, "strainhet", "tax_id")
+    list_display = ("md5sum", completeness, contamination, "strainhet", "tax_id")
 
 
 admin.site.site_header = "PhenDB Admin Pages"
