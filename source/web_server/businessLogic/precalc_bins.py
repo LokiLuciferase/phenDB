@@ -128,6 +128,7 @@ def check_add_precalc_job():
 
 
 # attempt to add scientific names, taxids and accession ids to bins with the given name in the DB. Using Taxon table
+#TODO: this does not work due to bin_name!
 def add_taxids_to_precalc_bins(los):
     for name, taxid, assembly_id, ftppath in los:
         binname = "PHENDB_PRECALC_" + assembly_id + ".fna.gz"
