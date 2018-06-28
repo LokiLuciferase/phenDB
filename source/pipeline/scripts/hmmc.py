@@ -371,12 +371,14 @@ if queries:
   startnewthread(args, queries, dbnames, errors, serverpool)
 
 ## Wait for threads to complete
-c=0
-while threading.activeCount() > 1 and c < args.finishtimeout:
+c = 0
+while threading.activeCount() >= 1 and c < args.finishtimeout:
   time.sleep(1)
   c += 1
 
 if errors:
   for error in errors:
     sys.stderr.write(error)
-  sys.exit(1)
+  os._exit(1)
+elif c >= args.finishtimeout:
+  os._exit(0)
