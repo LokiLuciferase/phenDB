@@ -15,10 +15,10 @@ class PicaResultForUI:
 
 
     def __table_calc_prediction_details(self):
-
+        pass
 
     def __table_calc_trait_counts(self):
-
+        pass
 
     '''def __calc
 
