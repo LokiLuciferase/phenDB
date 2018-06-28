@@ -34,15 +34,15 @@ class TableCalcTraitPrediction:
         for bin_obj in self.picaResultForUI.all_bins:
             single_pica_result = PicaResult.objects.filter(bin=bin_obj.bin)
             bin_name = BinInJob.objects.get(bin=bin_obj.bin, job=self.picaResultForUI.job)
-            arr += self.__parse_bin(single_pica_result, bin_name)
+            arr.append(self.__parse_bin(single_pica_result, bin_name))
         return arr
 
 
     def __parse_bin(self, single_pica_result, bin_name):
         arr = []
         for item in single_pica_result:
-            arr += "" if bin_name.bin_alias is None else bin_name.bin_alias
-            arr += item.model.model_name
-            arr += "+" if item.verdict else "-"
-            arr += item.pica_pval
-            arr += item.accuracy
+            arr.append("" if bin_name.bin_alias is None else bin_name.bin_alias)
+            arr.append(item.model.model_name)
+            arr.append("+" if item.verdict else "-")
+            arr.append(item.pica_pval)
+            arr.append(item.accuracy)
