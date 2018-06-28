@@ -136,8 +136,7 @@ def getResults(request):
             errorMessagePU = 'Please check the invalid_input_files.log file.'
         #results to display in UI
         all_bins = BinInJob.objects.filter(job=obj)
-        for bin_obj in all_bins:
-            resultsList += PicaResult.objects.filter(bin=bin_obj.bin).select_related('bin__md5sum')
+        #TODO: resultsList initialzation or other method to get all results for UI
     else:
         numAccessed = 0
         showResultCSS = 'none'
