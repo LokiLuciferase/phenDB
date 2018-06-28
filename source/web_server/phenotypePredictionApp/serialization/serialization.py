@@ -1,7 +1,24 @@
+from phenotypePredictionApp.models import Job, PicaResult, BinInJob, PicaModel
+
 class PicaResultForUI:
 
     def __init__(self, job):
         self.job = job
+        self.all_bins = BinInJob.objects.filter(job=job)
+
+    def __table_calc_trait_prediction(self):
+        for bin_obj in self.all_bins:
+            single_pica_result = PicaResult.objects.filter(bin=bin_obj.bin)
+            bin_name = BinInJob.objects.filter(bin=bin_obj.bin, job=self.job)
+            test = zip(single_pica_result, bin_name)
+            print(test)
+
+
+    def __table_calc_prediction_details(self):
+
+
+    def __table_calc_trait_counts(self):
+
 
     '''def __calc
 
