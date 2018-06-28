@@ -33,9 +33,9 @@ class TableCalcTraitPrediction:
         arr = []
         for bin_obj in self.picaResultForUI.all_bins:
             single_pica_result = PicaResult.objects.filter(bin=bin_obj.bin)
-            bin_name = BinInJob.objects.filter(bin=bin_obj.bin, job=self.picaResultForUI.job)
+            bin_name = BinInJob.objects.get(bin=bin_obj.bin, job=self.picaResultForUI.job)
             arr += self.__parse_bin(single_pica_result, bin_name)
-        return arr;
+        return arr
 
 
     def __parse_bin(self, single_pica_result, bin_name):
