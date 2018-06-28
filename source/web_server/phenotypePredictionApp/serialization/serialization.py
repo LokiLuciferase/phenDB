@@ -14,7 +14,7 @@ class PicaResultForUI:
             single_pica_result = PicaResult.objects.filter(bin=bin_obj.bin)
             bin_name = BinInJob.objects.filter(bin=bin_obj.bin, job=self.job)
             test = zip(single_pica_result, bin_name)
-            print(test)
+            return test
 
 
     def __table_calc_prediction_details(self):
