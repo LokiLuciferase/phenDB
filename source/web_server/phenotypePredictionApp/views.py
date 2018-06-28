@@ -137,7 +137,7 @@ def getResults(request):
         #results to display in UI
         all_bins = BinInJob.objects.filter(job=obj)
         for bin_obj in all_bins:
-            resultsList += PicaResult.objects.filter(bin=bin_obj.bin).select_related('bin')
+            resultsList += PicaResult.objects.filter(bin=bin_obj.bin).select_related('bin__md5sum')
     else:
         numAccessed = 0
         showResultCSS = 'none'
