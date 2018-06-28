@@ -46,3 +46,4 @@ class TableCalcTraitPrediction:
             arr.append("+" if item.verdict else "-")
             arr.append(item.pica_pval)
             arr.append(item.accuracy)
+        return arr
