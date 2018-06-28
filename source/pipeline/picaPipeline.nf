@@ -391,7 +391,7 @@ process hmmer {
     fi
     echo \$HMM_DAEMONCLIENTS
 
-    hmmc.py -i ${item} -d $hmmdb -s \$HMM_DAEMONCLIENTS -n 100 -q 5 -m 1 -f 240 -o hmmer.out 
+    hmmc.py -i ${item} -d $hmmdb -s \$HMM_DAEMONCLIENTS -n 100 -q 5 -m 1 -f 120 -o hmmer.out 
     """
 }
 
