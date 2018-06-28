@@ -709,7 +709,7 @@ BIN_MDSUMS = sorted("${mdsum_string}".split("\\t"), reverse=True)
 JOB_ID = "${jobname}"
 ROUND_TO = 2
 now = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
-INDIVIDUAL_RESULTS_HEADER = "Model_Name\\tPrediction\\tModel_Confidence\\tBalanced_Accuracy\\nModel_Description\\n"
+INDIVIDUAL_RESULTS_HEADER = "Model_Name\\tPrediction\\tPrediction_Confidence\\tBalanced_Accuracy\\nModel_Description\\n"
 BIN_SUMMARY_HEADER = "Bin_Name\\tCompleteness\\tContamination\\tStrain_Heterogeneity\\tTaxon_ID\\tTaxon_Name\\tTaxon_Rank\\n"
 KRONA_FILE_HEADER = "#bin name\\t#taxon_id\\n"
 
@@ -722,13 +722,13 @@ def filter_by_cutoff(rd, rl, balac, pica, show_all=False):
         model = res.model.model_name
         if (res.accuracy <= balac or res.pica_pval <= pica) and model != "ARCHAEA":
             if rd[md5sum][model]["PICA_probability"] is not None:
-                rd[md5sum][model]["Prediction"] = "ND"
+                rd[md5sum][model]["Prediction"] = "n.d."
     return rd
 
 def filter_by_hierarchy(rd, bl, ml, schema, show_all=False):
     # fix taxonomy for bins predicted to be archaea
     for bin in bl:
-        if rd[bin.md5sum]["ARCHAEA"]["Prediction"] == "YES":
+        if rd[bin.md5sum]["ARCHAEA"]["Prediction"] == "+":
             bin.tax_id = "2157"
             bin.save()
     if show_all:
@@ -755,10 +755,10 @@ def filter_by_hierarchy(rd, bl, ml, schema, show_all=False):
             current_cstr = dep_dic[model_name]
             for constraint_model, c_s in current_cstr.items():
                 try:
-                    if rd[bin.md5sum][constraint_model]["Prediction"] not in ("ND", "NC", c_s):
-                        rd[bin.md5sum][model_name]["Prediction"] = "NC"
+                    if rd[bin.md5sum][constraint_model]["Prediction"] not in ("n.d.", "n.c.", c_s):
+                        rd[bin.md5sum][model_name]["Prediction"] = "n.c."
                         # also update all results of this bin with this model (also old ones)
-                        # NC masking in db, for web UI
+                        # n.c. masking in db, for web UI
                         to_be_masked = PicaResult.objects.filter(bin=bin, model__model_name=model_name)
                         to_be_masked.update(nc_masked=True)
                 except KeyError:
@@ -771,13 +771,20 @@ job_bins = list(Bin.objects.filter(md5sum__in=BIN_MDSUMS))
 job_bins_aliases = [BinInJob.objects.get(bin=x, job=parentjob).bin_alias for x in job_bins]
 jam = {x.md5sum: y for x, y in zip(job_bins, job_bins_aliases)}
 all_job_results = PicaResult.objects.filter(bin__in=job_bins)
-all_model_names = sorted(list(set([x.model_name for x in PicaModel.objects.filter()])))
-all_model_desc = [PicaModel.objects.filter(model_name=x).latest("model_train_date").model_desc for x in all_model_names]
+first_bin_results = PicaResult.objects.filter(bin=job_bins[0])
+
+# set ARCHAEA to confidence 1 ==> no Platt scaling in current model
+archaea_results = all_job_results.filter(model__model_name="ARCHAEA")
+archaea_results.update(pica_pval="1")
+
+all_model_names = sorted(list(set([x.model.model_name for x in first_bin_results])))
+all_newest_models = [PicaModel.objects.filter(model_name=x).latest("model_train_date") for x in all_model_names]
+all_model_desc = [x.model_desc for x in all_newest_models]
 job_results_dict = {x.md5sum: {y: None for y in all_model_names} for x in job_bins}
-model_results_count = {x: {"YES": 0, "NO": 0, "ND": 0, "NC": 0} for x in all_model_names}
+model_results_count = {x: {"+": 0, "-": 0, "n.d.": 0, "n.c.": 0} for x in all_model_names}
 
 for pica_result in all_job_results:
-    pica_verdict_to_string = {1: "YES", 0: "NO"}
+    pica_verdict_to_string = {1: "+", 0: "-"}
     string_verdict = pica_verdict_to_string[int(pica_result.verdict)]
     this_result_dict = {
         "Model_name"       : pica_result.model.model_name,
@@ -795,7 +802,7 @@ cutoff_filtered_job_results = filter_by_cutoff(job_results_dict,
                                                pica=PICA_CONF_CUTOFF,
                                                show_all=SHOW_ALL_RESULTS)
 
-hf_job_results, bins_tax_fixed = filter_by_hierarchy(job_results_dict,
+hf_job_results, bins_tax_fixed = filter_by_hierarchy(cutoff_filtered_job_results,
                                                      job_bins,
                                                      all_model_names,
                                                      schema=TRAIT_DEPENDENCY_FILE,
@@ -838,12 +845,12 @@ with open("trait_summary_matrix.csv", "w") as summary_matrix:
         summary_matrix.write("\\t".join([jam[bin.md5sum], *all_bin_predictions]) + "\\n")
 
 with open("trait_counts.csv", "w") as count_table:
-    count_table.write("Model Name\\tYES\\tNO\\tND\\tNC\\n")
+    count_table.write("Model Name\\t+\\t-\\tn.d.\\tn.c.\\n")
     for model in all_model_names:
-        y = str(model_results_count[model]["YES"])
-        n = str(model_results_count[model]["NO"])
-        nd = str(model_results_count[model]["ND"])
-        nc = str(model_results_count[model]["NC"])
+        y = str(model_results_count[model]["+"])
+        n = str(model_results_count[model]["-"])
+        nd = str(model_results_count[model]["n.d."])
+        nc = str(model_results_count[model]["n.c."])
         count_table.write("\\t".join([model, y, n, nd, nc]) + "\\n")
 
 # summarize bin-related information
