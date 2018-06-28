@@ -32,20 +32,20 @@ Additionally, please note that PhenDB currently does not provide trait predictio
 <li>Model confidence is the internal probability of class membership within the linear SVM model used by PICA (provided via Platt scaling). It can thus be seen as the internal confidence of the model into its prediction, given its training.</li>
 <li>Balanced Accuracy is a confidence measure computed from completeness/contamination of the uploaded bin and the model's known predictive power. It can thus be interpreted as our confidence in the predictions of the model, given the bin's completeness and contamination. Values of Balanced Accuracy may range from 0.5 (predictions are expected to be random) to 1 (high expected correlation of predicted class and actual class).</li>
 </ol>
-<p>A balanced accuracy cutoff can be set when submitting to PhenDB: predictions with a balanced accuracy below the chosen cutoff value (range: 0.5 - 1) are then masked in the downloadable result ("ND" instead of YES/NO). In the web interface, results can be masked and filtered as desired after computation.</p>
-<p>As an additional filtering step applied after cut-off filtering, PhenDB masks predictions by hierarchical filtering based on known co-occurrence of traits. For example, a bin predicted as being Gram-positive does not receive a prediction with regards to the presence of T3SS and T6SS. Results filtered in this manner are marked with "NC" (not calculated).</p>
+<p>A balanced accuracy cutoff can be set when submitting to PhenDB: predictions with a balanced accuracy below the chosen cutoff value (range: 0.5 - 1) are then masked in the downloadable result ("n.d." instead of +/-). In the web interface, results can be masked and filtered as desired after computation.</p>
+<p>As an additional filtering step applied after cut-off filtering, PhenDB masks predictions by hierarchical filtering based on known co-occurrence of traits. For example, a bin predicted as being Gram-positive does not receive a prediction with regards to the presence of T3SS and T6SS. Results filtered in this manner are marked with "n.c." (not calculated).</p>
 
 <h3 id="outputfiles">Output Files</h3>
 <p>After submission of a job to PhenDB, You are redirected to a site showing you the progress of your job. Progress may be checked by directly accessing the link to that site. After computation finishes, PhenDB provides a downloadable archive named after your Job ID (i.e. the key after ../results/ in the URL). This archive contains:  </p>
 <ul>
 <li>the folder individual_results:
 <ul>
-<li>a {bin name}.traits.csv file for every valid uploaded bin/genome. This file contains the model names, predictions (YES/NO/ND/NC) along with model confidence and balanced accuracy values.</li></ul>
+<li>a {bin name}.traits.csv file for every valid uploaded bin/genome. This file contains the model names, predictions (+/-/n.d./n.c.) along with model confidence and balanced accuracy values.</li></ul>
 </li>
 <li>the folder "summaries":
 <ul>
-<li>"trait_counts.csv": A summary file that shows for each model how many bins/genomes were predicted as "YES", "NO", "ND" or "NC"</li>
-<li>"trait_summary_matrix.csv": A summary file that shows the verdict for each bin and each model as a matrix. Possible values other than YES/NO are ND (masked due to accuracy cutoff) and NC (not calculated due to hierarchical filtering).</li>
+<li>"trait_counts.csv": A summary file that shows for each model how many bins/genomes were predicted as "+", "-", "n.d." or "n.c."</li>
+<li>"trait_summary_matrix.csv": A summary file that shows the verdict for each bin and each model as a matrix. Possible values other than +/- are n.c. (masked due to accuracy cutoff) and n.d. (not calculated due to hierarchical filtering).</li>
 <li>"invalid_input_files.log.txt": If one or more of your uploaded files were invalid (e.g. not in FASTA format), a warning will appear to check this file. If all files are valid, this file is empty.</li>
 <li>"PICA_trait_descriptions.txt": Contains the model names and the traits they are testing for.</li>
 <li>"bin_summary.csv": Contains estimated completeness, contamination and strain heterogeneity of uploaded bins, as well as estimated taxonomic position computed by compleconta. Both completeness/contamination and taxonomic position are assigned via a marker gene-dependent approach. Bins are assigned to taxons where membership can be astablished at >= 90% confidence (meaning highly contaminated or incomplete bins are likely to be grouped close to the tree root, while high quality bins may be assigned more fine-grained taxonomic positions).</li>
