@@ -6,4 +6,4 @@ register = Library()
 
 @register.filter(is_safe=True)
 def jsonify(object):
-    return serialize('json', object, use_natural_foreign_keys=True)
+    return serialize('json', object, use_natural_foreign_keys=False)
