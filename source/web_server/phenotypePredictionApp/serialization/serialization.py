@@ -62,19 +62,21 @@ class _Prediction:
         self.__calc()
 
     def __calc(self):
+        self.values = []
         for bin_in_job in self.picaResultForUI.all_bins_in_job:
             bin_name = bin_in_job.bin_alias
             bin = bin_in_job.bin
             pica_results = PicaResult.objects.filter(bin=bin)
             pica_models = PicaModel.objects.all()
-            self.values = [bin_name]
+            values_tmp = [bin_name]
             self.titles = [""]
             for pica_model in pica_models:
                 pica_result = PicaResult.objects.filter(bin=bin, model=pica_model)
                 if len(pica_result) == 0:
                     continue #model not used in this prediction (e.g. old model)
-                self.values.append("+" if pica_result[0].verdict else "-")
+                values_tmp.append("+" if pica_result[0].verdict else "-")
                 self.titles.append(pica_result[0].model.model_name)
+            self.values.append(values_tmp)
 
     def get_values(self):
         return self.values
