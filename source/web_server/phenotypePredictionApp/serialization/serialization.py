@@ -23,7 +23,7 @@ class _PredictionDetails:
 
     def __init__(self, picaResultForUI):
         self.picaResultForUI = picaResultForUI
-        self.calc()
+        self.__calc()
 
     TITLES = [{"title" : "Bin"}, {"title" : "Prediction"}, {"title" : "Prediction-Confidence"}, {"title" : "Balanced-Accuracy"}]
 
