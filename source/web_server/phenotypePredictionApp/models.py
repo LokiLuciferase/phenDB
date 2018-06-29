@@ -41,6 +41,9 @@ class Job(models.Model):
     finished_bins = models.IntegerField(default='0')
     total_bins = models.IntegerField(default='0')
     requested_balac = models.FloatField(default='0.5')
+    requested_conf = models.FloatField(default='0.5')
+    disable_cutoffs = models.BooleanField(default=False)
+
 
     def get_absolute_url(self):
         return "results/%s/" % self.key
@@ -196,7 +199,7 @@ class PicaModelTrainingData(models.Model):
     verdict = models.NullBooleanField()
 
     def __str__(self):
-        return "Taxid {ti} used in model {mod} (counted as {yn})".format(ti=self.taxid,
+        return "Taxid {ti} used in model {mod} (counted as {yn})".format(ti=self.tax_id,
                                                                          mod=self.model.model_name,
                                                                          yn=self.verdict)
 

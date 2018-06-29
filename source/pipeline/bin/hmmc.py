@@ -381,4 +381,5 @@ if errors:
     sys.stderr.write(error)
   os._exit(1)
 elif c >= args.finishtimeout:
+  print("Exited with timeout. {n} threads were still active.".format(n=threading.activeCount()))
   os._exit(0)
