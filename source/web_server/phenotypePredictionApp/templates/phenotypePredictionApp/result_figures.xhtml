@@ -56,5 +56,6 @@
         window.table_prediction_details_data = {{ table_prediction_details_data | safe}}
         window.table_prediction_details_titles = {{ table_prediction_details_titles | jsonify | safe }}
         var dataTable = new DataTable({{ table_prediction_details_data | safe}}, {{ table_prediction_details_titles | jsonify | safe}}, "#prediction_details");
+        dataTable.initialize_result_figures();
     });
 </script>
