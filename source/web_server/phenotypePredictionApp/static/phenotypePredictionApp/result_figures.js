@@ -4,32 +4,11 @@ function DataTable(data, titles, identifier) {
     this.titles = titles;
     this.identifier = identifier;
 
-    this.initialize_result_figures = function () {
-
-        this.initialize_data_table(this.data, this.titles, this.identifier)
-
-        //DATATABLE 1 (Accuracy & Probability info)
-        /* var titles_table1 = convertTitles(["Bin", "Model", "Prediction", "Model_Confidence", "Balanced_Accuracy"]);
-        var dataTable1 = this.__initialize_data_table(this.resultsListJSValues, titles_table1, "#trait_prediction_accuracy_table");
-        //DATATABLE 2 (Trait prediction)
-        var matrix_for_dt2 = resultslist_to_dt2_matrix(this.resultsListJSValues, this.model_names);
-        var dataTable2 = this.__initialize_data_table(matrix_for_dt2[0], matrix_for_dt2[1], "#trait_prediction_table");
-        //DATATABLE 3 (Trait Count summary)
-        var count_summary_matrix = calcTraitCounts(this.resultsListJSValues, 0.5, 0.7, this.model_names); //TODO: change values
-        var dataTable3 = this.__initialize_data_table(count_summary_matrix[0], count_summary_matrix[1], "#trait_prediction_summary_table");
-        //FILTER / AUTOCOMPLETE / INFO
-        this.__initialize_pica_models_autocomplete(this.model_names, dataTable1);
-        this.__initialize_bins_autocomplete(this.bins, dataTable1);
-        this.__initialize_pval_cutoff_spinner(dataTable1);
-        this.__initialize_accuracy_cutoff_spinner(dataTable1); */
-    };
-
-
-    this.initialize_data_table = function (data, titles, identifier) {
-        var dataTable = $(identifier).DataTable({
+    this.initialize_data_table = function () {
+        var dataTable = $(this.identifier).DataTable({
             "lengthMenu": [[50, 100, -1], [50, 100, "All"]],
-            data: data,
-            columns: titles,
+            data: this.data,
+            columns: this.titles,
             searching: true,
             dom: '<"table_buttons"B>l<"result_table"t><"table_pagination"p>',
             columnDefs: [
@@ -56,8 +35,47 @@ function DataTable(data, titles, identifier) {
         return dataTable;
     };
 
-    this.initialize_result_figures();
+    this.dataTable = this.initialize_result_figures();
+
+    this.addFiltering = function(bin_filter_identifier, suggestions, column) {
+        $(bin_filter_identifier).puiautocomplete({
+            completeSource: suggestions,
+            multiple: true,
+        });
+        $(bin_filter_identifier).on('focusin focusout keyup', function () {
+            var all_items_htmlcoll = this.parentElement.parentElement.getElementsByTagName('li');
+            var all_items = Array.prototype.slice.call(all_items_htmlcoll);
+            //makes a collection of the raw text, removes empty entries and builds a regex string out of this collection
+            var search_expr = all_items
+                                .map(x = > x.textContent)
+                                .filter(x = > x.length > 0)
+                                .map(x = > '^' + x + '$')
+                                .join("|");
+            this.dataTable
+                .columns(column)
+                .search(search_expr, true, false, true)
+                .draw();
+        });
+    }
 }
+
+
+
+        //DATATABLE 1 (Accuracy & Probability info)
+        /* var titles_table1 = convertTitles(["Bin", "Model", "Prediction", "Model_Confidence", "Balanced_Accuracy"]);
+        var dataTable1 = this.__initialize_data_table(this.resultsListJSValues, titles_table1, "#trait_prediction_accuracy_table");
+        //DATATABLE 2 (Trait prediction)
+        var matrix_for_dt2 = resultslist_to_dt2_matrix(this.resultsListJSValues, this.model_names);
+        var dataTable2 = this.__initialize_data_table(matrix_for_dt2[0], matrix_for_dt2[1], "#trait_prediction_table");
+        //DATATABLE 3 (Trait Count summary)
+        var count_summary_matrix = calcTraitCounts(this.resultsListJSValues, 0.5, 0.7, this.model_names); //TODO: change values
+        var dataTable3 = this.__initialize_data_table(count_summary_matrix[0], count_summary_matrix[1], "#trait_prediction_summary_table");
+        //FILTER / AUTOCOMPLETE / INFO
+        this.__initialize_pica_models_autocomplete(this.model_names, dataTable1);
+        this.__initialize_bins_autocomplete(this.bins, dataTable1);
+        this.__initialize_pval_cutoff_spinner(dataTable1);
+        this.__initialize_accuracy_cutoff_spinner(dataTable1); */
+
 
 /*
     this.__initialize_pica_models_autocomplete = function(model_names, dataTable) {
