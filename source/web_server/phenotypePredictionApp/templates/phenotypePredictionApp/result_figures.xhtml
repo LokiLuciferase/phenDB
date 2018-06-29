@@ -54,6 +54,7 @@
 <script type="text/javascript">
                     $(document).ready(function() {
                         var resultListJson = {{ resultsList|jsonify | safe}};
+                        window.test_obj = {{ test_obj|safe }}
                         window.resultListJson = resultListJson;
                         if(resultListJson.length != 0) {
                             var resultsList_arr = resultList_to_datatable_input(resultListJson);
