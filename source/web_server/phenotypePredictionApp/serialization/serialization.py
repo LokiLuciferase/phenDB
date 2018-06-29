@@ -5,12 +5,11 @@ class PicaResultForUI:
     def __init__(self, job):
         self.job = job
         self.all_bins = BinInJob.objects.filter(job=job)
+        self.__calc_prediction_details()
 
-    def test(self):
-        return self.__table_calc_trait_prediction()
 
     def __calc_prediction_details(self):
-        self.table_trait_prediction_details = _TablePredictionDetails(self)
+        self.prediction_details = _PredictionDetails(self)
 
 
     def __calc_prediction(self):
@@ -20,7 +19,7 @@ class PicaResultForUI:
         pass
 
 
-class _TablePredictionDetails:
+class _PredictionDetails:
 
     def __init__(self, picaResultForUI):
         self.picaResultForUI = picaResultForUI
@@ -32,7 +31,7 @@ class _TablePredictionDetails:
         return self.values
 
     def get_titles(self):
-        return _TablePredictionDetails.TITLES
+        return _PredictionDetails.TITLES
 
     def __calc(self):
         arr = ["Bin", "Model", "Prediction", "Prediction-Confidence", "Balanced-Accuracy"]
