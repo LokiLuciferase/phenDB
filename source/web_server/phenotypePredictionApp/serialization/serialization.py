@@ -7,6 +7,7 @@ class PicaResultForUI:
         self.all_bins_in_job = BinInJob.objects.filter(job=job)
         self.__calc_prediction_details()
         self.__calc_prediction()
+        self.__calc_trait_counts()
 
 
     def __calc_prediction_details(self):
@@ -17,7 +18,7 @@ class PicaResultForUI:
         self.prediction = _Prediction(self)
 
     def __calc_trait_counts(self):
-        pass
+        self.trait_counts = _TraitCounts(self)
 
 
 class _PredictionDetails:
@@ -99,3 +100,14 @@ class _TraitCounts:
             pica_results = PicaResult.objects.filter(model=pica_model)
             if(len(pica_results) == 0):
                 continue #model not used in this prediction (e.g. old model)
+            true_count = len(pica_results.filter(verdict=True, nc_masked=False))
+            false_count = len(pica_results.filter(verdict=False, nc_masked=False))
+            nd_count = 0 #TODO: change / implement
+            nc_count = len(pica_results.filter(nc_masked=True))
+            self.values.append(pica_model.model_name, true_count, false_count, nd_count, nc_count)
+
+    def get_values(self):
+        return self.values
+
+    def get_titles(self):
+        return _TraitCounts.TITLES

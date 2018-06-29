@@ -57,9 +57,10 @@
 </div>
 <script type="text/javascript">
     $(document).ready(function() {
-        window.prediction_data = {{ prediction_values | safe}}
-        window.prediction_titles = {{ prediction_titles | jsonify | safe }}
+        window.trait_counts_values = {{ trait_counts_values | safe}}
+        window.trait_counts_titles = {{ trait_counts_titles | jsonify | safe }}
         var dataTable1 = new DataTable({{ prediction_details_values | safe}}, {{ prediction_details_titles | jsonify | safe}}, "#table_prediction_details");
         var dataTable2 = new DataTable({{ prediction_values | safe }}, {{ prediction_titles |jsonify | safe }}, "#table_prediction");
+        var dataTable3 = new DataTable({{ trait_counts_values | safe }}, {{ trait_counts_titles |jsonify | safe }}, "#table_trait_counts");
     });
 </script>
