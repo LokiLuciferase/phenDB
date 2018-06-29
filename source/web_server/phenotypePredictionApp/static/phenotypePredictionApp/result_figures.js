@@ -34,11 +34,11 @@ function DataTable(data, titles, identifier) {
             dom: '<"table_buttons"B>l<"result_table"t><"table_pagination"p>',
             columnDefs: [
                 {
-                    targets: "-all",
+                    targets: "_all",
                     className: 'dt-body-center'
                 },
                 {
-                    targets: "-all",
+                    targets: "_all",
                     className: 'dt-head-center'
                 },
             ],
