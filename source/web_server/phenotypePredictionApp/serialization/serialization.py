@@ -26,7 +26,7 @@ class _PredictionDetails:
         self.picaResultForUI = picaResultForUI
         self.__calc()
 
-    TITLES = [{"title" : "Bin"}, {"title" : "Model"}, {"title" : "Prediction"}, {"title" : "Prediction-Confidence"}, {"title" : "Balanced-Accuracy"}]
+    TITLES = [{"title" : "Bin"}, {"title" : "Model"}, {"title" : "Prediction"}, {"title" : "Prediction_Confidence"}, {"title" : "Balanced_Accuracy"}]
 
     def get_values(self):
         return self.values
@@ -50,8 +50,8 @@ class _PredictionDetails:
             single_row.append("" if bin_name is None else bin_name)
             single_row.append(item.model.model_name)
             single_row.append("+" if item.verdict else "-")
-            single_row.append(item.pica_pval)
-            single_row.append(item.accuracy)
+            single_row.append(round(item.pica_pval, 2))
+            single_row.append(round(item.accuracy, 2))
             arr.append(single_row)
         return arr
 
