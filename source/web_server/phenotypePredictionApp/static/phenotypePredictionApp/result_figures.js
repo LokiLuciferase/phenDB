@@ -42,6 +42,7 @@ function DataTable(data, titles, identifier) {
             completeSource: suggestions,
             multiple: true,
         });
+        var that = this;
         $(bin_filter_identifier).on('focusin focusout keyup', function () {
             var all_items_htmlcoll = this.parentElement.parentElement.getElementsByTagName('li');
             var all_items = Array.prototype.slice.call(all_items_htmlcoll);
@@ -51,7 +52,7 @@ function DataTable(data, titles, identifier) {
                                 .filter(x => x.length > 0)
                                 .map(x => '^' + x + '$')
                                 .join("|");
-            this.dataTable
+            that.dataTable
                 .columns(column)
                 .search(search_expr, true, false, true)
                 .draw();
