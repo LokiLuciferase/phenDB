@@ -20,12 +20,12 @@ parser.add_argument("-j", "--job_key", help="uuid4 of job")
 parser.add_argument("-m", "--md5sums", nargs="+", help="A list of md5sums calculated in this pipeline run")
 args = parser.parse_args()
 
-BALAC_CUTOFF = float(args.balac_cutoff)
-PICA_CONF_CUTOFF = float(args.conf_cutoff)
-SHOW_ALL_RESULTS = args.show_all == "true"
+parentjob = Job.objects.get(key=args.job_key)
+BALAC_CUTOFF = float(parentjob.requested_balac)
+PICA_CONF_CUTOFF = float(parentjob.requested_conf)
+SHOW_ALL_RESULTS = bool(parentjob.disable_cutoffs)
 TRAIT_DEPENDENCY_FILE = args.dep_file
 BIN_MDSUMS = sorted(args.md5sums, reverse=True)
-JOB_ID = args.job_key
 ROUND_TO = 2
 now = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
 INDIVIDUAL_RESULTS_HEADER = "Model_Name\tPrediction\tPrediction_Confidence\tBalanced_Accuracy\tModel_Description\n"
@@ -86,9 +86,7 @@ def filter_by_hierarchy(rd, bl, ml, schema, show_all=False):
                     print("Invalid constraint definition: unknown model.")
     return rd, bl  # remove in the end
 
-
 # model-bin-related information
-parentjob = Job.objects.get(key=JOB_ID)
 job_bins = list(Bin.objects.filter(md5sum__in=BIN_MDSUMS))
 job_bins_aliases = [BinInJob.objects.get(bin=x, job=parentjob).bin_alias for x in job_bins]
 jam = {x.md5sum: y for x, y in zip(job_bins, job_bins_aliases)}

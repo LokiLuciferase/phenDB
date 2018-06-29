@@ -8,7 +8,7 @@ class PicaResultForUI:
         self.__calc_prediction_details()
         self.__calc_prediction()
         self.__calc_trait_counts()
-
+        self.__calc_bin_summary()
 
     def __calc_prediction_details(self):
         self.prediction_details = _PredictionDetails(self)
@@ -19,6 +19,9 @@ class PicaResultForUI:
 
     def __calc_trait_counts(self):
         self.trait_counts = _TraitCounts(self)
+
+    def __calc_bin_summary(self):
+        self.bin_summary = _BinSummary(self)
 
 
 class _PredictionDetails:
@@ -96,7 +99,6 @@ class _TraitCounts:
         self.values = []
         pica_models = PicaModel.objects.all()
         all_bins = list(map(lambda x: x.bin, self.picaResultForUI.all_bins_in_job))
-        print(all_bins)
         for pica_model in pica_models:
             print("pica_model " + pica_model.model_name)
             pica_results = PicaResult.objects.filter(bin__in= [bin for bin in all_bins],model=pica_model)
@@ -114,3 +116,36 @@ class _TraitCounts:
 
     def get_titles(self):
         return _TraitCounts.TITLES
+
+
+class _BinSummary:
+    def __init__(self, picaResultForUI):
+        self.picaResultForUI = picaResultForUI
+        self.__calc()
+
+    TITLES = [{"title": "Bin"},
+              {"title": "Completeness"},
+              {"title": "Contamination"},
+              {"title": "Strain heterogeneity"},
+              {"title": "Taxon name"},
+              {"title": "Taxon rank"}]
+
+    def __calc(self):
+        self.values = []
+        for bin_in_job in self.picaResultForUI.all_bins_in_job:
+            bin = bin_in_job.bin
+            tax_id = bin.tax_id
+            bin_name = bin_in_job.bin_alias
+            comple = bin.comple
+            conta = bin.conta
+            strainhet = bin.strainhet
+            taxon = Taxon.objects.get(tax_id=tax_id)
+            taxon_name = taxon.taxon_name
+            taxon_rank = taxon.taxon_rank
+            self.values.append([bin_name, comple, conta, strainhet, tax_id, taxon_name, taxon_rank])
+
+    def get_values(self):
+        return self.values
+
+    def get_titles(self):
+        return _BinSummary.TITLES

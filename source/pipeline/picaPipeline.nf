@@ -17,13 +17,9 @@ log.info"""
 
     PhenDB Pipeline started.
 
-    Input folder containing bin files (--inputfolder): $params.inputfolder
+    Input folder containing bin files: $params.inputfolder
     Output directory: $outdir
     Job name: $jobname
-
-    PICA confidence cutoff for displaying PICA results: $params.pica_conf_cutoff    
-    Balanced Accuracy cutoff for displaying PICA results: $params.accuracy_cutoff
-    Override cutoffs and hierarchical filtering: $params.show_everything
 
     ##################################################################################
     """.stripIndent()
@@ -694,9 +690,6 @@ process make_downloadable_flat_files {
     write_pipeline_output.py \\
         --dep_file ${params.pica_dependencies} \\
         --job_key ${jobname} \\
-        --balac_cutoff ${params.accuracy_cutoff} \\
-        --conf_cutoff ${params.pica_conf_cutoff} \\
-        --show_all ${params.show_everything} \\
         --md5sums ${job_mdsums.join(" ")}
     """
 }
