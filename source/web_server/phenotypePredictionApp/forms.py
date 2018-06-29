@@ -25,6 +25,6 @@ class FileForm(forms.ModelForm):
         self.fields['errors'].initial = self.data['errors']
         self.fields['requested_balac'].initial = self.data['requested_balac']
         self.fields['requested_conf'].initial = self.data['requested_conf']
-        self.fields['disable_cutoffs'].initial = self.data['disable_cutoffs']
+        self.fields['disable_cutoffs'].initial = self.data.get('disable_cutoffs', "0")
         for key, value in self.data.items():
             print(str(key) + ' ' + str(value))

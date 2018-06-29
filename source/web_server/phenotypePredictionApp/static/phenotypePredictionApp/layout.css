@@ -46,6 +46,14 @@ form {
     flex:100;
 }
 
+#requested_conf {
+    flex:100;
+}
+
+#disable_cutoffs {
+    flex:100;
+}
+
 .inputField {
     max-width:500px;
 }
