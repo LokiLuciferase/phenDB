@@ -18,7 +18,7 @@ class PicaResultForUI:
         self.prediction = _Prediction(self)
 
     def __calc_trait_counts(self):
-        pass
+        self.trait_counts = _TraitCounts(self)
 
     def __calc_bin_summary(self):
         self.bin_summary = _BinSummary(self)
@@ -111,12 +111,24 @@ class _TraitCounts:
     def __calc(self):
         self.values = []
         pica_models = PicaModel.objects.all()
+        all_bins = list(map(lambda x: x.bin, self.picaResultForUI.all_bins_in_job))
         for pica_model in pica_models:
-            tmp_arr = []
-            tmp_arr.append(pica_model.model_name)
-            pica_results = PicaResult.objects.filter(model=pica_model)
+            print("pica_model " + pica_model.model_name)
+            pica_results = PicaResult.objects.filter(bin__in= [bin for bin in all_bins],model=pica_model)
+            print(len(pica_results))
             if(len(pica_results) == 0):
                 continue #model not used in this prediction (e.g. old model)
+            true_count = len(pica_results.filter(verdict=True, nc_masked=False))
+            false_count = len(pica_results.filter(verdict=False, nc_masked=False))
+            nd_count = 0 #TODO: change / implement
+            nc_count = len(pica_results.filter(nc_masked=True))
+            self.values.append([pica_model.model_name, true_count, false_count, nd_count, nc_count])
+
+    def get_values(self):
+        return self.values
+
+    def get_titles(self):
+        return _TraitCounts.TITLES
 
 
 class _BinSummary:

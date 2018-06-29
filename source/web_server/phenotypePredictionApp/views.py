@@ -195,7 +195,11 @@ def getResults(request):
                'prediction_details_values' : pica_result_for_ui.prediction_details.get_values() if pica_result_for_ui is not None else "",
                'prediction_details_titles' : pica_result_for_ui.prediction_details.get_titles() if pica_result_for_ui is not None else "",
                'prediction_values' : pica_result_for_ui.prediction.get_values() if pica_result_for_ui is not None else "",
-               'prediction_titles' : pica_result_for_ui.prediction.get_titles() if pica_result_for_ui is not None else ""
+               'prediction_titles' : pica_result_for_ui.prediction.get_titles() if pica_result_for_ui is not None else "",
+               'trait_counts_values' : pica_result_for_ui.trait_counts.get_values() if pica_result_for_ui is not None else "",
+               'trait_counts_titles': pica_result_for_ui.trait_counts.get_titles() if pica_result_for_ui is not None else "",
+               'bin_summary_values' : pica_result_for_ui.bin_summary.get_values() if pica_result_for_ui is not None else "",
+               'bin_summary_titles': pica_result_for_ui.bin_summary.get_titles() if pica_result_for_ui is not None else "",
                }
 
     return HttpResponse(template.render(context, request))

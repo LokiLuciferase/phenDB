@@ -42,6 +42,9 @@
             </div>
             <h3>Trait Prediction Details</h3>
             <div id="trait_prediction_details">
+                <div>
+                    <input id="filter_test"></input>
+                </div>
                 <table id="table_prediction_details" class="result_table"></table>
             </div>
             <h3>Trait Count Summary</h3>
@@ -50,16 +53,17 @@
             </div>
             <h3>Bin Summary</h3>
             <div id="bin_summary">
-                <table id="table_bin_summary" style
+                <table id="table_bin_summary" class="result_table"></table>
             </div>
         </div>
     </div>
 </div>
 <script type="text/javascript">
     $(document).ready(function() {
-        window.prediction_data = {{ prediction_values | safe}}
-        window.prediction_titles = {{ prediction_titles | jsonify | safe }}
-        var dataTable1 = new DataTable({{ prediction_details_values | safe}}, {{ prediction_details_titles | jsonify | safe}}, "#table_prediction_details");
-        var dataTable2 = new DataTable({{ prediction_values | safe }}, {{ prediction_titles |jsonify | safe }}, "#table_prediction");
+        var table_prediction_details = new DataTable({{ prediction_details_values | safe}}, {{ prediction_details_titles | jsonify | safe}}, "#table_prediction_details");
+        table_prediction_details.addFiltering("#filter_test", ["bla", "blabla"], 0);
+        var table_prediction = new DataTable({{ prediction_values | safe }}, {{ prediction_titles |jsonify | safe }}, "#table_prediction");
+        var table_trait_counts = new DataTable({{ trait_counts_values | safe }}, {{ trait_counts_titles |jsonify | safe }}, "#table_trait_counts");
+        var table_bin_summary = new DataTable({{ bin_summary_values | safe }}, {{ bin_summary_titles |jsonify | safe }}, "#table_bin_summary");
     });
 </script>
