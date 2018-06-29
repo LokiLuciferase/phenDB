@@ -73,8 +73,8 @@ class _Prediction:
                 pica_result = PicaResult.objects.filter(bin=bin, model=pica_model)
                 if len(pica_result) == 0:
                     continue #model not used in this prediction (e.g. old model)
-                self.values.append("+" if pica_result.verdict else "-")
-                self.titles.append(pica_result.model.model_name)
+                self.values.append("+" if pica_result[0].verdict else "-")
+                self.titles.append(pica_result[0].model.model_name)
 
     def get_values(self):
         return self.values
