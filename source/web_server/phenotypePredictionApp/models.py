@@ -199,7 +199,7 @@ class PicaModelTrainingData(models.Model):
     verdict = models.NullBooleanField()
 
     def __str__(self):
-        return "Taxid {ti} used in model {mod} (counted as {yn})".format(ti=self.taxid,
+        return "Taxid {ti} used in model {mod} (counted as {yn})".format(ti=self.tax_id,
                                                                          mod=self.model.model_name,
                                                                          yn=self.verdict)
 
