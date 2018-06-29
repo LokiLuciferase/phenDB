@@ -6,6 +6,7 @@ class PicaResultForUI:
         self.job = job
         self.all_bins_in_job = BinInJob.objects.filter(job=job)
         self.__calc_prediction_details()
+        self.__calc_prediction()
 
 
     def __calc_prediction_details(self):
