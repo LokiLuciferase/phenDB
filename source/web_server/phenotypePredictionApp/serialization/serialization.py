@@ -34,7 +34,7 @@ class _PredictionDetails:
         return _PredictionDetails.TITLES
 
     def __calc(self):
-        arr = ["Bin", "Model", "Prediction", "Prediction-Confidence", "Balanced-Accuracy"]
+        arr = []
         for bin_obj in self.picaResultForUI.all_bins:
             single_pica_result = PicaResult.objects.filter(bin=bin_obj.bin)
             bin_name = BinInJob.objects.get(bin=bin_obj.bin, job=self.picaResultForUI.job)
