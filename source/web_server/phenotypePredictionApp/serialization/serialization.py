@@ -97,7 +97,7 @@ class _TraitCounts:
         all_bins = map(lambda x: x.bin, self.picaResultForUI.all_bins_in_job)
         for pica_model in pica_models:
             print("pica_model " + pica_model.model_name)
-            pica_results = PicaResult.objects.filter(bin__in= all_bins,model=pica_model)
+            pica_results = PicaResult.objects.filter(bin__in= [bin for bin in all_bins],model=pica_model)
             if(len(pica_results) == 0):
                 continue #model not used in this prediction (e.g. old model)
             true_count = len(pica_results.filter(verdict=True, nc_masked=False))
