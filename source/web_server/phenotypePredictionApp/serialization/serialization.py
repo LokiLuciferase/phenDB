@@ -94,10 +94,11 @@ class _TraitCounts:
     def __calc(self):
         self.values = []
         pica_models = PicaModel.objects.all()
+        all_bins = map(lambda x: x.bin, self.picaResultForUI.all_bins_in_job)
         for pica_model in pica_models:
             tmp_arr = []
             tmp_arr.append(pica_model.model_name)
-            pica_results = PicaResult.objects.filter(model=pica_model)
+            pica_results = PicaResult.objects.filter(bin__in= all_bins,model=pica_model)
             if(len(pica_results) == 0):
                 continue #model not used in this prediction (e.g. old model)
             true_count = len(pica_results.filter(verdict=True, nc_masked=False))
