@@ -20,8 +20,8 @@ parser.add_argument("-j", "--job_key", help="uuid4 of job")
 parser.add_argument("-m", "--md5sums", nargs="+", help="A list of md5sums calculated in this pipeline run")
 args = parser.parse_args()
 
-BALAC_CUTOFF = args.balac_cutoff
-PICA_CONF_CUTOFF = args.conf_cutoff
+BALAC_CUTOFF = float(args.balac_cutoff)
+PICA_CONF_CUTOFF = float(args.conf_cutoff)
 SHOW_ALL_RESULTS = args.show_all == "true"
 TRAIT_DEPENDENCY_FILE = args.dep_file
 BIN_MDSUMS = sorted(args.md5sums, reverse=True)
