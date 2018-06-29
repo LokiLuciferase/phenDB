@@ -111,9 +111,8 @@ def getResults(request):
     errorMessagePU = None
     queuePos = None
     queueLen = None
-    resultsList = []
 
-    test_obj = None;
+    pica_result_for_ui = None
 
     if job.finished_bins == job.total_bins and job.total_bins != 0:
         try:
@@ -138,8 +137,7 @@ def getResults(request):
         #results to display in UI
         all_bins = BinInJob.objects.filter(job=job)
         #TODO: resultsList initialzation or other method to get all results for UI
-        picaResultForUI = PicaResultForUI(job=job)
-        test_obj = picaResultForUI.test()
+        pica_result_for_ui = PicaResultForUI(job=job)
     else:
         numAccessed = 0
         showResultCSS = 'none'
@@ -194,9 +192,9 @@ def getResults(request):
                'errorMessagePU' : errorMessagePU,
                'queuePos' : queuePos + 1,
                'queueLen' : queueLen,
-               'resultsList' : resultsList,
                'all_models' : PicaModel.objects.all,
-               'test_obj' : test_obj}
+               'table_prediction_details_data' : pica_result_for_ui.table_trait_prediction_details.get_values(),
+               'table_prediction_details_titles' : pica_result_for_ui.table_trait_prediction_details.get_titles()}
 
     return HttpResponse(template.render(context, request))
 

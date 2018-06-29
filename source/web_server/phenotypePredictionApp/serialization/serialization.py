@@ -9,33 +9,38 @@ class PicaResultForUI:
     def test(self):
         return self.__table_calc_trait_prediction()
 
-    def __table_calc_trait_prediction(self):
-        obj = TableCalcTraitPrediction(self)
-        return obj.calc()
+    def __calc_prediction_details(self):
+        self.table_trait_prediction_details = _TablePredictionDetails(self)
 
 
-    def __table_calc_prediction_details(self):
+    def __calc_prediction(self):
         pass
 
-    def __table_calc_trait_counts(self):
+    def __calc_trait_counts(self):
         pass
 
 
-class TableCalcTraitPrediction:
-
-    titles = {'bin' : 'Bin'}
+class _TablePredictionDetails:
 
     def __init__(self, picaResultForUI):
         self.picaResultForUI = picaResultForUI
+        self.calc()
 
+    TITLES = [{"title" : "Bin"}, {"title" : "Prediction"}, {"title" : "Prediction-Confidence"}, {"title" : "Balanced-Accuracy"}]
 
-    def calc(self):
-        arr = []
+    def get_values(self):
+        return self.values
+
+    def get_titles(self):
+        return _TablePredictionDetails.TITLES
+
+    def __calc(self):
+        arr = ["Bin", "Model", "Prediction", "Prediction-Confidence", "Balanced-Accuracy"]
         for bin_obj in self.picaResultForUI.all_bins:
             single_pica_result = PicaResult.objects.filter(bin=bin_obj.bin)
             bin_name = BinInJob.objects.get(bin=bin_obj.bin, job=self.picaResultForUI.job)
             arr = arr + self.__parse_bin(single_pica_result, bin_name)
-        return arr
+        self.values = arr
 
 
     def __parse_bin(self, single_pica_result, bin_name):
@@ -49,3 +54,5 @@ class TableCalcTraitPrediction:
             single_row.append(item.accuracy)
             arr.append(single_row)
         return arr
+
+class

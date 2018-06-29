@@ -42,7 +42,7 @@
             </div>
             <h3>Accuracy + Probability info</h3>
             <div id="trait_prediction_accuracy">
-                <table id="trait_prediction_accuracy_table" style="overflow-x:auto"></table>
+                <table id="prediction_details" style="overflow-x:auto"></table>
             </div>
             <h3>Trait Count Summary</h3>
             <div id="trait_prediction_summary">
@@ -52,21 +52,9 @@
     </div>
 </div>
 <script type="text/javascript">
-                    $(document).ready(function() {
-                        var resultListJson = {{ resultsList|jsonify | safe}};
-                        window.test_obj = {{ test_obj|safe }}
-                        window.resultListJson = resultListJson;
-                        if(resultListJson.length != 0) {
-                            var resultsList_arr = resultList_to_datatable_input(resultListJson);
-                            var resultsListJSTitles = resultsList_arr[0];
-                            var resultsListJSValues = resultsList_arr[1];
-                            window.resultsListJSValues = resultsListJSValues;
-                            var bins = getAllBins(resultsListJSValues);
-                            window.models_arr = all_models_to_list({{ all_models|jsonify | safe }});
-                            var model_names = window.models_arr[0];
-                            var model_descriptions = window.models_arr[1];
-                            var resultFigures = new ResultFigures(resultsListJSTitles, resultsListJSValues, model_names, model_descriptions, bins);
-                            resultFigures.initialize_result_figures();
-                        }
-                    });
+    $(document).ready(function() {
+        window.table_prediction_details_data = {{ table_prediction_details_data | safe}}
+        window.table_prediction_details_titles = {{ table_prediction_details_titles | jsonify | safe }}
+        var dataTable = new DataTable({{ table_prediction_details_data | safe}}, {{ table_prediction_details_titles | jsonify | safe}}, "#prediction_details");
+    });
 </script>
