@@ -697,7 +697,7 @@ process make_downloadable_flat_files {
         --balac_cutoff ${params.accuracy_cutoff} \\
         --conf_cutoff ${params.pica_conf_cutoff} \\
         --show_all ${params.show_everything} \\
-        --md5sums ${job_mdsums}
+        --md5sums ${job_mdsums.join(" ")}
     """
 }
 
@@ -737,7 +737,6 @@ process zip_results {
     """
     mkdir -p ${jobname}/summaries
     mkdir -p ${jobname}/individual_results
-    cp ${params.description_file} ${jobname}/summaries/PICA_trait_descriptions.txt
     cp ${errorfile} ${jobname}/summaries/invalid_input_files.log.txt
     mv *.traits.csv ${jobname}/individual_results
     mv *.csv ${jobname}/summaries
