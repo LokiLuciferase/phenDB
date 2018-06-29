@@ -1,15 +1,15 @@
-function ResultFigures(resultsListJSTitles, resultsListJSValues, model_names, model_descriptions, bins)
-{
+function DataTable(data, titles, identifier) {
 
-    this.resultsListJSTitles = resultsListJSTitles;
-    this.resultsListJSValues = resultsListJSValues;
-    this.model_names = model_names;
-    this.model_descriptions = model_descriptions;
-    this.bins = bins;
+    this.data = data;
+    this.titles = titles;
+    this.identifier = identifier;
 
-    this.initialize_result_figures = function() {
+    this.initialize_result_figures = function () {
+
+        this.initialize_data_table(this.data, this.titles, this.identifier)
+
         //DATATABLE 1 (Accuracy & Probability info)
-        var titles_table1 = convertTitles(["Bin", "Model", "Prediction", "Model_Confidence", "Balanced_Accuracy"]);
+        /* var titles_table1 = convertTitles(["Bin", "Model", "Prediction", "Model_Confidence", "Balanced_Accuracy"]);
         var dataTable1 = this.__initialize_data_table(this.resultsListJSValues, titles_table1, "#trait_prediction_accuracy_table");
         //DATATABLE 2 (Trait prediction)
         var matrix_for_dt2 = resultslist_to_dt2_matrix(this.resultsListJSValues, this.model_names);
@@ -21,16 +21,27 @@ function ResultFigures(resultsListJSTitles, resultsListJSValues, model_names, mo
         this.__initialize_pica_models_autocomplete(this.model_names, dataTable1);
         this.__initialize_bins_autocomplete(this.bins, dataTable1);
         this.__initialize_pval_cutoff_spinner(dataTable1);
-        this.__initialize_accuracy_cutoff_spinner(dataTable1);
+        this.__initialize_accuracy_cutoff_spinner(dataTable1); */
     };
 
-    this.__initialize_data_table = function(resultsListJSValues, resultsListJSTitles, identifier) {
+
+    this.initialize_data_table = function (data, titles, identifier) {
         var dataTable = $(identifier).DataTable({
             "lengthMenu": [[50, 100, -1], [50, 100, "All"]],
-            data: resultsListJSValues,
-            columns: resultsListJSTitles,
+            data: data,
+            columns: titles,
             searching: true,
             dom: '<"table_buttons"B>l<"result_table"t><"table_pagination"p>',
+            columnDefs: [
+                {
+                    targets: "_all",
+                    className: 'dt-body-center'
+                },
+                {
+                    targets: "_all",
+                    className: 'dt-head-center'
+                },
+            ],
             buttons: [
                 {
                     extend: 'csv',
@@ -45,20 +56,10 @@ function ResultFigures(resultsListJSTitles, resultsListJSValues, model_names, mo
         return dataTable;
     };
 
+    this.initialize_result_figures();
+}
 
-    //OLD CODE -> TODO: remove as soon as new layout is accepted
-    this.__initialize_pica_models_info = function(model_names, model_descriptions) {
-        document.getElementById('dt_results_model_filter_info_text').innerHTML = models_to_infotext(model_names, model_descriptions);
-        $('#dt_results_model_filter_info_text').puidialog({
-            title: "PICA models",
-            resizable: false,
-            width: "auto",
-            responsive: true
-        });
-    };
-
-    //
-
+/*
     this.__initialize_pica_models_autocomplete = function(model_names, dataTable) {
         $('#dt_results_model_filter').puiautocomplete({
             completeSource: model_names,
@@ -138,3 +139,4 @@ function ResultFigures(resultsListJSTitles, resultsListJSValues, model_names, mo
         });
     };
 }
+*/

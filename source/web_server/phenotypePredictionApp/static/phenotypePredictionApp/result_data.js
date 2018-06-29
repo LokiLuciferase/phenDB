@@ -13,14 +13,14 @@ var ResultData = {
         var returnval_titles = [];
 
 
-        var all_keys = Object.keys(json_obj[0].fields);
+        var all_keys = Object.keys(this.__data[0].fields);
         titles = convertTitles(all_keys);
 
         for (var i=0; i<json_obj.length; i++) {
-            var sub_arr = Object.values(json_obj[i].fields);
+            var sub_arr = Object.values(this.__data[i].fields);
             all_data.push(sub_arr);
         }
-        __roundNumbers(all_data, [3,4], 2);
+        //__roundNumbers(all_data, [3,4], 2);
         return [titles, all_data];
     },
 

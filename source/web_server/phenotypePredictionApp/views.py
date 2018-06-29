@@ -14,6 +14,7 @@ from pprint import pprint
 from ipware.ip import get_real_ip
 from redis import Redis
 from rq import Queue, get_current_job
+from .serialization.serialization import PicaResultForUI
 import struct
 import traceback
 import os
@@ -77,7 +78,6 @@ def sendinput(request):
     postobj['errors'] = False
     form = FileForm(postobj, fileobj)
     if(form.is_valid()):
-        print("Is valid")
         modelInstance = form.save(commit=False)
         modelInstance.save()
         StartProcessThread(key, postobj['requested_balac']).start()
@@ -94,7 +94,7 @@ def getResults(request):
     templateError = loader.get_template('phenotypePredictionApp/error.xhtml')
     key = getKeyFromUrl(request)
     try:
-        obj = Job.objects.get(key=key)
+        job = Job.objects.get(key=key)
     except Job.DoesNotExist:
         context = {'errorMessage' : 'The requested page does not exist. Please note that all results are deleted after 30 days!'}
         return HttpResponse(templateError.render(context, request))
@@ -110,11 +110,10 @@ def getResults(request):
     errorMessagePU = None
     queuePos = None
     queueLen = None
-    resultsList = []
 
-    test_obj = None;
+    pica_result_for_ui = None
 
-    if obj.finished_bins == obj.total_bins and obj.total_bins != 0:
+    if job.finished_bins == job.total_bins and job.total_bins != 0:
         try:
             numAccessed = accessed[key]
         except:
@@ -124,35 +123,35 @@ def getResults(request):
         showResultCSS = 'block'
         showProgressBar = False
         refresh = False
-        if(obj.error_type == "UNKNOWN"):
+        if(job.error_type == "UNKNOWN"):
             showErrorMessage = True
             errorSeverityPU = 'error'
             errorSummaryPU = 'Unknown Error'
             errorMessagePU = 'An unknown internal error has occurred.'
-        elif(obj.error_type == "INPUT"):
+        elif(job.error_type == "INPUT"):
             showErrorMessage = True
             errorSeverityPU = 'warn'
             errorSummaryPU = 'Invalid Input File(s)'
             errorMessagePU = 'Please check the invalid_input_files.log file.'
         #results to display in UI
-        all_bins = BinInJob.objects.filter(job=obj)
-        for bin_obj in all_bins:
-            resultsList += PicaResult.objects.filter(bin=bin_obj.bin)
+        all_bins = BinInJob.objects.filter(job=job)
+        #TODO: resultsList initialzation or other method to get all results for UI
+        pica_result_for_ui = PicaResultForUI(job=job)
     else:
         numAccessed = 0
         showResultCSS = 'none'
-        if(obj.error_type in ("INPUT", "")):
+        if(job.error_type in ("INPUT", "")):
             showProgressBar = True
             refresh = True
             showErrorMessage = False
-        elif (obj.error_type == "UNKNOWN"):
+        elif (job.error_type == "UNKNOWN"):
             refresh = False
             showErrorMessage = True
             showProgressBar = False
             errorSeverityPU = 'error'
             errorSummaryPU = 'Unknown Error'
             errorMessagePU = 'An unknown internal error has occurred.'
-        elif (obj.error_type == "ALL_DROPPED"):
+        elif (job.error_type == "ALL_DROPPED"):
             refresh = False
             showErrorMessage = True
             showProgressBar = False
@@ -181,9 +180,9 @@ def getResults(request):
                'showResultCSS' : showResultCSS,
                'showNotification' : True if numAccessed == 1 else False,
                'showProgressBar' : showProgressBar,
-               'progress' : (obj.finished_bins * 1.0 / obj.total_bins) * 100,
-               'finished_bins' : str(obj.finished_bins),
-               'total_bins' : str(obj.total_bins),
+               'progress' : (job.finished_bins * 1.0 / job.total_bins) * 100 if job.total_bins != 0 else 0.0001, #necessary to avoid DivBy0 Exception
+               'finished_bins' : str(job.finished_bins),
+               'total_bins' : str(job.total_bins),
                'refresh' : refresh,
                'showInputFormCSS': 'none',
                'showErrorMessage': showErrorMessage,
@@ -192,8 +191,12 @@ def getResults(request):
                'errorMessagePU' : errorMessagePU,
                'queuePos' : queuePos + 1,
                'queueLen' : queueLen,
-               'resultsList' : resultsList,
-               'all_models' : PicaModel.objects.all}
+               'all_models' : PicaModel.objects.all,
+               'prediction_details_values' : pica_result_for_ui.prediction_details.get_values(),
+               'prediction_details_titles' : pica_result_for_ui.prediction_details.get_titles(),
+               'prediction_values' : pica_result_for_ui.prediction.get_values(),
+               'prediction_titles' : pica_result_for_ui.prediction.get_titles()
+               }
 
     return HttpResponse(template.render(context, request))
 

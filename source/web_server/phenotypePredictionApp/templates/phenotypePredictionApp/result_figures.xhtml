@@ -38,34 +38,28 @@
         <div id="all_result_tables">
             <h3>Trait Prediction</h3>
             <div id="trait_prediction">
-                <table id="trait_prediction_table" style="overflow-x:auto"></table>
+                <table id="table_prediction" class="result_table"></table>
             </div>
-            <h3>Accuracy + Probability info</h3>
-            <div id="trait_prediction_accuracy">
-                <table id="trait_prediction_accuracy_table" style="overflow-x:auto"></table>
+            <h3>Trait Prediction Details</h3>
+            <div id="trait_prediction_details">
+                <table id="table_prediction_details" class="result_table"></table>
             </div>
             <h3>Trait Count Summary</h3>
-            <div id="trait_prediction_summary">
-                <table id="trait_prediction_summary_table" style="overflow-x:auto"></table>
+            <div id="trait_counts_summary">
+                <table id="table_trait_counts" class="result_table"></table>
+            </div>
+            <h3>Bin Summary</h3>
+            <div id="bin_summary">
+                <table id="table_bin_summary" style
             </div>
         </div>
     </div>
 </div>
 <script type="text/javascript">
-                    $(document).ready(function() {
-                        var resultListJson = {{ resultsList|jsonify | safe}};
-                        window.resultListJson = resultListJson;
-                        if(resultListJson.length != 0) {
-                            var resultsList_arr = resultList_to_datatable_input(resultListJson);
-                            var resultsListJSTitles = resultsList_arr[0];
-                            var resultsListJSValues = resultsList_arr[1];
-                            window.resultsListJSValues = resultsListJSValues;
-                            var bins = getAllBins(resultsListJSValues);
-                            window.models_arr = all_models_to_list({{ all_models|jsonify | safe }});
-                            var model_names = window.models_arr[0];
-                            var model_descriptions = window.models_arr[1];
-                            var resultFigures = new ResultFigures(resultsListJSTitles, resultsListJSValues, model_names, model_descriptions, bins);
-                            resultFigures.initialize_result_figures();
-                        }
-                    });
+    $(document).ready(function() {
+        window.prediction_data = {{ prediction_values | safe}}
+        window.prediction_titles = {{ prediction_titles | jsonify | safe }}
+        var dataTable1 = new DataTable({{ prediction_details_values | safe}}, {{ prediction_details_titles | jsonify | safe}}, "#table_prediction_details");
+        var dataTable2 = new DataTable({{ prediction_values | safe }}, {{ prediction_titles |jsonify | safe }}, "#table_prediction");
+    });
 </script>
