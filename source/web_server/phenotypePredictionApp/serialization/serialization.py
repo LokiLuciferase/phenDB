@@ -104,7 +104,7 @@ class _TraitCounts:
             false_count = len(pica_results.filter(verdict=False, nc_masked=False))
             nd_count = 0 #TODO: change / implement
             nc_count = len(pica_results.filter(nc_masked=True))
-            self.values.append(pica_model.model_name, true_count, false_count, nd_count, nc_count)
+            self.values.append([pica_model.model_name, true_count, false_count, nd_count, nc_count])
 
     def get_values(self):
         return self.values
