@@ -46,6 +46,12 @@
                 max: 1,
                 step: 0.01
             });
+            $('#requested_conf').puispinner({
+                min: 0.5,
+                max: 1,
+                step: 0.01
+            });
+            $('#disable_cutoffs').puicheckbox();
             $('#result_download').puipanel();
             $('#result_figures').puipanel({toggleable:true, closable:false, collapsed:false});
             $('#help_section').puipanel({toggleable: true, closable: false, collapsed: true});
