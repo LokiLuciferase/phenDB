@@ -118,11 +118,12 @@ class _TraitCounts:
             pica_results = PicaResult.objects.filter(bin__in= [bin for bin in all_bins],model=pica_model)
             print(len(pica_results))
             if(len(pica_results) == 0):
-                continue #model not used in this prediction (e.g. old model)
-            true_count = len(pica_results.filter(verdict=True, nc_masked=False))
-            false_count = len(pica_results.filter(verdict=False, nc_masked=False))
-            nd_count = 0 #TODO: change / implement
-            nc_count = len(pica_results.filter(nc_masked=True))
+                continue # model not used in this prediction (e.g. old model)
+            all_results = [self.picaResultForUI._apply_masks(x) for x in pica_results]
+            true_count = len([x for x in all_results if x == "+"])
+            false_count = len([x for x in all_results if x == "-"])
+            nd_count = len([x for x in all_results if x == "n.d."])
+            nc_count = len([x for x in all_results if x == "n.c."])
             self.values.append([pica_model.model_name, true_count, false_count, nd_count, nc_count])
 
     def get_values(self):
