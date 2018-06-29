@@ -35,7 +35,7 @@ function DataTable(data, titles, identifier) {
         return dataTable;
     };
 
-    this.dataTable = this.initialize_result_figures();
+    this.dataTable = this.initialize_data_table();
 
     this.addFiltering = function(bin_filter_identifier, suggestions, column) {
         $(bin_filter_identifier).puiautocomplete({
