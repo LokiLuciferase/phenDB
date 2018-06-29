@@ -44,6 +44,7 @@ class Job(models.Model):
     requested_conf = models.FloatField(default='0.5')
     disable_cutoffs = models.BooleanField(default=False)
 
+
     def get_absolute_url(self):
         return "results/%s/" % self.key
 
