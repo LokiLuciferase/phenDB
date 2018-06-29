@@ -6,74 +6,7 @@
     <head>
         {% load static %}
         {% load jsonify %}
-        <link rel="stylesheet" type="text/css" href="{% static "phenotypePredictionApp/layout.css" %}"></link>
-        <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"></link>
-        <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"></link>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/primeui/4.1.15/primeui.min.css"></link>
-        <script type="text/javascript" src="https://code.jquery.com/jquery-3.1.1.js"></script>
-        <script type="text/javascript" src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/primeui/4.1.15/primeui.min.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/x-tag/1.5.11/x-tag-core.min.js"></script>
-        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/primeui@4.1.15/primeelements.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.3.0/mustache.min.js"></script>
-        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css"></link>
-        <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
-        <script type="text/javascript" src="{% static "phenotypePredictionApp/ui_logic.js" %}"></script>
-        <script type="text/javascript" src="{% static "phenotypePredictionApp/result_figures.js" %}"></script>
-        <script type="text/javascript">
-            $(document).ready(function() {
-             $('#overlay').puidialog({
-                 closable: false,
-                 minimizable: false,
-                 maximizable: false,
-                 modal: true,
-                 resizable: false
-             });
-                {% if showProgressBar %}
-                    $('#overlay').puidialog('show');
-                    $('#progressbar').puiprogressbar({
-                        value : {{  progress }},
-                        {% if queuePos > 0 %}
-                            labelTemplate: "Queue position: " + "{{ queuePos }}/{{ queueLen }}"
-                        {% else %}
-                            labelTemplate: "Finished/Total: " + "{{ finished_bins }}/{{ total_bins }}"
-                        {% endif %}
-                    });
-                {%  endif %}
-            $('#input_section').puipanel();
-            $('#requested_balac').puispinner({
-                min: 0.5,
-                max: 1,
-                step: 0.01
-            });
-            $('#requested_conf').puispinner({
-                min: 0.5,
-                max: 1,
-                step: 0.01
-            });
-            $('#disable_cutoffs').puicheckbox();
-            $('#result_download').puipanel();
-            $('#result_figures').puipanel({toggleable:true, closable:false, collapsed:false});
-            $('#help_section').puipanel({toggleable: true, closable: false, collapsed: true});
-            $('#error_message').puigrowl({sticky:true});
-                {% if showErrorMessage %}
-                    $('#error_message').puigrowl('show', [{severity: '{{ errorSeverityPU }}', summary: '{{ errorSummaryPU }}', detail: '{{ errorMessagePU }}' } ]);
-                {% endif %}
-            $('#queue_info').puidialog({
-                 minimizable: false,
-                 maximizable: false,
-                 resizable: false
-            });
-            $('#queue_show').puibutton({
-                icon: 'fa-external-link-square',
-                click: function() {
-                    $('#queue_info').puidialog('show');
-                }
-            });
-            $('#dt_results_pval_filter').puispinner({step:0.05});
-            $('#dt_results_accuracy_filter').puispinner({step:0.05});
-            });
-        </script>
+        {% include "phenotypePredictionApp/imports.xhtml" %}
         <title>PhenDB</title>
     </head>
 
@@ -94,6 +27,8 @@
     {% include "phenotypePredictionApp/result_figures.xhtml" %}
 
     {% include "phenotypePredictionApp/helpsection.xhtml" %}
+
+    {% include "phenotypePredictionApp/primeui_components.xhtml" %}
 
 
         <script type="text/javascript">

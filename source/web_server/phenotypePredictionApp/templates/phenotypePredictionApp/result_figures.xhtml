@@ -1,49 +1,71 @@
 {% load jsonify %}
-<div style="display: {{ showResultCSS }}; margin:10px 10px 10px 10px; " id="result_figures" title="Explore Your Results - Trait Predictions">
-        <div id="dt_results">
-            <div style="padding-bottom: 30px" class="row" id="dt_results_model_filter_wrapper">
-                <div class="column" style="width: 100px; padding-right:10px" id="dt_result_model_filter_name">Filter Models</div>
-                <div class="column">
-                    <input id="dt_results_model_filter"></input>
-                </div>
-                <div class="column">
-                    <button style="height:100%; margin-bottom:3px;" id="dt_results_model_filter_info">info</button>
-                </div>
-                <div id="dt_results_model_filter_info_text"></div>
+<style>
+    .result_figures {
+        display: {{ showResultCSS }};
+        margin:10px 10px 10px 10px;
+    }
+</style>
+<div id="result_figures" class="result_figures">
+    <div id="result_figure_trait_prediction" title="Trait Predictions">
+        <div style="padding-bottom: 30px" class="row" id="dt_results_model_filter_wrapper">
+            <div class="column" style="width: 100px; padding-right:10px" id="dt_result_model_filter_name">Filter Models</div>
+            <div class="column">
+                <input id="dt_results_model_filter"></input>
             </div>
-            <div style="padding-bottom: 30px" class="row" id="dt_results_bin_filter_wrapper">
-                <div class="column" style="width: 100px; padding-right:10px" id="dt_result_bin_filter_name">Filter Bins</div>
-                <div class="column">
-                    <input id="dt_results_bin_filter"></input>
-                </div>
+            <div class="column">
+                <button style="height:100%; margin-bottom:3px;" id="dt_results_model_filter_info">Model Overview</button>
             </div>
-            <div style="padding-bottom: 30px" class="row" id="dt_results_pval_filter_wrapper">
-                <div class="column" style="width: 100px; padding-right:10px" id="dt_result_pval_filter_name">PICA p-value cutoff</div>
-                <div class="column">
-                    <input id="dt_results_pval_filter"></input>
-                </div>
-            </div>
-            <div style="padding-bottom: 30px" class="row" id="dt_results_accuracy_filter_wrapper">
-                <div class="column" style="width: 100px; padding-right:10px" id="dt_result_accuracy_filter_name">accuracy cutoff</div>
-                <div class="column">
-                    <input id="dt_results_accuracy_filter"></input>
-                </div>
-            </div>
-            <table id="dt_results_table" width="100%" style="display: {{ showResultCSS }}"></table>
+            <div id="dt_results_model_filter_info_text"></div>
         </div>
+        <div style="padding-bottom: 30px" class="row" id="dt_results_bin_filter_wrapper">
+            <div class="column" style="width: 100px; padding-right:10px" id="dt_result_bin_filter_name">Filter Bins</div>
+            <div class="column">
+                <input id="dt_results_bin_filter"></input>
+            </div>
+        </div>
+        <div style="padding-bottom: 30px" class="row" id="dt_results_pval_filter_wrapper">
+            <div class="column" style="width: 100px; padding-right:10px" id="dt_result_pval_filter_name">Probability Cutoff</div>
+            <div class="column">
+                <input id="dt_results_pval_filter"></input>
+            </div>
+        </div>
+        <div style="padding-bottom: 30px" class="row" id="dt_results_accuracy_filter_wrapper">
+            <div class="column" style="width: 100px; padding-right:10px" id="dt_result_accuracy_filter_name">Accuracy Cutoff</div>
+            <div class="column">
+                <input id="dt_results_accuracy_filter"></input>
+            </div>
+        </div>
+        <div id="all_result_tables">
+            <h3>Trait Prediction</h3>
+            <div id="trait_prediction">
+                <table id="trait_prediction_table" style="overflow-x:auto"></table>
+            </div>
+            <h3>Accuracy + Probability info</h3>
+            <div id="trait_prediction_accuracy">
+                <table id="trait_prediction_accuracy_table" style="overflow-x:auto"></table>
+            </div>
+            <h3>Trait Count Summary</h3>
+            <div id="trait_prediction_summary">
+                <table id="trait_prediction_summary_table" style="overflow-x:auto"></table>
+            </div>
+        </div>
+    </div>
 </div>
 <script type="text/javascript">
                     $(document).ready(function() {
                         var resultListJson = {{ resultsList|jsonify | safe}};
+                        window.resultListJson = resultListJson;
                         if(resultListJson.length != 0) {
                             var resultsList_arr = resultList_to_datatable_input(resultListJson);
                             var resultsListJSTitles = resultsList_arr[0];
                             var resultsListJSValues = resultsList_arr[1];
+                            window.resultsListJSValues = resultsListJSValues;
                             var bins = getAllBins(resultsListJSValues);
-                            var models_arr = all_models_to_list({{ all_models|jsonify | safe }});
-                            var model_names = models_arr[0];
-                            var model_descriptions = models_arr[1];
-                            initialize_result_figures(resultsListJSTitles, resultsListJSValues, model_names, model_descriptions, bins);
+                            window.models_arr = all_models_to_list({{ all_models|jsonify | safe }});
+                            var model_names = window.models_arr[0];
+                            var model_descriptions = window.models_arr[1];
+                            var resultFigures = new ResultFigures(resultsListJSTitles, resultsListJSValues, model_names, model_descriptions, bins);
+                            resultFigures.initialize_result_figures();
                         }
                     });
 </script>

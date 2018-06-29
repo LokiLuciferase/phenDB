@@ -1,0 +1,81 @@
+{% load boolean_js %}
+
+<script>
+
+$(document).ready(function() {
+    __initialize_popups({{ showProgressBar | boolean_js | safe }});
+    __initialize_widgets();
+    __initialize_error_messages();
+    __initialize_controls();
+    __initialize_accordions();
+});
+
+//TODO: seperate progressbar
+function __initialize_popups(showProgressBar) {
+        $('#overlay').puidialog({
+                 closable: false,
+                 minimizable: false,
+                 maximizable: false,
+                 modal: true,
+                 resizable: false
+             });
+            if(showProgressBar) {
+                $('#overlay').puidialog('show');
+                $('#progressbar').puiprogressbar({
+                    value : {{  progress|default:0}},
+                    {% if queuePos > 0 %}
+                        labelTemplate: "Queue: {{ queuePos }} job(s) prior to your job",
+                    {% elif total_bins != 0  %}
+                        labelTemplate: "Finished/Total: " + "{{ finished_bins }}/{{ total_bins }}",
+                    {% endif %}
+                });
+            }
+        $('#queue_info').puidialog({
+                 minimizable: false,
+                 maximizable: false,
+                 resizable: false
+            });
+}
+
+function __initialize_accordions() {
+    $('#all_result_tables').puiaccordion();
+}
+
+function __initialize_widgets() {
+     $('#input_section').puipanel();
+            $('#requested_balac').puispinner({
+                min: 0.5,
+                max: 1,
+                step: 0.01
+            });
+    $('#result_download').puipanel();
+    $('#result_figure_trait_prediction').puipanel({closable:false, collapsed:false});
+    $('#help_section').puipanel({toggleable: true, closable: false, collapsed: true});
+}
+
+function __initialize_error_messages() {
+    $('#error_message').puigrowl({sticky:true});
+    {% if showErrorMessage %}
+        $('#error_message').puigrowl('show', [{severity: '{{ errorSeverityPU }}', summary: '{{ errorSummaryPU }}', detail: '{{ errorMessagePU }}' } ]);
+    {% endif %}
+}
+
+function __initialize_controls() {
+    $('#queue_show').puibutton({
+                icon: 'fa-external-link-square',
+                click: function() {
+                    $('#queue_info').puidialog('show');
+                }
+            });
+    $('#dt_results_model_filter_info').puibutton({
+            icon: 'fa-external-link-square',
+            click: function() {
+                window.open("http://phendb.csb.univie.ac.at/reports/modeloverview");
+            }
+        });
+    $('#dt_results_pval_filter').puispinner({step:0.05});
+    $('#dt_results_accuracy_filter').puispinner({step:0.05});
+}
+
+
+</script>

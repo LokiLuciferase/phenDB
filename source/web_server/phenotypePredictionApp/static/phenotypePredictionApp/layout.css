@@ -1,6 +1,6 @@
 * {
     margin:0 0 0 0;
-    box-sizing:border-box
+    box-sizing:border-box;
 }
 
 body {
@@ -52,4 +52,14 @@ form {
 
 .table_info_box {
     text-align: center;
+}
+
+.result_table {
+    overflow-x:auto;
+    width:100%;
+}
+
+.table_buttons {
+    margin-bottom: 10px;
+    text-align:right;
 }

@@ -112,6 +112,8 @@ def getResults(request):
     queueLen = None
     resultsList = []
 
+    test_obj = None;
+
     if obj.finished_bins == obj.total_bins and obj.total_bins != 0:
         try:
             numAccessed = accessed[key]
@@ -179,7 +181,7 @@ def getResults(request):
                'showResultCSS' : showResultCSS,
                'showNotification' : True if numAccessed == 1 else False,
                'showProgressBar' : showProgressBar,
-               'progress' : (obj.finished_bins * 1.0 / obj.total_bins) * 100 if (obj.total_bins!=0 and obj.finished_bins != 0) else 0.001,
+               'progress' : (obj.finished_bins * 1.0 / obj.total_bins) * 100,
                'finished_bins' : str(obj.finished_bins),
                'total_bins' : str(obj.total_bins),
                'refresh' : refresh,
