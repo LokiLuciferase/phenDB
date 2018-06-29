@@ -5,6 +5,7 @@ class PicaResultForUI:
     def __init__(self, job):
         self.job = job
         self.all_bins_in_job = BinInJob.objects.filter(job=job)
+        self.bin_alias_list = list(map(lambda x: x.bin_alias,self.all_bins_in_job))
         self.__calc_prediction_details()
         self.__calc_prediction()
         self.__calc_trait_counts()
@@ -12,7 +13,6 @@ class PicaResultForUI:
 
     def __calc_prediction_details(self):
         self.prediction_details = _PredictionDetails(self)
-
 
     def __calc_prediction(self):
         self.prediction = _Prediction(self)
