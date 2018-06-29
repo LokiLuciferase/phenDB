@@ -32,6 +32,16 @@ function DataTable(data, titles, identifier) {
             columns: titles,
             searching: true,
             dom: '<"table_buttons"B>l<"result_table"t><"table_pagination"p>',
+            columnDefs: [
+                {
+                    targets: "-all",
+                    className: 'dt-body-center'
+                },
+                {
+                    targets: "-all",
+                    className: 'dt-head-center'
+                },
+            ],
             buttons: [
                 {
                     extend: 'csv',
