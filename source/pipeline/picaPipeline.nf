@@ -709,7 +709,7 @@ BIN_MDSUMS = sorted("${mdsum_string}".split("\\t"), reverse=True)
 JOB_ID = "${jobname}"
 ROUND_TO = 2
 now = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
-INDIVIDUAL_RESULTS_HEADER = "Model_Name\\tPrediction\\tPrediction_Confidence\\tBalanced_Accuracy\\nModel_Description\\n"
+INDIVIDUAL_RESULTS_HEADER = "Model_Name\\tPrediction\\tPrediction_Confidence\\tBalanced_Accuracy\\tModel_Description\\n"
 BIN_SUMMARY_HEADER = "Bin_Name\\tCompleteness\\tContamination\\tStrain_Heterogeneity\\tTaxon_ID\\tTaxon_Name\\tTaxon_Rank\\n"
 KRONA_FILE_HEADER = "#bin name\\t#taxon_id\\n"
 
