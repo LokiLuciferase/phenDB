@@ -1,17 +1,15 @@
-from phenotypePredictionApp.models import Job, PicaResult, BinInJob, PicaModel
+from phenotypePredictionApp.models import Job, PicaResult, BinInJob, PicaModel, Taxon
 
 class PicaResultForUI:
-
     def __init__(self, job):
         self.job = job
         self.all_bins_in_job = BinInJob.objects.filter(job=job)
         self.__calc_prediction_details()
         self.__calc_prediction()
-
+        self.__calc_bin_summary()
 
     def __calc_prediction_details(self):
         self.prediction_details = _PredictionDetails(self)
-
 
     def __calc_prediction(self):
         self.prediction = _Prediction(self)
@@ -19,9 +17,11 @@ class PicaResultForUI:
     def __calc_trait_counts(self):
         pass
 
+    def __calc_bin_summary(self):
+        self.bin_summary = _BinSummary(self)
+
 
 class _PredictionDetails:
-
     def __init__(self, picaResultForUI):
         self.picaResultForUI = picaResultForUI
         self.__calc()
@@ -55,8 +55,8 @@ class _PredictionDetails:
             arr.append(single_row)
         return arr
 
-class _Prediction:
 
+class _Prediction:
     def __init__(self, picaResultForUI):
         self.picaResultForUI = picaResultForUI
         self.__calc()
@@ -83,6 +83,7 @@ class _Prediction:
     def get_titles(self):
         return self.titles
 
+
 class _TraitCounts:
     def __init__(self, picaResultForUI):
         self.picaResultForUI = picaResultForUI
@@ -99,3 +100,36 @@ class _TraitCounts:
             pica_results = PicaResult.objects.filter(model=pica_model)
             if(len(pica_results) == 0):
                 continue #model not used in this prediction (e.g. old model)
+
+
+class _BinSummary:
+    def __init__(self, picaResultForUI):
+        self.picaResultForUI = picaResultForUI
+        self.__calc()
+
+    TITLES = [{"title": "Bin"},
+              {"title": "Completeness"},
+              {"title": "Contamination"},
+              {"title": "Strain heterogeneity"},
+              {"title": "Taxon name"},
+              {"title": "Taxon rank"}]
+
+    def __calc(self):
+        self.values = []
+        for bin_in_job in self.picaResultForUI.all_bins_in_job:
+            bin = bin_in_job.bin
+            tax_id = bin.tax_id
+            bin_name = bin_in_job.bin_alias
+            comple = bin.comple
+            conta = bin.conta
+            strainhet = bin.strainhet
+            taxon = Taxon.objects.get(tax_id=tax_id)
+            taxon_name = taxon.taxon_name
+            taxon_rank = taxon.taxon_rank
+            self.values.append([bin_name, comple, conta, strainhet, tax_id, taxon_name, taxon_rank])
+
+    def get_values(self):
+        return self.values
+
+    def get_titles(self):
+        return _BinSummary.TITLES
