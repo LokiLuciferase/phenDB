@@ -78,7 +78,6 @@ def sendinput(request):
     postobj['errors'] = False
     form = FileForm(postobj, fileobj)
     if(form.is_valid()):
-        print("Is valid")
         modelInstance = form.save(commit=False)
         modelInstance.save()
         StartProcessThread(key, postobj['requested_balac']).start()

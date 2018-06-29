@@ -66,7 +66,6 @@ class _Prediction:
         for bin_in_job in self.picaResultForUI.all_bins_in_job:
             bin_name = bin_in_job.bin_alias
             bin = bin_in_job.bin
-            pica_results = PicaResult.objects.filter(bin=bin)
             pica_models = PicaModel.objects.all()
             values_tmp = [bin_name]
             self.titles = [""]
@@ -83,3 +82,20 @@ class _Prediction:
 
     def get_titles(self):
         return self.titles
+
+class _TraitCounts:
+    def __init__(self, picaResultForUI):
+        self.picaResultForUI = picaResultForUI
+        self.__calc()
+
+    TITLES = [{"title" : ""}, {"title" : "+"}, {"title" : "-"}, {"title" : "n.d."}, {"title" : "n.c."}]
+
+    def __calc(self):
+        self.values = []
+        pica_models = PicaModel.objects.all()
+        for pica_model in pica_models:
+            tmp_arr = []
+            tmp_arr.append(pica_model.model_name)
+            pica_results = PicaResult.objects.filter(model=pica_model)
+            if(len(pica_results) == 0):
+                continue #model not used in this prediction (e.g. old model)
