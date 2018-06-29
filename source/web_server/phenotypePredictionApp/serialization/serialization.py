@@ -43,7 +43,7 @@ class _PredictionDetails:
         self.picaResultForUI = picaResultForUI
         self.__calc()
 
-    TITLES = [{"title" : "Bin"}, {"title" : "Model"}, {"title" : "Prediction"}, {"title" : "Prediction\nConfidence"}, {"title" : "Balanced\nAccuracy"}]
+    TITLES = [{"title" : "Bin"}, {"title" : "Model"}, {"title" : "Prediction"}, {"title" : "Pred. Confidence"}, {"title" : "Bal. Accuracy"}]
 
     def get_values(self):
         return self.values
@@ -127,7 +127,7 @@ class _BinSummary:
     TITLES = [{"title": "Bin"},
               {"title": "Completeness"},
               {"title": "Contamination"},
-              {"title": "Strain\nheterogeneity"},
+              {"title": "Strain\nhet."},
               {"title": "Taxon ID"},
               {"title": "Taxon name"},
               {"title": "Taxon rank"}]
