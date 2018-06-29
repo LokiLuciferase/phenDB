@@ -50,7 +50,7 @@
             </div>
             <h3>Bin Summary</h3>
             <div id="bin_summary">
-                <table id="table_bin_summary" style
+                <table id="table_bin_summary" class="result_table"></table>
             </div>
         </div>
     </div>
@@ -62,5 +62,6 @@
         var dataTable1 = new DataTable({{ prediction_details_values | safe}}, {{ prediction_details_titles | jsonify | safe}}, "#table_prediction_details");
         var dataTable2 = new DataTable({{ prediction_values | safe }}, {{ prediction_titles |jsonify | safe }}, "#table_prediction");
         var dataTable3 = new DataTable({{ trait_counts_values | safe }}, {{ trait_counts_titles |jsonify | safe }}, "#table_trait_counts");
+        var dataTable4 = new DataTable({{ bin_summary_values | safe }}, {{ bin_summary_titles |jsonify | safe }}, "#table_bin_summary");
     });
 </script>
