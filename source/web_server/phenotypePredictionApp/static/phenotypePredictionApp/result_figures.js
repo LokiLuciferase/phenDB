@@ -3,6 +3,7 @@ function DataTable(data, titles, identifier) {
     this.data = data;
     this.titles = titles;
     this.identifier = identifier;
+    this.initialize_result_figures()
 
     this.initialize_result_figures = function () {
 

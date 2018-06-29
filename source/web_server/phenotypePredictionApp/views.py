@@ -193,8 +193,11 @@ def getResults(request):
                'queuePos' : queuePos + 1,
                'queueLen' : queueLen,
                'all_models' : PicaModel.objects.all,
-               'table_prediction_details_data' : pica_result_for_ui.prediction_details.get_values(),
-               'table_prediction_details_titles' : pica_result_for_ui.prediction_details.get_titles()}
+               'prediction_details_values' : pica_result_for_ui.prediction_details.get_values(),
+               'prediction_details_titles' : pica_result_for_ui.prediction_details.get_titles(),
+               'prediction_values' : pica_result_for_ui.prediction.get_values(),
+               'prediction_titles' : pica_result_for_ui.prediction.get_titles()
+               }
 
     return HttpResponse(template.render(context, request))
 

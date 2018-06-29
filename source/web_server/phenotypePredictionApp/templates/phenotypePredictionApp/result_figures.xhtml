@@ -38,11 +38,11 @@
         <div id="all_result_tables">
             <h3>Trait Prediction</h3>
             <div id="trait_prediction">
-                <table id="trait_prediction_table" style="overflow-x:auto"></table>
+                <table id="table_prediction" style="overflow-x:auto"></table>
             </div>
             <h3>Accuracy + Probability info</h3>
             <div id="trait_prediction_accuracy">
-                <table id="prediction_details" style="overflow-x:auto"></table>
+                <table id="table_prediction_details" style="overflow-x:auto"></table>
             </div>
             <h3>Trait Count Summary</h3>
             <div id="trait_prediction_summary">
@@ -53,9 +53,9 @@
 </div>
 <script type="text/javascript">
     $(document).ready(function() {
-        window.table_prediction_details_data = {{ table_prediction_details_data | safe}}
-        window.table_prediction_details_titles = {{ table_prediction_details_titles | jsonify | safe }}
-        var dataTable = new DataTable({{ table_prediction_details_data | safe}}, {{ table_prediction_details_titles | jsonify | safe}}, "#prediction_details");
-        dataTable.initialize_result_figures();
+        window.prediction_data = {{ prediction_values | safe}}
+        window.prediction_titles = {{ prediction_titles | jsonify | safe }}
+        var dataTable1 = new DataTable({{ prediction_details_values | safe}}, {{ prediction_details_titles | jsonify | safe}}, "#table_prediction_details");
+        var dataTable2 = new DataTable({{ prediction_values | safe }}, {{ prediction_titles |jsonify | safe }}, "#table_prediction");
     });
 </script>
