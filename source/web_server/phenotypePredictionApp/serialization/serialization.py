@@ -1,4 +1,4 @@
-from phenotypePredictionApp.models import Job, PicaResult, BinInJob, PicaModel
+from phenotypePredictionApp.models import Job, PicaResult, BinInJob, PicaModel, Taxon
 
 class PicaResultForUI:
 
