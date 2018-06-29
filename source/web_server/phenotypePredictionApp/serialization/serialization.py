@@ -94,7 +94,7 @@ class _TraitCounts:
     def __calc(self):
         self.values = []
         pica_models = PicaModel.objects.all()
-        all_bins = map(lambda x: x.bin, self.picaResultForUI.all_bins_in_job)
+        all_bins = list(map(lambda x: x.bin, self.picaResultForUI.all_bins_in_job))
         print(all_bins)
         for pica_model in pica_models:
             print("pica_model " + pica_model.model_name)
