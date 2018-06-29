@@ -70,8 +70,9 @@ class _Prediction:
             pica_models = PicaModel.objects.all()
             values_tmp = [bin_name]
             self.titles = [""]
+            pica_result_per_bin = PicaResult.objects.filter(bin=bin)
             for pica_model in pica_models:
-                pica_result = PicaResult.objects.filter(bin=bin, model=pica_model)
+                pica_result = pica_result_per_bin(model=pica_model)
                 if len(pica_result) == 0:
                     continue #model not used in this prediction (e.g. old model)
                 values_tmp.append("+" if pica_result[0].verdict else "-")
