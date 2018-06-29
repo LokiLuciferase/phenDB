@@ -75,7 +75,7 @@ class _Prediction:
                 if len(pica_result) == 0:
                     continue #model not used in this prediction (e.g. old model)
                 values_tmp.append("+" if pica_result[0].verdict else "-")
-                self.titles.append(pica_result[0].model.model_name)
+                self.titles.append({"title" : pica_result[0].model.model_name})
             self.values.append(values_tmp)
 
     def get_values(self):
