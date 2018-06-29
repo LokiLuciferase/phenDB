@@ -96,8 +96,7 @@ class _TraitCounts:
         pica_models = PicaModel.objects.all()
         all_bins = map(lambda x: x.bin, self.picaResultForUI.all_bins_in_job)
         for pica_model in pica_models:
-            tmp_arr = []
-            tmp_arr.append(pica_model.model_name)
+            print("pica_model " + pica_model.model_name)
             pica_results = PicaResult.objects.filter(bin__in= all_bins,model=pica_model)
             if(len(pica_results) == 0):
                 continue #model not used in this prediction (e.g. old model)
