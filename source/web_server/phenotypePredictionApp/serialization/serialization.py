@@ -54,5 +54,3 @@ class _TablePredictionDetails:
             single_row.append(item.accuracy)
             arr.append(single_row)
         return arr
-
-class
