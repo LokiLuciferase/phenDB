@@ -30,10 +30,10 @@ class PicaResultForUI:
 
         if self.disable_cutoffs or (not nd_masked and not nc_masked):
             return result_string
-        elif nd_masked:
-            return "n.d."
         elif nc_masked:
             return "n.c."
+        elif nd_masked:
+            return "n.d."
         else:
             raise RuntimeError
 
