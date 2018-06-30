@@ -47,7 +47,7 @@ class MailNotification(threading.Thread):
         print(stdout)
         print(stderr)
 
-        file_log = open(os.path.join("/apps/phenDB/logs/logmail.txt"), "w")
+        file_log = open("/apps/phenDB/logs/logmail.txt", "w")
         file_log.write("stdout:")
         file_log.write(stdout)
         file_log.write("stderr:")
