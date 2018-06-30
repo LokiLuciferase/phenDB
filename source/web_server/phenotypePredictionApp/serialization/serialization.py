@@ -51,7 +51,7 @@ class _PredictionDetails:
         arr = []
         for item in single_pica_result:
             single_row = []
-            single_row.append("" if bin_name is None else bin_name)
+            single_row.append(bin_name)
             single_row.append(item.model.model_name)
             single_row.append("+" if item.verdict else "-")
             single_row.append(round(item.pica_pval, 2))
