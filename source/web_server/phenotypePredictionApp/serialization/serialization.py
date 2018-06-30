@@ -2,7 +2,7 @@ from phenotypePredictionApp.models import Job, PicaResult, BinInJob, PicaModel, 
 
 class PicaResultForUI:
 
-    def __init__(self, job):
+    def __init__(self, job, requested_conf=None, requested_balac=None, disable_cutoffs=None):
         self.job = job
         self.requested_balac = float(job.requested_balac) if not requested_balac else float(requested_balac)
         self.requested_conf = float(job.requested_conf) if not requested_conf else float(requested_conf)
