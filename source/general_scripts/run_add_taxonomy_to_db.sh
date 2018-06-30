@@ -2,5 +2,5 @@
 set -e
 source "/apps/phenDB/source/general_scripts/variables.sh"
 
-cd ${BASEDIR}/source/web_server/businessLogic
-python3 delete_old_user_data.py
+cd ${BASEDIR}/source/general_scripts
+python3 add_taxonomy_to_db.py

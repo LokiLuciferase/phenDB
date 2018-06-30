@@ -1,0 +1,59 @@
+<div class="column" id="input_section" title="Your Input" style="margin:10px; display : {{ showInputFormCSS }}" >
+    <div>
+        <button id="queue_show" type="button" style="float:right">Job Queue</button>
+        <div id="queue_info" title="PhenDB Job Queue">
+        Currently {{ queueLen }} jobs waiting to be calculated.
+        </div>
+    </div>
+    <div class="row" id="description">
+        Upload your FASTA-files (as .fasta or compressed in a tar.gz / zip folder). The fasta files themselves may be compressed as .gz. Nested directories cannot be processed.
+        To get a notification when phenDB is finished, submit your email address (optional).
+    </div>
+    <div class="row">
+        <div class="column" style="flex:50">
+            <label for="fileInput"><b>Input</b></label>
+        </div>
+        <div class="column inputField" style="flex:50">
+            <input id="fileInput" name="fileInput" type="file" accept=".tar.gz, .zip, .fasta, .fna, .fa" required="true" ></input>
+        </div>
+    </div>
+    <div class="row">
+        <div class="column" style="flex:50">
+            <label for="requested_balac"><b>Balanced Accuracy cut-off (0.5 - 1)</b></label>
+        </div>
+        <div class="column inputField" style="flex:50">
+            <input id="requested_balac" name="requested_balac" type="text" value="0.75"></input>
+        </div>
+    </div>
+    <div class="row">
+        <div class="column" style="flex:50">
+            <label for="requested_conf"><b>Prediction Confidence cut-off (0.5 - 1)</b></label>
+        </div>
+        <div class="column inputField" style="flex:50">
+            <input id="requested_conf" name="requested_conf" type="text" value="0.6"></input>
+        </div>
+    </div>
+    <div class="row">
+        <div class="column" style="flex:50">
+            <label for="disable_cutoffs"><b>Experimental: Disable all filters and cut-offs</b></label>
+        </div>
+        <div class="column inputField" style="flex:50">
+            <input id="disable_cutoffs" name="disable_cutoffs" type="checkbox" value="0"></input>
+        </div>
+    </div>
+    <div class="row">
+        <div class="column" style="flex:50">
+            <label for="fileInput"><b>email (optional) </b></label>
+        </div>
+        <div class="column inputField" style="flex:50">
+            <input id="user_mail" name="user_email" type="email"></input>
+        </div>
+    </div>
+    <div class="row">
+        <div class="column" style="flex:100">
+        </div>
+        <div class="column inputField">
+            <input type="submit" value="Send" ></input>
+        </div>
+    </div>
+</div>

@@ -21,7 +21,7 @@ class MailNotification(threading.Thread):
     def run(self):
         while True:
             self.runCounter += 1
-            obj = UploadedFile.objects.get(key=self.key)
+            obj = Job.objects.get(key=self.key)
             if obj.total_bins == obj.finished_bins and obj.total_bins != 0:
                 self.__sendMail(obj.user_email, GlobalVariables.WEBSERVER_URL + "/phendb/results/" + self.key)
                 break

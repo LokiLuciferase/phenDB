@@ -9,10 +9,10 @@ from redis import Redis
 from rq import Queue
 
 os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
-sys.path.append("/apps/phenDB/source/web_server")  # TODO: absolute path
+sys.path.append("/apps/phenDB/source/web_server")
 
+from phenotypePredictionApp.variables import PHENDB_QUEUE, PHENDB_BASEDIR
 from enqueue_job import delete_user_data
-from phenotypePredictionApp.variables import *
 
 # enqueue a call to delete_user_data() into the redis queue
 # which deletes all user data older than days_back

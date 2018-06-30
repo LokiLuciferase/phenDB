@@ -2,9 +2,10 @@ from django.contrib import admin
 import os
 
 # Register your models here.
-from .models import UploadedFile, model, bin
+from .models import Job, PicaModel, Bin, BinInJob
 
 
+# create a display for the Job table
 class JobDisplay(admin.ModelAdmin):
 
     def bal_acc_cutoff(obj):
@@ -35,11 +36,13 @@ class JobDisplay(admin.ModelAdmin):
     no_errors.boolean = True
     link_to_results.allow_tags = True
     actions = None
-
-    list_display = ('job_date', 'user_email', 'user_ip', 'finished_bins', 'total_bins', bal_acc_cutoff, no_errors, "error_type", uploaded_file_name, link_to_results)
+    list_display = ('job_date', 'user_email', 'user_ip', 'finished_bins',
+                    'total_bins', bal_acc_cutoff, "error_type", uploaded_file_name, link_to_results)
     list_display_links = None
     search_fields = ('user_email', 'user_ip', 'filename')
 
+
+# create a display for the PicaModel table
 class ModelDisplay(admin.ModelAdmin):
 
     def has_add_permissions(self, request):
@@ -52,6 +55,8 @@ class ModelDisplay(admin.ModelAdmin):
     list_display_links = None
     actions = None
 
+
+# create a display for the Bin table
 class BinDisplay(admin.ModelAdmin):
 
     def has_add_permissions(self, request):
@@ -66,12 +71,12 @@ class BinDisplay(admin.ModelAdmin):
     def contamination(obj):
         return obj.conta
 
+    list_display = ("md5sum", completeness, contamination, "strainhet", "tax_id")
 
-    list_display = ('bin_name', completeness, contamination, "tax_id")
 
 admin.site.site_header = "PhenDB Admin Pages"
 admin.site.site_title = "PhenDB Admin Pages"
 admin.site.index_title = "PhenDB Admin Pages"
-admin.site.register(UploadedFile, JobDisplay)
-admin.site.register(model, ModelDisplay)
-admin.site.register(bin, BinDisplay)
+admin.site.register(Job, JobDisplay)
+admin.site.register(PicaModel, ModelDisplay)
+admin.site.register(Bin, BinDisplay)
