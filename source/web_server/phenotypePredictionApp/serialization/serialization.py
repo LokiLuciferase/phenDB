@@ -1,12 +1,14 @@
 from phenotypePredictionApp.models import Job, PicaResult, BinInJob, PicaModel, Taxon
 
 class PicaResultForUI:
-    def __init__(self, job, requested_balac=None, requested_conf=None, disable_cutoffs=None):
+
+    def __init__(self, job, requested_conf=None, requested_balac=None, disable_cutoffs=None):
         self.job = job
         self.requested_balac = float(job.requested_balac) if not requested_balac else float(requested_balac)
         self.requested_conf = float(job.requested_conf) if not requested_conf else float(requested_conf)
         self.disable_cutoffs = bool(job.disable_cutoffs) if not disable_cutoffs else bool(disable_cutoffs)
         self.all_bins_in_job = BinInJob.objects.filter(job=job)
+        self.bin_alias_list = list(map(lambda x: x.bin_alias,self.all_bins_in_job))
         self.__calc_prediction_details()
         self.__calc_prediction()
         self.__calc_trait_counts()
@@ -44,7 +46,7 @@ class _PredictionDetails:
         self.picaResultForUI = picaResultForUI
         self.__calc()
 
-    TITLES = [{"title" : "Bin"}, {"title" : "Model"}, {"title" : "Prediction"}, {"title" : "Pred. Confidence"}, {"title" : "Bal. Accuracy"}]
+    TITLES = [{"title" : "Bin"}, {"title" : "Model"}, {"title" : "Prediction"}, {"title" : "Prediction_Confidence"}, {"title" : "Balanced_Accuracy"}]
 
     def get_values(self):
         return self.values
@@ -60,11 +62,12 @@ class _PredictionDetails:
             arr = arr + self.__parse_bin(single_pica_result, bin_name)
         self.values = arr
 
+
     def __parse_bin(self, single_pica_result, bin_name):
         arr = []
         for item in single_pica_result:
             single_row = []
-            single_row.append("" if bin_name is None else bin_name)
+            single_row.append(bin_name)
             single_row.append(item.model.model_name)
             single_row.append(self.picaResultForUI._apply_masks(item))
             single_row.append(round(item.pica_pval, 2))
@@ -141,8 +144,7 @@ class _BinSummary:
     TITLES = [{"title": "Bin"},
               {"title": "Completeness"},
               {"title": "Contamination"},
-              {"title": "Strain\nhet."},
-              {"title": "Taxon ID"},
+              {"title": "Strain heterogeneity"},
               {"title": "Taxon name"},
               {"title": "Taxon rank"}]
 

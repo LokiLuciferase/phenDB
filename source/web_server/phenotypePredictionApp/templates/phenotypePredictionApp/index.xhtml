@@ -10,6 +10,7 @@
         <title>PhenDB</title>
     </head>
 
+
     <body>
     {% include "phenotypePredictionApp/pu-popups.xhtml" %}
     <div id="title">
@@ -26,7 +27,11 @@
 
     {% include "phenotypePredictionApp/result_figures.xhtml" %}
 
-    {% include "phenotypePredictionApp/helpsection.xhtml" %}
+    {% if not showProgressBar %}
+        <div style="text-align:right; margin:10px;"  id="help_section" title="Help">
+            <button id="get_help">Need Help?</button>
+        </div>
+    {% endif %}
 
     {% include "phenotypePredictionApp/primeui_components.xhtml" %}
 
@@ -67,5 +72,8 @@
             });
             {% endif %}
         </script>
+
+
+
     </body>
 </html>
