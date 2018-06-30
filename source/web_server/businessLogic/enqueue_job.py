@@ -115,7 +115,7 @@ def delete_user_data(days):
     orphan_bij = BinInJob.objects.filter(job=None)
     orphan_bij.delete()
 
-    orphan_bins = Bin.objects.filter(bininjob=None)
+    orphan_bins = Bin.objects.filter(bininjob=None).exclude(bininjob__job__key__icontains="PHENDB_PRECALC")
     orphan_bins.delete()
 
     # look for unassociated result_enog and result_model

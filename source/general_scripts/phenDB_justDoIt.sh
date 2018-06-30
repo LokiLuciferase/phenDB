@@ -72,7 +72,7 @@ function stop() {
     echo "Shutting down rq-worker and Redis queue for phenDB..."
     kill $(ps aux | grep usr/bin/[r]q | tr -s " " | cut -f2 -d" ")
     while [[ $(ps aux | grep "/usr/bin/[r]q") != "" ]]; do
-        sleep 10
+        sleep 3
     done
     kill $(pgrep redis-server)
 }
