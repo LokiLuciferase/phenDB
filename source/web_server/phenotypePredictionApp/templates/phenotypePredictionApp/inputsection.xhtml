@@ -6,20 +6,20 @@
         </div>
     </div>
     <div class="row" id="description">
-        Upload your FASTA-files (as .fasta or compressed in a tar.gz / zip folder). The fasta files themselves may be compressed as .gz. Nested directories cannot be processed.
-        To get a notification when phenDB is finished, submit your email address (optional).
+        Upload your FASTA-files (a single .fasta file or multiple files compressed in a tar.gz/zip archive). FASTA files may be .gz compressed. Nested directories cannot be processed.
+        <br/>To get a notification when phenDB is finished, submit your email address (optional).
     </div>
     <div class="row">
         <div class="column" style="flex:50">
             <label for="fileInput"><b>Input</b></label>
         </div>
         <div class="column inputField" style="flex:50">
-            <input id="fileInput" name="fileInput" type="file" accept=".tar.gz, .zip, .fasta, .fna, .fa" required="true" ></input>
+            <input id="fileInput" name="fileInput" type="file" accept=".tar.gz, .zip, .fasta, .fna, .fa, .gz, .faa" required="true" ></input>
         </div>
     </div>
     <div class="row">
         <div class="column" style="flex:50">
-            <label for="requested_balac"><b>Balanced Accuracy cut-off (0.5 - 1)</b></label>
+            <label for="requested_balac"><b>Balanced accuracy cut-off (0.5 - 1)</b></label>
         </div>
         <div class="column inputField" style="flex:50">
             <input id="requested_balac" name="requested_balac" type="text" value="0.75"></input>
@@ -27,7 +27,7 @@
     </div>
     <div class="row">
         <div class="column" style="flex:50">
-            <label for="requested_conf"><b>Prediction Confidence cut-off (0.5 - 1)</b></label>
+            <label for="requested_conf"><b>Prediction confidence cut-off (0.5 - 1)</b></label>
         </div>
         <div class="column inputField" style="flex:50">
             <input id="requested_conf" name="requested_conf" type="text" value="0.6"></input>
@@ -35,7 +35,7 @@
     </div>
     <div class="row">
         <div class="column" style="flex:50">
-            <label for="disable_cutoffs"><b>Experimental: Disable all filters and cut-offs</b></label>
+            <label for="disable_cutoffs"><b>Disable all filters and cut-offs</b></label>
         </div>
         <div class="column inputField" style="flex:50">
             <input id="disable_cutoffs" name="disable_cutoffs" type="checkbox" value="0"></input>
