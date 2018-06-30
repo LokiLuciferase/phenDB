@@ -13,6 +13,11 @@
         {% load jsonify %}
         {% include "phenotypePredictionApp/imports.xhtml" %}
         <title>PhenDB</title>
+        <script>
+            $(document).ready(function() {
+                document.getElementsByTagName("html")[0].style.visibility = "visible";
+            });
+        </script>
     </head>
 
 
@@ -75,10 +80,6 @@
         </script>
 
 
-        <script>
-            $(document).ready(function() {
-                document.getElementsByTagName("html")[0].style.visibility = "visible";
-            });
-        </script>
+
     </body>
 </html>
