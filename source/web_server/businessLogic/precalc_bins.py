@@ -17,14 +17,14 @@ from datetime import date, timedelta, datetime
 from redis import Redis
 from rq import Queue
 
-from phenotypePredictionApp.variables import PHENDB_BASEDIR, PHENDB_QUEUE, PHENDB_DEBUG
-from enqueue_job import phenDB_enqueue
 
-ppath = PHENDB_BASEDIR + "/source/web_server"
+ppath = "apps/phenDB/source/web_server"
 os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
 sys.path.append(ppath)
 django.setup()
 from phenotypePredictionApp.models import Bin, Job, BinInJob, Taxon
+from phenotypePredictionApp.variables import PHENDB_BASEDIR, PHENDB_QUEUE, PHENDB_DEBUG
+from enqueue_job import phenDB_enqueue
 
 
 parser = argparse.ArgumentParser()

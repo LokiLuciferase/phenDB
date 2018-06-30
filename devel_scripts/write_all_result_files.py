@@ -7,7 +7,7 @@ import datetime
 import os
 import sys  # remove this in process
 
-sys.path.append("/apps/phenDB_devel_LL/source/web_server")  # remove this in process
+sys.path.append("/apps/phenDB/source/web_server")  # remove this in process
 os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
 django.setup()
 from phenotypePredictionApp.models import Job, Bin, BinInJob, PicaModel, PicaResult, Taxon
