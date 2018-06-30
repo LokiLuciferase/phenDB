@@ -56,7 +56,6 @@ function __initialize_widgets() {
     $('#disable_cutoffs').puicheckbox();
     $('#result_download').puipanel();
     $('#result_figure_trait_prediction').puipanel({closable:false, collapsed:false});
-    $('#help_section').puipanel({toggleable: true, closable: false, collapsed: true});
 }
 
 function __initialize_error_messages() {
@@ -79,6 +78,12 @@ function __initialize_controls() {
                 window.open("http://phendb.csb.univie.ac.at/reports/modeloverview");
             }
         });
+    $('#get_help').puibutton({
+        icon: 'fa-external-link-square',
+            click: function() {
+                window.open("http://phendb.csb.univie.ac.at/help");
+            }
+    });
     $('#dt_results_pval_filter').puispinner({step:0.05});
     $('#dt_results_accuracy_filter').puispinner({step:0.05});
 }

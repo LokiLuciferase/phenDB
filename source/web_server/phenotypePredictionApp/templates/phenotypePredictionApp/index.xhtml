@@ -27,7 +27,9 @@
 
     {% include "phenotypePredictionApp/result_figures.xhtml" %}
 
-    {% include "phenotypePredictionApp/helpsection.xhtml" %}
+    <div style="text-align:justify; text-justify:inter-word; line-height: 110%; white-space: pre-line; margin:10px; display:{{ showInputFormCSS }}"  id="help_section" title="Help">
+        <button id="get_help">You need Help?</button>
+    </div>
 
     {% include "phenotypePredictionApp/primeui_components.xhtml" %}
 
