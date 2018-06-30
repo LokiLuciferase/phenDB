@@ -3,12 +3,24 @@
 
 <html xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
 
+
     <head>
         {% load static %}
         {% load jsonify %}
         {% include "phenotypePredictionApp/imports.xhtml" %}
         <title>PhenDB</title>
     </head>
+
+    {# prevents that the page is displayed before the primeUI elements are loaded #}
+    <style>
+        html { visibility:hidden; }
+    </style>
+    <script>
+        $(document).ready(function() {
+            document.getElementsByTagName("html")[0].style.visibility = "visible";
+        });
+    </script>
+    {# ---------------------------------------------------------------------- #}
 
     <body>
     {% include "phenotypePredictionApp/pu-popups.xhtml" %}
