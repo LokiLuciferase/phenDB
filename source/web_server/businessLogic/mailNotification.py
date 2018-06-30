@@ -4,7 +4,7 @@ import os
 import threading
 from django.core.mail import *
 import subprocess
-#from phenotypePrediction.settings import GlobalVariables
+from phenotypePrediction.settings import GlobalVariables
 from phenotypePredictionApp.models import *
 from subprocess import Popen, PIPE
 
