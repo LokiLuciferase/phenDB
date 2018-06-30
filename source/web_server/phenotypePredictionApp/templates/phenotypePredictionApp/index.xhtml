@@ -3,6 +3,10 @@
 
 <html xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
 
+    {# prevents that the page is displayed before the primeUI elements are loaded #}
+    <style>
+        html { visibility:hidden; }
+    </style>
 
     <head>
         {% load static %}
@@ -11,16 +15,6 @@
         <title>PhenDB</title>
     </head>
 
-    {# prevents that the page is displayed before the primeUI elements are loaded #}
-    <style>
-        html { visibility:hidden; }
-    </style>
-    <script>
-        $(document).ready(function() {
-            document.getElementsByTagName("html")[0].style.visibility = "visible";
-        });
-    </script>
-    {# ---------------------------------------------------------------------- #}
 
     <body>
     {% include "phenotypePredictionApp/pu-popups.xhtml" %}
@@ -78,6 +72,13 @@
                 });
             });
             {% endif %}
+        </script>
+
+
+        <script>
+            $(document).ready(function() {
+                document.getElementsByTagName("html")[0].style.visibility = "visible";
+            });
         </script>
     </body>
 </html>
