@@ -38,7 +38,7 @@ class MailNotification(threading.Thread):
         message = EmailMessage()
         message.from_email = "donotreply@phen.csb.univie.ac.at"
         message.subject = "PhenDB notification"
-        message.body = 'Your PhenDB results are now available under phen.csb.univie.ac.at' + url + '\n \n This mail was sent automatically. Please do not respond to it.'
+        message.body = 'Your PhenDB results are now available under phen.csb.univie.ac.at/' + url + '\n \n This mail was sent automatically. Please do not respond to it.'
 
         ps.stdin.write(message.message().as_bytes())
         (stdout, stderr) = ps.communicate()
