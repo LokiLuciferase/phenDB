@@ -65,10 +65,18 @@
 <script type="text/javascript">
     $(document).ready(function() {
         //window.bin_alias_list = {{ bin_alias_list | safe }}
-        var table_prediction_details = new DataTable({{ prediction_details_values | safe}}, {{ prediction_details_titles | jsonify | safe}}, "#table_prediction_details");
-        table_prediction_details.addFiltering("#filter_test", [], 0);
-        var table_prediction = new DataTable({{ prediction_values | safe }}, {{ prediction_titles |jsonify | safe }}, "#table_prediction");
-        var table_trait_counts = new DataTable({{ trait_counts_values | safe }}, {{ trait_counts_titles |jsonify | safe }}, "#table_trait_counts");
-        var table_bin_summary = new DataTable({{ bin_summary_values | safe }}, {{ bin_summary_titles |jsonify | safe }}, "#table_bin_summary");
+        try {
+            var table_prediction_details = new DataTable({{ prediction_details_values | safe}}, {{ prediction_details_titles | jsonify | safe}}, "#table_prediction_details");
+            table_prediction_details.addFiltering("#filter_test", [], 0);
+        } catch(e) {console.log("table_prediction_details failed" + " " + e);}
+        try {
+            var table_prediction = new DataTable({{ prediction_values | safe }}, {{ prediction_titles |jsonify | safe }}, "#table_prediction");
+        } catch(e) {console.log("table_prediction failed" + " " + e);}
+        try {
+            var table_trait_counts = new DataTable({{ trait_counts_values | safe }}, {{ trait_counts_titles |jsonify | safe }}, "#table_trait_counts");
+        } catch(e) {console.log("table_trait_counts failed" + " " + e);}
+        try {
+            var table_bin_summary = new DataTable({{ bin_summary_values | safe }}, {{ bin_summary_titles |jsonify | safe }}, "#table_bin_summary");
+        } catch(e) {console.log("table_bin_summary failed" + " " + e);}
     });
 </script>
