@@ -37,8 +37,8 @@ class MailNotification(threading.Thread):
         ps = Popen(["/usr/sbin/sendmail", mailAddress], stdin=PIPE, stderr=PIPE)
 
         message = EmailMessage()
-        message.subject = "phenDB notification"
-        message.body = 'Your phenDB results are now available under phen.csb.univie.ac.at' + url + '\n \n This mail was sent automatically.Please do not respond to it.'
+        message.subject = "PhenDB notification"
+        message.body = 'Your PhenDB results are now available under phen.csb.univie.ac.at' + url + '\n \n This mail was sent automatically.Please do not respond to it.'
 
         ps.stdin.write(message.message().as_bytes())
         (stdout, stderr) = ps.communicate()
@@ -47,7 +47,7 @@ class MailNotification(threading.Thread):
         print(stdout)
         print(stderr)
 
-        file_log = open(os.path.join(PHENDB_BASEDIR, "logs/logmail.txt"), "w")
+        file_log = open(os.path.join("/apps/phenDB/logs/logmail.txt"), "w")
         file_log.write("stdout:")
         file_log.write(stdout)
         file_log.write("stderr:")
