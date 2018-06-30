@@ -4,6 +4,9 @@ class PicaResultForUI:
 
     def __init__(self, job):
         self.job = job
+        self.requested_balac = float(job.requested_balac) if not requested_balac else float(requested_balac)
+        self.requested_conf = float(job.requested_conf) if not requested_conf else float(requested_conf)
+        self.disable_cutoffs = bool(job.disable_cutoffs) if not disable_cutoffs else bool(disable_cutoffs)
         self.all_bins_in_job = BinInJob.objects.filter(job=job)
         self.bin_alias_list = list(map(lambda x: x.bin_alias,self.all_bins_in_job))
         self.__calc_prediction_details()
@@ -23,9 +26,22 @@ class PicaResultForUI:
     def __calc_bin_summary(self):
         self.bin_summary = _BinSummary(self)
 
+    def _apply_masks(self, result):
+        result_string = "+" if result.verdict else "-"
+        nc_masked = result.nc_masked
+        nd_masked = result.pica_pval <= self.requested_conf or result.accuracy <= self.requested_balac
+
+        if self.disable_cutoffs or (not nd_masked and not nc_masked):
+            return result_string
+        elif nc_masked:
+            return "n.c."
+        elif nd_masked:
+            return "n.d."
+        else:
+            raise RuntimeError
+
 
 class _PredictionDetails:
-
     def __init__(self, picaResultForUI):
         self.picaResultForUI = picaResultForUI
         self.__calc()
@@ -53,14 +69,14 @@ class _PredictionDetails:
             single_row = []
             single_row.append(bin_name)
             single_row.append(item.model.model_name)
-            single_row.append("+" if item.verdict else "-")
+            single_row.append(self.picaResultForUI._apply_masks(item))
             single_row.append(round(item.pica_pval, 2))
             single_row.append(round(item.accuracy, 2))
             arr.append(single_row)
         return arr
 
-class _Prediction:
 
+class _Prediction:
     def __init__(self, picaResultForUI):
         self.picaResultForUI = picaResultForUI
         self.__calc()
@@ -73,13 +89,13 @@ class _Prediction:
             pica_models = PicaModel.objects.all()
             values_tmp = [bin_name]
             self.titles = [""]
-            pica_result_per_bin = PicaResult.objects.filter(bin=bin)
             for pica_model in pica_models:
-                pica_result = pica_result_per_bin.filter(model=pica_model)
+                pica_result = PicaResult.objects.filter(bin=bin, model=pica_model)
                 if len(pica_result) == 0:
-                    continue #model not used in this prediction (e.g. old model)
-                values_tmp.append("+" if pica_result[0].verdict else "-")
-                self.titles.append({"title" : pica_result[0].model.model_name})
+                    continue # model not used in this prediction (e.g. old model)
+                self.titles.append({"title": pica_result[0].model.model_name})
+                values_tmp.append(self.picaResultForUI._apply_masks(pica_result[0]))
+
             self.values.append(values_tmp)
 
     def get_values(self):
@@ -87,6 +103,7 @@ class _Prediction:
 
     def get_titles(self):
         return self.titles
+
 
 class _TraitCounts:
     def __init__(self, picaResultForUI):
@@ -104,11 +121,12 @@ class _TraitCounts:
             pica_results = PicaResult.objects.filter(bin__in= [bin for bin in all_bins],model=pica_model)
             print(len(pica_results))
             if(len(pica_results) == 0):
-                continue #model not used in this prediction (e.g. old model)
-            true_count = len(pica_results.filter(verdict=True, nc_masked=False))
-            false_count = len(pica_results.filter(verdict=False, nc_masked=False))
-            nd_count = 0 #TODO: change / implement
-            nc_count = len(pica_results.filter(nc_masked=True))
+                continue # model not used in this prediction (e.g. old model)
+            all_results = [self.picaResultForUI._apply_masks(x) for x in pica_results]
+            true_count = len([x for x in all_results if x == "+"])
+            false_count = len([x for x in all_results if x == "-"])
+            nd_count = len([x for x in all_results if x == "n.d."])
+            nc_count = len([x for x in all_results if x == "n.c."])
             self.values.append([pica_model.model_name, true_count, false_count, nd_count, nc_count])
 
     def get_values(self):
