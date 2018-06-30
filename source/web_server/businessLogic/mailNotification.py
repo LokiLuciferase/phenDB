@@ -31,24 +31,20 @@ class MailNotification(threading.Thread):
             time.sleep(sleepTime)
 
     def __sendMail(self, mailAddress, url):
-
-        #message =  'To:' + mailAddress + '\n Subject: phenDB notification \n From: donotreply@phen.csb.univie.ac.at \n Your phenDB results are now available under phen.csb.univie.ac.at' + url + '\n \n This mail was sent automatically.Please do not respond to it.'
-
-        ps = Popen(["/usr/sbin/sendmail.postfix", mailAddress], stdin=PIPE, stderr=PIPE)
+        # TODO: had to set /var/spool/clientmqueue to 777 to allow sending by httpd
+        # Fix this soon
+        ps = Popen(["/usr/sbin/sendmail", mailAddress], stdin=PIPE, stderr=PIPE)
 
         message = EmailMessage()
+        message.from_email = "donotreply@phen.csb.univie.ac.at"
         message.subject = "PhenDB notification"
-        message.body = 'Your PhenDB results are now available under phen.csb.univie.ac.at' + url + '\n \n This mail was sent automatically.Please do not respond to it.'
+        message.body = 'Your PhenDB results are now available under phen.csb.univie.ac.at' + url + '\n \n This mail was sent automatically. Please do not respond to it.'
 
         ps.stdin.write(message.message().as_bytes())
         (stdout, stderr) = ps.communicate()
 
-        print("mailNotification called")
-        print(stdout)
-        print(stderr)
-
-        file_log = open("/apps/phenDB/logs/logmail.txt", "w")
-        file_log.write("stdout:")
-        file_log.write(stdout)
-        file_log.write("stderr:")
-        file_log.write(stderr)
+        with open("/apps/phenDB/logs/logmail.txt", "w") as file_log:
+            file_log.write("stdout: ")
+            file_log.write(stdout)
+            file_log.write("stderr: ")
+            file_log.write(stderr)
