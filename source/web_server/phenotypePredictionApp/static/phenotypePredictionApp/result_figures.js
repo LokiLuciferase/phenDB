@@ -10,9 +10,8 @@ function DataTable(data, titles, identifier) {
             data: this.data,
             columns: this.titles,
             searching: true,
-            /* dom: '<"table_buttons"B>l<"result_table"t><"table_pagination"p>', */
-            dom: 'Bfrtip',
-            /* columnDefs: [
+            dom: '<"table_buttons"B>l<"result_table"t><"table_pagination"p>',
+            columnDefs: [
                 {
                     targets: "_all",
                     className: 'dt-body-center'
@@ -21,17 +20,16 @@ function DataTable(data, titles, identifier) {
                     targets: "_all",
                     className: 'dt-head-center'
                 },
-            ], */
+            ],
             buttons: [
-                'colvis',
-               /* {
+                {
                     extend: 'csv',
                     text: 'Download table as csv'
                 },
                 {
                     extend: 'excel',
                     text: 'Download table as Excel (.xlsx)'
-                } */
+                }
             ],
         });
         return dataTable;
@@ -62,7 +60,7 @@ function DataTable(data, titles, identifier) {
     }
 
     this.add_colvis_filter = function() {
-        //this.dataTable.button().add('colvis');
+        this.dataTable.button().add('colvis');
     }
 }
 

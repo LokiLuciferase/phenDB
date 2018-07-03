@@ -80,10 +80,11 @@
             var table_prediction_details = new DataTable({{ prediction_details_values | safe}}, {{ prediction_details_titles | jsonify | safe}}, "#table_prediction_details");
             table_prediction_details.addFiltering("#trait_prediction_details_bin_filter", {{ bin_alias_list | safe }}, 0);
             table_prediction_details.addFiltering('#trait_prediction_details_model_filter', {{ model_list | safe }}, 1)
+            table_prediction_details.add_colvis_filter()
         } catch(e) {console.log("table_prediction_details failed" + " " + e);}
         try {
             var table_prediction = new DataTable({{ prediction_values | safe }}, {{ prediction_titles |jsonify | safe }}, "#table_prediction");
-            table_prediction.add_colvis_filter();
+            window.table_prediction = table_prediction;
         } catch(e) {console.log("table_prediction failed" + " " + e);}
         try {
             var table_trait_counts = new DataTable({{ trait_counts_values | safe }}, {{ trait_counts_titles |jsonify | safe }}, "#table_trait_counts");
