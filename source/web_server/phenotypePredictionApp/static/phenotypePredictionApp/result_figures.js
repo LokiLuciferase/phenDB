@@ -61,7 +61,7 @@ function DataTable(data, titles, identifier) {
     }
 
     this.add_colvis_filter = function(button_text) {
-        var colvisOptions = {extend: "colvis", collectionLayout: "fixed four-column", text: button_text, buttons: buttons.concat([{text: "Test"}])}
+        var colvisOptions = {extend: "colvis", collectionLayout: "fixed four-column", text: button_text, postfixButtons: [{text: "Test"}]}
         this.dataTable.button().add(0, colvisOptions);
 
     }
