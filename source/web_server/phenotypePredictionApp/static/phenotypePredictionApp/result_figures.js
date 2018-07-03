@@ -60,7 +60,9 @@ function DataTable(data, titles, identifier) {
     }
 
     this.add_colvis_filter = function() {
-        this.dataTable.button().add('colvis');
+        var colvisOptions = {extend: "colvis", collectionLayout: "fixed three-column"}
+        this.dataTable.button().add(0, 'colvis');
+
     }
 }
 
