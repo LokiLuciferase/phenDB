@@ -163,7 +163,7 @@ class _BinSummary:
             taxon = Taxon.objects.get(tax_id=tax_id)
             taxon_name = taxon.taxon_name
             taxon_rank = taxon.taxon_rank
-            self.values.append([bin_name, comple, conta, strainhet, tax_id, taxon_name, taxon_rank])
+            self.values.append([bin_name, round(comple,2), round(conta,2), strainhet, tax_id, taxon_name, taxon_rank])
 
     def get_values(self):
         return self.values
