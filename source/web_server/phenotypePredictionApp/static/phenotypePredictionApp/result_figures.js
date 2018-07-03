@@ -58,6 +58,10 @@ function DataTable(data, titles, identifier) {
                 .draw();
         });
     }
+
+    this.add_colvis_filter = function() {
+        this.dataTable.buttons.push('colvis');
+    }
 }
 
 

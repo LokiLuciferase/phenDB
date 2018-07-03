@@ -83,6 +83,7 @@
         } catch(e) {console.log("table_prediction_details failed" + " " + e);}
         try {
             var table_prediction = new DataTable({{ prediction_values | safe }}, {{ prediction_titles |jsonify | safe }}, "#table_prediction");
+            table_prediction.add_colvis_filter();
         } catch(e) {console.log("table_prediction failed" + " " + e);}
         try {
             var table_trait_counts = new DataTable({{ trait_counts_values | safe }}, {{ trait_counts_titles |jsonify | safe }}, "#table_trait_counts");
