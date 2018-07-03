@@ -107,7 +107,7 @@ class _Prediction:
         return self.titles
 
     def get_raw_title_list(self):
-
+        return self.raw_title_list
 
 
 class _TraitCounts:
