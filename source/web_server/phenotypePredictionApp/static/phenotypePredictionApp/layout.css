@@ -75,10 +75,10 @@ form {
 
 .show_hide_all_button {
     font-style: italic;
+    height:50px;
+    font-size:7px;
 }
 
 .dt-button.buttons-columnVisibility {
-    height:50px;
-    width:100px;
-    font-size:7px;
+    font-size:12px;
 }
