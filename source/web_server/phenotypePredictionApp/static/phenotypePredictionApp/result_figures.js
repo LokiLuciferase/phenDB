@@ -22,6 +22,7 @@ function DataTable(data, titles, identifier) {
                 },
             ],
             buttons: [
+                'colvis',
                 {
                     extend: 'csv',
                     text: 'Download table as csv'
@@ -60,7 +61,7 @@ function DataTable(data, titles, identifier) {
     }
 
     this.add_colvis_filter = function() {
-        this.dataTable.button().add('colvis');
+        //this.dataTable.button().add('colvis');
     }
 }
 
