@@ -66,7 +66,7 @@ function DataTable(data, titles, identifier) {
             var collectionLayout = "fixed four-column";
         }
         else {
-            var collectionLayout = "";
+            var collectionLayout = "fixed";
         }
         var colvisOptions = {
             extend: "colvis",
