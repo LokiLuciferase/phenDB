@@ -145,6 +145,7 @@ class _BinSummary:
               {"title": "Completeness"},
               {"title": "Contamination"},
               {"title": "Strain heterogeneity"},
+              {"title": "Taxon ID"},
               {"title": "Taxon name"},
               {"title": "Taxon rank"}]
 
