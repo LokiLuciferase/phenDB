@@ -67,10 +67,9 @@ function DataTable(data, titles, identifier) {
             text: button_text,
             postfixButtons: [
                 {extend: 'columnToggle', text: "Hide all", visibility: false},
-                {extend: 'columnToggle', text: "Show all", visibility: false}
+                {extend: 'columnToggle', text: "Show all", visibility: true}
             ]};
         this.dataTable.button().add(0, colvisOptions);
-        this.dataTable.button("{string}:" + button_text).remove();
     }
 }
 

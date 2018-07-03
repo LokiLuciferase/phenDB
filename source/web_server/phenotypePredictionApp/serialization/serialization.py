@@ -88,7 +88,7 @@ class _Prediction:
             bin = bin_in_job.bin
             pica_models = PicaModel.objects.all()
             values_tmp = [bin_name]
-            self.titles = [""]
+            self.titles = ["Bin_Name"]
             self.raw_title_list = []
             for pica_model in pica_models:
                 pica_result = PicaResult.objects.filter(bin=bin, model=pica_model)
@@ -122,9 +122,7 @@ class _TraitCounts:
         pica_models = PicaModel.objects.all()
         all_bins = list(map(lambda x: x.bin, self.picaResultForUI.all_bins_in_job))
         for pica_model in pica_models:
-            print("pica_model " + pica_model.model_name)
             pica_results = PicaResult.objects.filter(bin__in= [bin for bin in all_bins],model=pica_model)
-            print(len(pica_results))
             if(len(pica_results) == 0):
                 continue # model not used in this prediction (e.g. old model)
             all_results = [self.picaResultForUI._apply_masks(x) for x in pica_results]
