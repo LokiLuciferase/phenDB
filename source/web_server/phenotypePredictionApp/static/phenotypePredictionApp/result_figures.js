@@ -60,7 +60,7 @@ function DataTable(data, titles, identifier) {
         });
     }
 
-    this.add_colvis_filter = function(button_text, many_columns) {
+    this.add_colvis_filter = function(button_text, many_columns, appendTo) {
         var that = this;
         if(many_columns) {
             var collectionLayout = "fixed four-column";
@@ -82,6 +82,9 @@ function DataTable(data, titles, identifier) {
                 }}
             ]};
         this.dataTable.button().add(0, colvisOptions);
+        if(appendTo != null) {
+            this.dataTable.buttons(0).container().appendTo(appendTo)
+        }
     }
 }
 
