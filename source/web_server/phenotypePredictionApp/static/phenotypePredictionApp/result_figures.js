@@ -61,6 +61,7 @@ function DataTable(data, titles, identifier) {
     }
 
     this.add_colvis_filter = function(button_text) {
+        var that = this;
         var colvisOptions = {
             extend: "colvis",
             collectionLayout: "fixed four-column",
@@ -69,7 +70,7 @@ function DataTable(data, titles, identifier) {
                 {extend: 'columnToggle', text: "Hide all", visibility: false},
                 {extend: 'columnToggle', text: "Show all", visibility: true},
                 {text : "Test button", action: function ( e, dt, node, config ) {
-                    this.dataTable.columns.every(function() {
+                    that.dataTable.columns.every(function() {
                         var active = this.active();
                         console.log("is active: " + active);
                         this.active(!active);
