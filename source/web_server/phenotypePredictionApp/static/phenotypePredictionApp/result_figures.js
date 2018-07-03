@@ -65,9 +65,12 @@ function DataTable(data, titles, identifier) {
             extend: "colvis",
             collectionLayout: "fixed four-column",
             text: button_text,
-            postfixButtons: [
+            prefixButtons: [
                 {extend: 'columnToggle', text: "Hide all", visibility: false},
-                {extend: 'columnToggle', text: "Show all", visibility: true}
+                {extend: 'columnToggle', text: "Show all", visibility: true},
+                {text : "Test button", action: function ( e, dt, node, config ) {
+                    alert( 'Button activated' );
+                }}
             ]};
         this.dataTable.button().add(0, colvisOptions);
     }
