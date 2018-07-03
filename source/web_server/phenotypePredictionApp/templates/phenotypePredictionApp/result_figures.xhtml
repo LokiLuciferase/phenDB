@@ -65,7 +65,7 @@
         window.bin_alias_list = {{ bin_alias_list | safe }}
         try {
             var table_prediction_details = new DataTable({{ prediction_details_values | safe}}, {{ prediction_details_titles | jsonify | safe}}, "#table_prediction_details");
-            table_prediction_details.addFiltering("#filter_test", [], 0);
+            table_prediction_details.addFiltering("#filter_test", {{ bin_alias_list | safe }}, 0);
         } catch(e) {console.log("table_prediction_details failed" + " " + e);}
         try {
             var table_prediction = new DataTable({{ prediction_values | safe }}, {{ prediction_titles |jsonify | safe }}, "#table_prediction");
