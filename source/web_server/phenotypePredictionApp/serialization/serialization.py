@@ -88,7 +88,7 @@ class _Prediction:
             bin = bin_in_job.bin
             pica_models = PicaModel.objects.all()
             values_tmp = [bin_name]
-            self.titles = ["Bin_Name"]
+            self.titles = [{"title" : "Bin_Name"}]
             self.raw_title_list = []
             for pica_model in pica_models:
                 pica_result = PicaResult.objects.filter(bin=bin, model=pica_model)
