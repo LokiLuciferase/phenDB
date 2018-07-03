@@ -82,7 +82,7 @@ function DataTable(data, titles, identifier) {
                 }}
             ]};
         this.dataTable.button().add(0, colvisOptions);
-        if(appendTo != null) this.dataTable.buttons(0).containers().appendTo(appendTo);
+        if(appendTo != null) this.dataTable.buttons().containers().appendTo(appendTo);
     }
 }
 
