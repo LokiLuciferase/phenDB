@@ -60,7 +60,7 @@ function DataTable(data, titles, identifier) {
     }
 
     this.add_colvis_filter = function() {
-        this.dataTable.buttons.push('colvis');
+        this.dataTable.button().add('colvis');
     }
 }
 
