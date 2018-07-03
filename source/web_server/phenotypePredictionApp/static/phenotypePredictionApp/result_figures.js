@@ -71,15 +71,11 @@ function DataTable(data, titles, identifier) {
                 {extend: 'columnToggle', text: "Show all", visibility: true},
                 {text : "Test button", action: function ( e, dt, node, config ) {
 
-                    window._e = e;
-                    window._dt = dt;
-                    window._node = node;
-                    window._config = config;
-                       /* var active = this.active();
+                       var active = this.active();
                         console.log("is active: " + active);
                         this.active(!active);
                         active = this.active();
-                        console.log("is active: " + active); */
+                        console.log("is active: " + active);
                         //this.visible();
 
                 }}
