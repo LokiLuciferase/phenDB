@@ -10,6 +10,7 @@ function DataTable(data, titles, identifier) {
             data: this.data,
             columns: this.titles,
             searching: true,
+            autoWidth: false,
             dom: '<"table_buttons"B>l<"result_table"t><"table_pagination"p>',
             columnDefs: [
                 {
