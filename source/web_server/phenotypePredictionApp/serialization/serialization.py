@@ -86,7 +86,7 @@ class _Prediction:
         for bin_in_job in self.picaResultForUI.all_bins_in_job:
             bin_name = bin_in_job.bin_alias
             bin = bin_in_job.bin
-            pica_models = PicaModel.objects.all()
+            pica_models = PicaModel.objects.all().order_by('model_name')
             values_tmp = [bin_name]
             self.titles = [{"title" : "Bin_Name"}]
             self.raw_title_list = []
