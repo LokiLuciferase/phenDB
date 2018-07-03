@@ -67,19 +67,12 @@ function DataTable(data, titles, identifier) {
             collectionLayout: "fixed four-column",
             text: button_text,
             prefixButtons: [
-                {extend: 'columnToggle', text: "Hide all", visibility: false},
-                {extend: 'columnToggle', text: "Show all", visibility: true},
-                {text : "Test button", action: function ( e, dt, node, config ) {
-
-                       var active = this.active();
-                        console.log("is active: " + active);
-                        this.active(!active);
-                        active = this.active();
-                        console.log("is active: " + active);
-                        //this.visible();
-                this.columns().every(function() {
-                    this.visible(active);
-                })
+                {text : "Show all / Hide all", className: "show_hide_all_button",action: function ( e, dt, node, config ) {
+                   var active = this.active();
+                   this.active(!active);
+                    this.columns().every(function() {
+                        this.visible(active);
+                    });
                 }}
             ]};
         this.dataTable.button().add(0, colvisOptions);

@@ -72,3 +72,7 @@ form {
     margin-bottom: 10px;
     text-align:right;
 }
+
+.show_hide_all_button {
+    font-style: italic;
+}
