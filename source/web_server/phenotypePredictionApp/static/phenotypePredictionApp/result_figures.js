@@ -70,14 +70,18 @@ function DataTable(data, titles, identifier) {
                 {extend: 'columnToggle', text: "Hide all", visibility: false},
                 {extend: 'columnToggle', text: "Show all", visibility: true},
                 {text : "Test button", action: function ( e, dt, node, config ) {
-                    that.dataTable.columns().every(function() {
-                        var active = this.active();
+
+                    window._e = e;
+                    window._dt = dt;
+                    window._node = node;
+                    window._config = config;
+                       /* var active = this.active();
                         console.log("is active: " + active);
                         this.active(!active);
                         active = this.active();
-                        console.log("is active: " + active);
+                        console.log("is active: " + active); */
                         //this.visible();
-                    })
+
                 }}
             ]};
         this.dataTable.button().add(0, colvisOptions);
