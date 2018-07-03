@@ -76,6 +76,14 @@
             </div>
             <h3>Bin Summary</h3>
             <div id="bin_summary">
+                <div class="row" style="padding-bottom: 30px">
+                    <div class="column" style="width: 100px; padding-right:10px">
+                        Filter Bin
+                    </div>
+                    <div class="column">
+                        <input id="trait_count_bin_filter"></input>
+                    </div>
+                </div>
                 <table id="table_bin_summary" class="result_table"></table>
             </div>
         </div>
@@ -100,6 +108,7 @@
         } catch(e) {console.log("table_trait_counts failed" + " " + e);}
         try {
             var table_bin_summary = new DataTable({{ bin_summary_values | safe }}, {{ bin_summary_titles |jsonify | safe }}, "#table_bin_summary");
+            table_bin_summary.addFiltering("#trait_count_bin_filter", {{ bin_alias_list | safe }}, 0);
         } catch(e) {console.log("table_bin_summary failed" + " " + e);}
     });
 </script>
