@@ -77,7 +77,9 @@ function DataTable(data, titles, identifier) {
                         active = this.active();
                         console.log("is active: " + active);
                         //this.visible();
-
+                this.buttons().every(function() {
+                    this.visible(active);
+                })
                 }}
             ]};
         this.dataTable.button().add(0, colvisOptions);
