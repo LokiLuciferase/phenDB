@@ -201,6 +201,7 @@ def getResults(request):
                'bin_summary_values' : pica_result_for_ui.bin_summary.get_values() if pica_result_for_ui is not None else "",
                'bin_summary_titles': pica_result_for_ui.bin_summary.get_titles() if pica_result_for_ui is not None else "",
                'bin_alias_list' : pica_result_for_ui.bin_alias_list if pica_result_for_ui is not None else "",
+               'model_list' : pica_result_for_ui.prediction.get_raw_title_list() if pica_result_for_ui is not None else "",
                }
 
     return HttpResponse(template.render(context, request))

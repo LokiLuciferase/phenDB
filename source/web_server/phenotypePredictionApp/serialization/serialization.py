@@ -89,10 +89,12 @@ class _Prediction:
             pica_models = PicaModel.objects.all()
             values_tmp = [bin_name]
             self.titles = [""]
+            self.raw_title_list = []
             for pica_model in pica_models:
                 pica_result = PicaResult.objects.filter(bin=bin, model=pica_model)
                 if len(pica_result) == 0:
                     continue # model not used in this prediction (e.g. old model)
+                self.raw_title_list.append(pica_result[0].model.model_name)
                 self.titles.append({"title": pica_result[0].model.model_name})
                 values_tmp.append(self.picaResultForUI._apply_masks(pica_result[0]))
 
@@ -103,6 +105,9 @@ class _Prediction:
 
     def get_titles(self):
         return self.titles
+
+    def get_raw_title_list(self):
+
 
 
 class _TraitCounts:
