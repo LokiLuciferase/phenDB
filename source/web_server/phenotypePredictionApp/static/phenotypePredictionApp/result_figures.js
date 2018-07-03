@@ -63,7 +63,7 @@ function DataTable(data, titles, identifier) {
     this.add_colvis_filter = function(button_text, many_columns) {
         var that = this;
         if(many_columns) {
-            var collectionLayout = "fixed two-column";
+            var collectionLayout = "fixed five-column";
         }
         else {
             var collectionLayout = "fixed";
