@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source "/apps/phenDB/source/general_scripts/variables.sh"
+source "/apps/phenDB_devel_LL/source/general_scripts/variables.sh"
 
 function usage()
 {

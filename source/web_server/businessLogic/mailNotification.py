@@ -4,7 +4,6 @@ import os
 import threading
 from django.core.mail import *
 import subprocess
-#from phenotypePrediction.settings import GlobalVariables
 from phenotypePredictionApp.models import *
 from subprocess import Popen, PIPE
 
@@ -38,12 +37,12 @@ class MailNotification(threading.Thread):
         message = EmailMessage()
         message.from_email = "donotreply@phen.csb.univie.ac.at"
         message.subject = "PhenDB notification"
-        message.body = 'Your PhenDB results are now available under phen.csb.univie.ac.at/' + url + '\n \n This mail was sent automatically. Please do not respond to it.'
+        message.body = 'Your PhenDB results are now available under phen.csb.univie.ac.at/' + url + '\n \nThis mail was sent automatically. Please do not respond to it.'
 
         ps.stdin.write(message.message().as_bytes())
         (stdout, stderr) = ps.communicate()
 
-        with open("/apps/phenDB/logs/logmail.txt", "w") as file_log:
+        with open("/apps/phenDB_devel_LL/logs/logmail.txt", "w") as file_log:
             file_log.write("stdout: ")
             file_log.write(stdout)
             file_log.write("stderr: ")

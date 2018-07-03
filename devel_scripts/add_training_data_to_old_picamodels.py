@@ -6,7 +6,7 @@ import sys
 
 import django
 
-ppath = "/apps/phenDB/source/web_server"
+ppath = "/apps/phenDB_devel_LL/source/web_server"
 os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
 sys.path.append(ppath)
 django.setup()
