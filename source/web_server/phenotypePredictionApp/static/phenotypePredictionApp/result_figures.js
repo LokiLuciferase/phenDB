@@ -10,7 +10,8 @@ function DataTable(data, titles, identifier) {
             data: this.data,
             columns: this.titles,
             searching: true,
-            dom: '<"table_buttons"B>l<"result_table"t><"table_pagination"p>',
+            /* dom: '<"table_buttons"B>l<"result_table"t><"table_pagination"p>', */
+            dom: 'Bfrtip',
             columnDefs: [
                 {
                     targets: "_all",
