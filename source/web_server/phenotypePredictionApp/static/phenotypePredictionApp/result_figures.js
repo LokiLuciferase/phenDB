@@ -69,7 +69,14 @@ function DataTable(data, titles, identifier) {
                 {extend: 'columnToggle', text: "Hide all", visibility: false},
                 {extend: 'columnToggle', text: "Show all", visibility: true},
                 {text : "Test button", action: function ( e, dt, node, config ) {
-                    alert( 'Button activated' );
+                    this.dataTable.columns.every(function() {
+                        var active = this.active();
+                        console.log("is active: " + active);
+                        this.active(!active);
+                        active = this.active();
+                        console.log("is active: " + active);
+                        //this.visible();
+                    })
                 }}
             ]};
         this.dataTable.button().add(0, colvisOptions);
