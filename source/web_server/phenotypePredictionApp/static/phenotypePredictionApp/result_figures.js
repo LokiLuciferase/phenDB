@@ -60,11 +60,17 @@ function DataTable(data, titles, identifier) {
         });
     }
 
-    this.add_colvis_filter = function(button_text) {
+    this.add_colvis_filter = function(button_text, many_columns) {
         var that = this;
+        if(many_columns) {
+            var collectionLayout = "fixed four-column";
+        }
+        else {
+            var collectionLayout = "";
+        }
         var colvisOptions = {
             extend: "colvis",
-            collectionLayout: "fixed four-column",
+            collectionLayout: collectionLayout,
             text: button_text,
             prefixButtons: [
                 {text : "Show all / Hide all", className: "show_hide_all_button",action: function ( e, dt, node, config ) {
