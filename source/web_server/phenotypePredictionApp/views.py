@@ -29,7 +29,7 @@ def getKeyFromUrl(request):
         reqPath = reqPath[:-1]
     urlparts = reqPath.rsplit('/')
     for part in urlparts:
-        if len(part) == 36:
+        if len(part) == 36 or part == "PHENDB_PRECALC":
             return part
     return None
 
