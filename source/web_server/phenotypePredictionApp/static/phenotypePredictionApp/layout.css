@@ -78,5 +78,7 @@ form {
 }
 
 .dt-button.buttons-columnVisibility {
-    height:
+    height:50px;
+    width:100px;
+    font-size:7px;
 }
