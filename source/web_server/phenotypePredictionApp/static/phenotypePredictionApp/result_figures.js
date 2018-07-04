@@ -87,6 +87,8 @@ function DataTable(data, titles, identifier) {
 
 
 function performAjax(form_identifier, url, update_components) {
+    console.log("serialized data: ");
+    console.log($(form_identifier).serialize());
     $.ajaxSetup({
         headers: { "X-CSRFToken": Cookies.get('csrftoken')}
     });
