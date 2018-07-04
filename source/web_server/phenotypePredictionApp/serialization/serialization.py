@@ -25,17 +25,11 @@ class PicaResultForUI:
                 all_model_names_for_cj.add(pmn)
                 self.newest_models_for_currentjob.append(pm)
         self.all_results_for_currentjob = PicaResult.objects.filter(bin__in=self.all_bins, model__in=self.newest_models_for_currentjob)
-        print("Done getting all results.")
         self.resdic = self.__make_results_dict()
-        print("Done making results dict")
         self.__calc_prediction_details()
-        print("done getting details")
         self.__calc_prediction()
-        print("done getting preds")
         self.__calc_trait_counts()
-        print("done getting trait counts")
         self.__calc_bin_summary()
-        print("done getting summary")
 
     def __make_results_dict(self):
         resdic = {}
@@ -130,9 +124,11 @@ class _Prediction:
             bin_dic = rd[bin_name]
             values_tmp = [bin_name]
             self.titles = [""]
+            self.raw_title_list = []
             for model_name in sorted(bin_dic.keys()):
                 model_dic = rd[bin_name][model_name]
                 self.titles.append({"title": model_name})
+                self.raw_title_list.append(model_name)
                 values_tmp.append(self.picaResultForUI._apply_masks(model_dic))
             self.values.append(values_tmp)
 
@@ -141,6 +137,9 @@ class _Prediction:
 
     def get_titles(self):
         return self.titles
+
+    def get_raw_title_list(self):
+        return self.raw_title_list
 
 
 class _TraitCounts:
@@ -201,7 +200,7 @@ class _BinSummary:
             taxon = Taxon.objects.get(tax_id=tax_id)
             taxon_name = taxon.taxon_name
             taxon_rank = taxon.taxon_rank
-            self.values.append([bin_name, comple, conta, strainhet, tax_id, taxon_name, taxon_rank])
+            self.values.append([bin_name, round(comple, 2), round(conta, 2), strainhet, tax_id, taxon_name, taxon_rank])
 
     def get_values(self):
         return self.values
