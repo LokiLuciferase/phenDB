@@ -88,7 +88,7 @@
         </div>
     </div>
     <div id="results_advanced" title="Advanced" style="margin:10px;">
-        <form method="post" id="update_result_form">
+        <form enctype="multipart/form-data" method="post" id="update_result_form">
             {% csrf_token %}
             <div id="results_advanced_explanation" class="row">
             Change the cut-offs and update the result figures (this only applies to the datatables in the

@@ -19,6 +19,7 @@ import struct
 from django.http import JsonResponse
 import traceback
 import os
+from pprint import pprint
 
 
 #------------------functions---------------------------------------------
@@ -212,9 +213,10 @@ def updateResultsAjax(request):
         requested_balac = request.POST['results_advanced_requested_balac']
         requested_conf = request.POST['results_advanced_requested_conf']
         disable_cutoff = request.POST['results_advanced_disable_cutoffs']
-        print(requested_balac)
-        print(requested_conf)
-        print(disable_cutoff)
+        #print(requested_balac)
+        #print(requested_conf)
+        #print(disable_cutoff)
+        pprint(request.POST)
         data = {"message": "Message"}
         return JsonResponse(data)
 
