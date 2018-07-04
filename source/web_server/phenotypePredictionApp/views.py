@@ -209,9 +209,9 @@ def getResults(request):
 
 def updateResultsAjax(request):
     if request.method == "POST":
-        requested_balac = request['results_advanced_requested_balac']
-        requested_conf = request['results_advanced_requested_conf']
-        disable_cutoff = request['results_advanced_disable_cutoffs']
+        requested_balac = request.POST['results_advanced_requested_balac']
+        requested_conf = request.POST['results_advanced_requested_conf']
+        disable_cutoff = request.POST['results_advanced_disable_cutoffs']
         print(requested_balac)
         print(requested_conf)
         print(disable_cutoff)
