@@ -89,7 +89,7 @@ function DataTable(data, titles, identifier) {
 function performAjax(form_id, url, update_components) {
     $.ajax({
         type: "POST",
-        url: "/update/",
+        url: "update/",
         method: "POST",
         data: {"test_val" : "5"},
         contentType: "application/json",
