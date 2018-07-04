@@ -16,6 +16,7 @@ from redis import Redis
 from rq import Queue, get_current_job
 from .serialization.serialization import PicaResultForUI
 import struct
+from django.http import JsonResponse
 import traceback
 import os
 
@@ -205,6 +206,11 @@ def getResults(request):
                }
 
     return HttpResponse(template.render(context, request))
+
+def updateResultsAjax(request):
+    if request.method == "POST":
+        data = {"message": "Message"}
+        return JsonResponse(data)
 
 def fileDownload(request):
     key = getKeyFromUrl(request)
