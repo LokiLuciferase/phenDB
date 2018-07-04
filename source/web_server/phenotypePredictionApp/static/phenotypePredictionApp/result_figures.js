@@ -98,8 +98,11 @@ function performAjax(form_identifier, url, update_components) {
         data: $(form_identifier).serialize(),
         contentType: "application/json",
         success: function(result) {
-            console.log("ajax result: " + result);
-            window.result = result;
+
         },
+        error: function() {
+            console.error("Ajax request failed");
+            console.trace();
+        }
     });
 }
