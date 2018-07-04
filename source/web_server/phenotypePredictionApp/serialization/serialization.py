@@ -123,7 +123,7 @@ class _Prediction:
         for bin_name in rd.keys():
             bin_dic = rd[bin_name]
             values_tmp = [bin_name]
-            self.titles = [""]
+            self.titles = [{"title" : "Bin_name"}]
             self.raw_title_list = []
             for model_name in sorted(bin_dic.keys()):
                 model_dic = rd[bin_name][model_name]
