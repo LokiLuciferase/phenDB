@@ -86,12 +86,12 @@ function DataTable(data, titles, identifier) {
 }
 
 
-function performAjax(form_id, url, update_components) {
+function performAjax(form_identifier, url, update_components) {
     $.ajax({
         type: "POST",
         url: "update/",
         method: "POST",
-        data: {"test_val" : "5"},
+        data: $(form_identifier).serialize(),
         contentType: "application/json",
         success: function(result) {
             console.log("ajax result: " + result);

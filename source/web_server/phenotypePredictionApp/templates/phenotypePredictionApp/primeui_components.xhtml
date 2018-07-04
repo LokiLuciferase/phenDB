@@ -88,7 +88,7 @@ function __initialize_controls() {
     $('#results_advanced_submit').puibutton({
         icon: 'fa-external-link-square',
             click: function() {
-                performAjax(null, null, null);
+                performAjax("#update_result_form", null, null);
             }
     });
     $('#dt_results_pval_filter').puispinner({step:0.05});
