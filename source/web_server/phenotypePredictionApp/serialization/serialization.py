@@ -4,11 +4,26 @@ class PicaResultForUI:
 
     def __init__(self, job, requested_conf=None, requested_balac=None, disable_cutoffs=None):
         self.job = job
+        self.job_date = self.job.job_date
         self.requested_balac = float(job.requested_balac) if not requested_balac else float(requested_balac)
         self.requested_conf = float(job.requested_conf) if not requested_conf else float(requested_conf)
         self.disable_cutoffs = bool(job.disable_cutoffs) if not disable_cutoffs else bool(disable_cutoffs)
-        self.all_bins_in_job = BinInJob.objects.filter(job=job)
-        self.bin_alias_list = list(map(lambda x: x.bin_alias,self.all_bins_in_job))
+        self.all_bins_in_job = BinInJob.objects.filter(job=job).select_related('bin')
+        self.all_bins = [x.bin for x in self.all_bins_in_job]
+        all_models_for_currentjob = [x.model for x in PicaResult.objects.filter(bin=self.all_bins[0]).select_related('model')]
+        all_model_names_for_cj = set()
+        self.newest_models_for_currentjob = []
+        # sort by model train date and add newest possible results for models older than job
+        for pm in sorted(all_models_for_currentjob, key=lambda x: x.model_train_date):
+            pmn = pm.model_name
+            pmd = pm.model_train_date
+            if pmd > self.job_date:
+                continue
+            if pmn not in all_model_names_for_cj:
+                all_model_names_for_cj.add(pmn)
+                self.newest_models_for_currentjob.append(pm)
+        self.all_results_for_currentjob = PicaResult.objects.filter(bin__in=self.all_bins, model__in=self.newest_models_for_currentjob)
+        self.bin_alias_list = [x.bin_alias for x in self.all_bins_in_job]
         self.__calc_prediction_details()
         self.__calc_prediction()
         self.__calc_trait_counts()
@@ -56,10 +71,10 @@ class _PredictionDetails:
 
     def __calc(self):
         arr = []
-        for bin_in_job in self.picaResultForUI.all_bins_in_job:
-            single_pica_result = PicaResult.objects.filter(bin=bin_in_job.bin)
-            bin_name = bin_in_job.bin_alias
-            arr = arr + self.__parse_bin(single_pica_result, bin_name)
+        for bij in self.picaResultForUI.all_bins_in_job:
+            single_pica_result = self.picaResultForUI.all_results_for_currentjob.filter(bin=bij.bin)
+            bin_name = bij.bin_alias
+            arr += self.__parse_bin(single_pica_result, bin_name)
         self.values = arr
 
 
@@ -86,16 +101,14 @@ class _Prediction:
         for bin_in_job in self.picaResultForUI.all_bins_in_job:
             bin_name = bin_in_job.bin_alias
             bin = bin_in_job.bin
-            pica_models = PicaModel.objects.all()
             values_tmp = [bin_name]
             self.titles = [""]
-            for pica_model in pica_models:
-                pica_result = PicaResult.objects.filter(bin=bin, model=pica_model)
+            for pica_model in self.picaResultForUI.newest_models_for_currentjob:
+                pica_result = self.picaResultForUI.all_results_for_currentjob.filter(bin=bin, model=pica_model)
                 if len(pica_result) == 0:
                     continue # model not used in this prediction (e.g. old model)
                 self.titles.append({"title": pica_result[0].model.model_name})
                 values_tmp.append(self.picaResultForUI._apply_masks(pica_result[0]))
-
             self.values.append(values_tmp)
 
     def get_values(self):
@@ -114,11 +127,9 @@ class _TraitCounts:
 
     def __calc(self):
         self.values = []
-        pica_models = PicaModel.objects.all()
-        all_bins = list(map(lambda x: x.bin, self.picaResultForUI.all_bins_in_job))
-        for pica_model in pica_models:
+        for pica_model in self.picaResultForUI.newest_models_for_currentjob:
             print("pica_model " + pica_model.model_name)
-            pica_results = PicaResult.objects.filter(bin__in= [bin for bin in all_bins],model=pica_model)
+            pica_results = self.picaResultForUI.all_results_for_currentjob.filter(bin__in=self.picaResultForUI.all_bins, model=pica_model)
             print(len(pica_results))
             if(len(pica_results) == 0):
                 continue # model not used in this prediction (e.g. old model)
