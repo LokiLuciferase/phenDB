@@ -93,11 +93,13 @@ function performAjax(form_identifier, url, update_components) {
     $.ajax({
         type: "POST",
         url: "update/",
+        dataType: "json",
         method: "POST",
         data: $(form_identifier).serialize(),
         contentType: "application/json",
         success: function(result) {
             console.log("ajax result: " + result);
+            window.result = result;
         },
     });
 }
