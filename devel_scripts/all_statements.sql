@@ -23,7 +23,8 @@ WHERE picamodeltrainingdata.model_id = @MODEL_ID;
 
 /*get 100 most influential enogs for model with id @MODEL_ID*/
 SET @MODEL_ID = 47;  # sulfate reducer
-SELECT enog_name AS 'enog_name',
+SELECT enog.id as enog_id,
+  enog_name AS 'enog_name',
   enog_descr AS 'enog_description',
   internal_rank AS 'rank_in_model',
   ROUND(score, 6) AS 'weight_in_model'
@@ -96,3 +97,21 @@ SELECT model.id as 'model_id',
   WHERE pr.bin_id = @BIN_ID
   GROUP BY model.model_name
   ORDER BY model.model_train_date;
+
+/* Get all ENOGs included in PhenDB (even if not used in model). This may be slow */
+SELECT enog.id, enog.enog_name, enog.enog_descr as enog_description FROM phenotypePredictionApp_enog as enog;
+
+/* get all models in which the given ENOG holds an important position, and the corresponding rank and score */
+SET @ENOG_ID = 17474;
+SET @RELEVANCE_CO = 1000; # Cutoff rank, below which an enog is not considered to contribute to model
+SELECT model.id as model_id,
+       model.model_name AS model_name,
+       model.model_desc as model_description,
+       enogrank.internal_rank AS rank_in_model,
+       ROUND(enogrank.score, 6) as enog_score
+FROM phenotypePredictionApp_enogrank as enogrank
+  JOIN phenotypePredictionApp_picamodel as model
+    ON enogrank.model_id = model.id
+WHERE enogrank.enog_id = @ENOG_ID
+AND enogrank.internal_rank <= @RELEVANCE_CO  # can make threshold settable from Forena to let user decide what rank is relevant
+ORDER BY model_name;  # here we could conceivably also sort by rank_in_model to emphasize differences in importance
