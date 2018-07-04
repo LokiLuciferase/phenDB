@@ -87,6 +87,9 @@ function DataTable(data, titles, identifier) {
 
 
 function performAjax(form_identifier, url, update_components) {
+    $.ajaxSetup({
+        headers: { "X-CSRFToken": window.csrftoken }
+    });
     $.ajax({
         type: "POST",
         url: "update/",

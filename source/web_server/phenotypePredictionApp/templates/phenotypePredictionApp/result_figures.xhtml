@@ -127,6 +127,7 @@
 </div>
 <script type="text/javascript">
     $(document).ready(function() {
+        window.csrftoken="{{csrftoken}}";
         try {
             var table_prediction_details = new DataTable({{ prediction_details_values | safe}}, {{ prediction_details_titles | jsonify | safe}}, "#table_prediction_details");
             table_prediction_details.addFiltering("#trait_prediction_details_bin_filter", {{ bin_alias_list | safe }}, 0);
