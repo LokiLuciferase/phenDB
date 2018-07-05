@@ -218,4 +218,4 @@ class ModelLink:
 
     def __getLinkForModel(model_id):
         sceleton = "http://phendb.org/reports/modeldetails?model_id="
-        return sceleton + model_id
+        return sceleton + str(model_id)
