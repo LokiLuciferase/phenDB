@@ -19,9 +19,11 @@
     <div style="position:fixed; top:0; left:0" id="loading_gif_container">
         <img id="loading_gif" src="{% static 'phenotypePredictionApp/loading/ajax-loader.gif' %}"></img>
     </div>
+    <div id="white_overlay"></div>
     <script type="text/javascript">
         $(document).ready(function() {
             document.getElementById('loading_gif_container').style.display = "none";
+            document.getElementById('white_overlay').style.display = "none";
         });
     </script>
     <form enctype="multipart/form-data" action="{% url 'phenotypePredictionApp:sendinput' %}" method="post">
