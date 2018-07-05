@@ -2,11 +2,10 @@
 <style>
     .result_figures {
         display: {{ showResultCSS }};
-        margin:10px 10px 10px 10px;
     }
 </style>
 <div id="result_figures" class="result_figures">
-    <div id="result_figure_trait_prediction" title="Explore Your Results Online">
+    <div id="result_figure_trait_prediction" title="Explore Your Results Online" style="margin:10px;">
         <!--
         <div style="padding-bottom: 30px" class="row" id="dt_results_model_filter_wrapper">
             <div class="column" style="width: 100px; padding-right:10px" id="dt_result_model_filter_name">Filter Models</div>
@@ -44,39 +43,105 @@
             </div>
             <h3>Trait Prediction Details</h3>
             <div id="trait_prediction_details">
-                <!--
-                <div>
-                    <input id="filter_test"></input>
+                <div class="row" style="padding-bottom: 30px">
+                    <div class="column" style="width: 100px; padding-right:10px">
+                        Filter Bins
+                    </div>
+                    <div class="column">
+                        <input id="trait_prediction_details_bin_filter"></input>
+                    </div>
                 </div>
-                -->
+                <div class="row" style="padding-bottom: 30px">
+                    <div class="column" style="width: 100px; padding-right:10px">
+                        Filter Model
+                    </div>
+                    <div class="column">
+                        <input id="trait_prediction_details_model_filter"></input>
+                    </div>
+                </div>
                 <table id="table_prediction_details" class="result_table"></table>
             </div>
             <h3>Trait Count Summary</h3>
             <div id="trait_counts_summary">
+                 <div class="row" style="padding-bottom: 30px">
+                    <div class="column" style="width: 100px; padding-right:10px">
+                        Filter Model
+                    </div>
+                    <div class="column">
+                        <input id="trait_count_model_filter"></input>
+                    </div>
+                </div>
                 <table id="table_trait_counts" class="result_table"></table>
             </div>
             <h3>Bin Summary</h3>
             <div id="bin_summary">
+                <div class="row" style="padding-bottom: 30px">
+                    <div class="column" style="width: 100px; padding-right:10px">
+                        Filter Bin
+                    </div>
+                    <div class="column">
+                        <input id="trait_count_bin_filter"></input>
+                    </div>
+                </div>
                 <table id="table_bin_summary" class="result_table"></table>
             </div>
+        </div>
+    </div>
+    <div id="results_advanced" title="Advanced" style="margin:10px;">
+        <div id="results_advanced_explanation" class="row">
+        Change the cut-offs and update the result figures (this only applies to the datatables in the
+        section "Explore Your Results Online", not to the zipped result folder provided in the section
+        "Download Your Full Results"
+        </div>
+        <div class="row">
+            <div class="column" style="flex:50">
+                <label for="results_advanced_requested_balac"><b>Balanced accuracy cut-off (0.5 - 1)</b></label>
+            </div>
+            <div class="column inputField" style="flex:50">
+                <input id="results_advanced_requested_balac" name="requested_balac" type="text" value="0.75"></input>
+            </div>
+        </div>
+        <div class="row">
+            <div class="column" style="flex:50">
+                <label for="results_advanced_requested_conf"><b>Prediction confidence cut-off (0.5 - 1)</b></label>
+            </div>
+            <div class="column inputField" style="flex:50">
+                <input id="results_advanced_requested_conf" name="requested_conf" type="text" value="0.6"></input>
+            </div>
+        </div>
+        <div class="row">
+            <div class="column" style="flex:50">
+                <label for="results_advanced_disable_cutoffs"><b>Disable all filters and cut-offs</b></label>
+            </div>
+            <div class="column inputField" style="flex:50">
+                <input id="results_advanced_disable_cutoffs" name="disable_cutoffs" type="checkbox" value="0"></input>
+            </div>
+        </div>
+        <div class="row">
+            <button id="results_advanced_submit" type="button">Submit</button>
         </div>
     </div>
 </div>
 <script type="text/javascript">
     $(document).ready(function() {
-        //window.bin_alias_list = {{ bin_alias_list | safe }}
+        window.prediction = {{ prediction_values | safe }};
         try {
             var table_prediction_details = new DataTable({{ prediction_details_values | safe}}, {{ prediction_details_titles | jsonify | safe}}, "#table_prediction_details");
-            table_prediction_details.addFiltering("#filter_test", [], 0);
+            table_prediction_details.addFiltering("#trait_prediction_details_bin_filter", {{ bin_alias_list | safe }}, 0);
+            table_prediction_details.addFiltering('#trait_prediction_details_model_filter', {{ model_list | safe }}, 1)
+            table_prediction_details.add_colvis_filter("Show/Hide columns", false);
         } catch(e) {console.log("table_prediction_details failed" + " " + e);}
         try {
             var table_prediction = new DataTable({{ prediction_values | safe }}, {{ prediction_titles |jsonify | safe }}, "#table_prediction");
+            table_prediction.add_colvis_filter("Filter Model Columns", true);
         } catch(e) {console.log("table_prediction failed" + " " + e);}
         try {
             var table_trait_counts = new DataTable({{ trait_counts_values | safe }}, {{ trait_counts_titles |jsonify | safe }}, "#table_trait_counts");
+            table_trait_counts.addFiltering("#trait_count_model_filter", {{ model_list | safe }}, 0)
         } catch(e) {console.log("table_trait_counts failed" + " " + e);}
         try {
             var table_bin_summary = new DataTable({{ bin_summary_values | safe }}, {{ bin_summary_titles |jsonify | safe }}, "#table_bin_summary");
+            table_bin_summary.addFiltering("#trait_count_bin_filter", {{ bin_alias_list | safe }}, 0);
         } catch(e) {console.log("table_bin_summary failed" + " " + e);}
     });
 </script>

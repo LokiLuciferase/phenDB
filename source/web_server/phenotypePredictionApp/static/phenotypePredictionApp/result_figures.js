@@ -10,6 +10,7 @@ function DataTable(data, titles, identifier) {
             data: this.data,
             columns: this.titles,
             searching: true,
+            autoWidth: false,
             dom: '<"table_buttons"B>l<"result_table"t><"table_pagination"p>',
             columnDefs: [
                 {
@@ -57,6 +58,30 @@ function DataTable(data, titles, identifier) {
                 .search(search_expr, true, false, true)
                 .draw();
         });
+    }
+
+    this.add_colvis_filter = function(button_text, many_columns) {
+        var that = this;
+        if(many_columns) {
+            var collectionLayout = "fixed four-column";
+        }
+        else {
+            var collectionLayout = "fixed";
+        }
+        var colvisOptions = {
+            extend: "colvis",
+            collectionLayout: collectionLayout,
+            text: button_text,
+            prefixButtons: [
+                {text : "Show all / Hide all", className: "show_hide_all_button",action: function ( e, dt, node, config ) {
+                   var active = this.active();
+                   this.active(!active);
+                    this.columns().every(function() {
+                        this.visible(active);
+                    });
+                }}
+            ]};
+        this.dataTable.button().add(0, colvisOptions);
     }
 }
 

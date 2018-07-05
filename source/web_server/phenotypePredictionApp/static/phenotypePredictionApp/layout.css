@@ -1,6 +1,7 @@
 * {
     margin:0 0 0 0;
     box-sizing:border-box;
+    table-layout:auto;
 }
 
 body {
@@ -70,4 +71,15 @@ form {
 .table_buttons {
     margin-bottom: 10px;
     text-align:right;
+}
+
+.show_hide_all_button {
+    font-style: italic;
+    font-size:12px !important;
+    padding: 1px 1px 1px 1px !important;
+}
+
+.dt-button.buttons-columnVisibility {
+    font-size:12px;
+    padding: 1px 1px 1px 1px !important;
 }
