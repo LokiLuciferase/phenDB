@@ -37,7 +37,8 @@ class PicaResultForUI:
         bin_id_to_alias = {x.id: bin_id_to_bij_id[x.id] for x in self.all_bins}
         model_id_to_name = {x.id: x.model_name for x in self.newest_models_for_currentjob}
         for res in list(self.all_results_for_currentjob.values()):
-            bin_alias = bin_id_to_alias[res.get("bin_id")]
+            model_id = res.get("bin_id")
+            bin_alias = bin_id_to_alias[model_id]
             model_name = model_id_to_name[res.get("model_id")]
             verdict = res.get("verdict")
             mba = res.get("accuracy")
@@ -47,7 +48,8 @@ class PicaResultForUI:
             bin_in_resdic[model_name] = {"verdict": verdict,
                                          "accuracy": mba,
                                          "pica_pval": pconf,
-                                         "nc_masked": nc_masked}
+                                         "nc_masked": nc_masked,
+                                         "model_id": model_id,}
         return resdic
 
     def __calc_prediction_details(self):
@@ -82,7 +84,7 @@ class _PredictionDetails:
         self.picaResultForUI = picaResultForUI
         self.__calc()
 
-    TITLES = [{"title" : "Bin"}, {"title" : "<a target='_top' href='http://phendb.org/reports/modeloverview'>Model</a>"}, {"title" : "Prediction"}, {"title" : "Prediction_Confidence"}, {"title" : "Balanced_Accuracy"}]
+    TITLES = [{"title" : "Bin"}, {"title" : "<a target='_blank' href='http://phendb.org/reports/modeloverview'>Model</a>"}, {"title" : "Prediction"}, {"title" : "Prediction_Confidence"}, {"title" : "Balanced_Accuracy"}]
 
     def get_values(self):
         return self.values
@@ -102,9 +104,10 @@ class _PredictionDetails:
         arr = []
         for model_name in sorted(bin_dic.keys()):
             model_dic = bin_dic[model_name]
+            model_id = model_dic['model_id']
             single_row = []
             single_row.append(bin_name)
-            single_row.append(model_name)
+            single_row.append(ModelLink.createModelLink(model_id=model_id, model_name=model_name))
             single_row.append(self.picaResultForUI._apply_masks(model_dic))
             single_row.append(round(model_dic["pica_pval"], 2))
             single_row.append(round(model_dic["accuracy"], 2))
@@ -207,3 +210,12 @@ class _BinSummary:
 
     def get_titles(self):
         return _BinSummary.TITLES
+
+class ModelLink:
+    def createModelLink(model_id, model_name):
+        link = ModelLink._getLinkForModel(model_id)
+        return "<a target='_blank' href='" + link + "'>" + model_name + "</a>"
+
+    def __getLinkForModel(model_id):
+        sceleton = "http://phendb.org/reports/modeldetails?model_id="
+        return sceleton + model_id
