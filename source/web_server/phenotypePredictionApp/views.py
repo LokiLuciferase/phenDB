@@ -211,6 +211,7 @@ def getResults(request):
     return HttpResponse(template.render(context, request))
 
 def updateResultsAjax(request):
+    pprint(request.GET.get('username', None))
     if request.method == "POST":
         #requested_balac = request.POST['results_advanced_requested_balac']
         #requested_conf = request.POST['results_advanced_requested_conf']
