@@ -16,6 +16,14 @@
     <div id="title">
             <img id="phendb_logo" src="{% static 'phenotypePredictionApp/phendb_logo.png' %}" ></img>
     </div>
+    <div style="position:fixed; top:0; left:0" id="loading_gif_container">
+        <img id="loading_gif" src="{% static 'phenotypePredictionApp/loading/ajax-loader.gif' %}"></img>
+    </div>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            document.getElementById('loading_gif_container').style.display = "none";
+        });
+    </script>
     <form enctype="multipart/form-data" action="{% url 'phenotypePredictionApp:sendinput' %}" method="post">
         {% csrf_token %}
 

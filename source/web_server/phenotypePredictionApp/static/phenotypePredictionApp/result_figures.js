@@ -87,6 +87,7 @@ function DataTable(data, titles, identifier) {
 
 
 function __performAjax(form_identifier, url, callback_success) {
+    document.getElementById('loading_gif_container').style.display = "block";
     $.ajaxSetup({
         headers: { "X-CSRFToken": Cookies.get('csrftoken')}
     });
@@ -100,6 +101,9 @@ function __performAjax(form_identifier, url, callback_success) {
         error: function() {
             console.error("Ajax request failed");
             console.trace();
+        },
+        complete: function() {
+            document.getElementById('loading_gif_container').style.display = "none";
         }
     });
 }
@@ -127,10 +131,7 @@ function InitializeAllDataTables(dataTableData) {
 
     this.dataTableData = dataTableData;
     this.tables = {};
-    /*this.table_prediction_details = null;
-    this.table_prediction = null;
-    this.table_trait_counts = null;
-    this.table_bin_summary = null; */
+
     var that = this;
     this.update = function(dataTableData) {
         that.dataTableData = dataTableData;
