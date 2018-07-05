@@ -20,6 +20,7 @@ from django.http import JsonResponse
 import traceback
 import os
 from pprint import pprint
+import json
 
 
 #------------------functions---------------------------------------------
@@ -219,6 +220,7 @@ def updateResultsAjax(request):
         #print(disable_cutoff)
         pprint(request)
         pprint(request.POST)
+        pprint(json.loads(request.body))
         data = {"message": "Message"}
         return JsonResponse(data)
 
