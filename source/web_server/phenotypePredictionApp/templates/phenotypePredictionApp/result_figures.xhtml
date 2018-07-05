@@ -126,8 +126,10 @@
     </div>
 </div>
 <script type="text/javascript">
+    .display
     $(document).ready(function() {
-        if(document.getElementById('result_figures').style.display != 'none') {
+        var resultFigures = window.getComputedStyle(document.getElementById('result_figures'))
+        if(resultFigures.style.display != 'none') {
             try {
                 var table_prediction_details = new DataTable({{ prediction_details_values | safe}}, {{ prediction_details_titles | jsonify | safe}}, "#table_prediction_details");
                 table_prediction_details.addFiltering("#trait_prediction_details_bin_filter", {{ bin_alias_list | safe }}, 0);
