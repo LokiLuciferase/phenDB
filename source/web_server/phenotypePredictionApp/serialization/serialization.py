@@ -16,7 +16,7 @@ class PicaResultForUI:
         all_model_names_for_cj = set()
         self.newest_models_for_currentjob = []
         # sort by model train date and add newest possible results for models older than job
-        for pm in sorted(all_models_for_currentjob, key=lambda x: x.model_train_date):
+        for pm in sorted(all_models_for_currentjob, key=lambda x: x.model_train_date, reverse=True):
             pmn = pm.model_name
             pmd = pm.model_train_date
             if pmd > self.job_date:
