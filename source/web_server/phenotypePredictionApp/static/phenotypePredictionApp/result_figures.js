@@ -86,14 +86,12 @@ function DataTable(data, titles, identifier) {
 }
 
 
-function performAjax(form_identifier, url, update_components) {
-    console.log("serialized data: ");
-    console.log($(form_identifier).serialize());
+function __performAjax(form_identifier, url) {
     $.ajaxSetup({
         headers: { "X-CSRFToken": Cookies.get('csrftoken')}
     });
     $.ajax({
-        url: "update/",
+        url: url,
         dataType: "json",
         data: $('#update_result_form').serialize(),
         success: function(result) {
@@ -106,6 +104,13 @@ function performAjax(form_identifier, url, update_components) {
         }
     });
 }
+
+function updateDatatablesWithAjax() {
+    var result = __performAjax("#update_result_form", "update/");
+    initializeDataTablesSingleton.update(result);
+}
+
+var initializeDataTablesSingleton;
 
 function DataTableData() {
     this.prediction_details_values;
