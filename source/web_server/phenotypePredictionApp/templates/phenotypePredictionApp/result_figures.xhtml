@@ -130,7 +130,7 @@
         var resultFigures = window.getComputedStyle(document.getElementById('result_figures'))
         if(resultFigures.display != 'none') {
             try {
-                var table_prediction_details = new DataTable({{ prediction_details_values | default: "[]" | safe}}, {{ prediction_details_titles | jsonify | safe}}, "#table_prediction_details");
+                var table_prediction_details = new DataTable({{ prediction_details_values | default:"[]" | safe}}, {{ prediction_details_titles | jsonify | safe}}, "#table_prediction_details");
                 table_prediction_details.addFiltering("#trait_prediction_details_bin_filter", {{ bin_alias_list | safe }}, 0);
                 table_prediction_details.addFiltering('#trait_prediction_details_model_filter', {{ model_list | safe }}, 1)
                 table_prediction_details.add_colvis_filter("Show/Hide columns", false);
