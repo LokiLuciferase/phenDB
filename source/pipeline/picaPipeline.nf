@@ -281,7 +281,8 @@ try:
 except IntegrityError:
     if "${binname}".startswith("PHENDB_PRECALC"):  # allow muliple identical files in same job if precalculation job
         pass
-    raise
+    else:
+        raise
 """
 
 }
