@@ -92,6 +92,7 @@ function performAjax(form_identifier, url, update_components) {
     $.ajaxSetup({
         headers: { "X-CSRFToken": Cookies.get('csrftoken')}
     });
+    var data = {};
     $.ajax({
         type: "POST",
         url: "update/",
