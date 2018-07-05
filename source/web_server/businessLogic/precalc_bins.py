@@ -160,12 +160,31 @@ def load_unadded_genome_ids(savepath):
         return los
     return None
 
-
-# TODO: implement this
 # Re-add genomes from local cache to phenDB to make predictions on new picamodels
-def rerun_known_genomes():
-    pass
+def rerun_known_genomes(ppath, infolder, outfolder):
+    if os.path.exists(infolder):
+        shutil.rmtree(infolder)
+        os.makedirs(infolder)
 
+    genomes_to_rerun = os.listdir(REFSEQ_GENOMES_BACKUP_LOC)
+    thisbatch = genomes_to_rerun[-50:]
+    genomes_to_rerun = genomes_to_rerun[:-50]
+    while len(thisbatch) > 0:
+        print(datetime.now())
+        print("Rerunning genomes with new models...{n} genomes left to process".format(n=len(genomes_to_rerun)))
+
+        fullpaths = [os.path.join(REFSEQ_GENOMES_BACKUP_LOC, x) for x in thisbatch]
+        for f in fullpaths:
+            shutil.copy(f, infolder)
+
+        check_add_precalc_job()
+        exitstat = start_precalc_queue(ppath=ppath, infolder=infolder, outfolder=outfolder)
+        if exitstat:
+            print(datetime.now())
+            print("Batch finished. updated {lolos} items to database.".format(lolos=len(thisbatch)))
+        else:
+            print("Exiting due to error in pipeline run.")
+            break
 
 # submit a PhenDB job to redis queue, with job ID "PHENDB_PRECALC", sleep until finished, return True if success
 def start_precalc_queue(ppath, infolder, outfolder):
@@ -205,7 +224,7 @@ def main():
         os._exit(0)
     elif args.rerun_existing:
         print("Re-running old refseq genomes with new models.")
-        rerun_known_genomes()
+        rerun_known_genomes(ppath=ppath, infolder=infolder, outfolder=outfolder)
         os._exit(0)
 
     # handle default case

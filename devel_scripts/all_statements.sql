@@ -1,14 +1,14 @@
 /* get all current PhenDB models including their optimal mean balanced accuracy */
 SELECT picamodel.id as 'model_id', model_name as 'model_name',
   model_desc AS 'model_description',
-  max(model_train_date) as 'model_train_date',
+  model_train_date as 'model_train_date',
   ROUND(mean_balanced_accuracy, 2) as 'max_accuracy'
   FROM phenotypePredictionApp_picamodel as picamodel
   JOIN phenotypePredictionApp_picamodelaccuracy AS pma
     ON pma.model_id = picamodel.id
       WHERE comple = 1
       AND conta = 0
-  GROUP BY model_name;
+      AND model_id in (SELECT max(id) from phenotypePredictionApp_picamodel GROUP BY model_name);
 
 
 /*get training data (accession ID an their associated verdict) for model with id @MODEL_ID*/
@@ -95,6 +95,7 @@ SELECT model.id as 'model_id',
        model.model_desc as 'model_description' FROM phenotypePredictionApp_picaresult AS pr
   JOIN phenotypePredictionApp_picamodel AS model ON pr.model_id = model.id
   WHERE pr.bin_id = @BIN_ID
+  AND model.id in (SELECT max(id) from phenotypePredictionApp_picamodel GROUP BY model_name)
   GROUP BY model.model_name
   ORDER BY model.model_train_date;
 
@@ -103,7 +104,6 @@ SELECT enog.id, enog.enog_name, enog.enog_descr as enog_description FROM phenoty
 
 /* get all models in which the given ENOG holds an important position, and the corresponding rank and score */
 SET @ENOG_ID = 17474;
-SET @RELEVANCE_CO = 1000; # Cutoff rank, below which an enog is not considered to contribute to model
 SELECT model.id as model_id,
        model.model_name AS model_name,
        model.model_desc as model_description,
@@ -113,5 +113,5 @@ FROM phenotypePredictionApp_enogrank as enogrank
   JOIN phenotypePredictionApp_picamodel as model
     ON enogrank.model_id = model.id
 WHERE enogrank.enog_id = @ENOG_ID
-AND enogrank.internal_rank <= @RELEVANCE_CO  # can make threshold settable from Forena to let user decide what rank is relevant
-ORDER BY model_name;  # here we could conceivably also sort by rank_in_model to emphasize differences in importance
+AND model.id in (SELECT max(id) from phenotypePredictionApp_picamodel GROUP BY model_name)
+ORDER BY rank_in_model;  # here we could conceivably also sort by rank_in_model to emphasize differences in importance
