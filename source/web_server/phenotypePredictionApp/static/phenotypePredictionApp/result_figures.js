@@ -95,7 +95,7 @@ function __performAjax(form_identifier, url, callback_success) {
         dataType: "json",
         data: $('#update_result_form').serialize(),
         success: function(result) {
-            callback_success.update(result);
+            callback_success(result);
         },
         error: function() {
             console.error("Ajax request failed");
@@ -131,15 +131,15 @@ function InitializeAllDataTables(dataTableData) {
     this.table_prediction = null;
     this.table_trait_counts = null;
     this.table_bin_summary = null; */
-
+    var that = this;
     this.update = function(dataTableData) {
-        this.dataTableData = dataTableData;
-        for(var key in this.tables) {
+        that.dataTableData = dataTableData;
+        for(var key in that.tables) {
             this.tables[key].dataTable.clear();
         }
-        this.initialize();
-        for(var key in this.tables) {
-            this.tables[key].dataTable.draw()
+        that.initialize();
+        for(var key in that.tables) {
+            that.tables[key].dataTable.draw()
         }
     };
 
