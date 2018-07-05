@@ -87,7 +87,7 @@ function DataTable(data, titles, identifier) {
 
 
 function __performAjax(form_identifier, url, callback_success) {
-    document.getElementById('loading_gif_container').style.display = "block";
+    showAjaxLoader();
     $.ajaxSetup({
         headers: { "X-CSRFToken": Cookies.get('csrftoken')}
     });
@@ -103,7 +103,7 @@ function __performAjax(form_identifier, url, callback_success) {
             console.trace();
         },
         complete: function() {
-            document.getElementById('loading_gif_container').style.display = "none";
+            disableAjaxLoader();
         }
     });
 }

@@ -95,5 +95,14 @@ function __initialize_controls() {
     $('#dt_results_accuracy_filter').puispinner({step:0.05});
 }
 
+function showAjaxLoader() {
+    document.getElementById('loading_gif_container').style.display = "block";
+    document.getElementById('white_overlay').style.display = "block";
+}
+
+function disableAjaxLoader() {
+    document.getElementById('loading_gif_container').style.display = "none";
+    document.getElementById('white_overlay').style.display = "none";
+}
 
 </script>

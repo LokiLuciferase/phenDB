@@ -22,8 +22,7 @@
     <div id="white_overlay"></div>
     <script type="text/javascript">
         $(document).ready(function() {
-            document.getElementById('loading_gif_container').style.display = "none";
-            document.getElementById('white_overlay').style.display = "none";
+            disableAjaxLoader();
         });
     </script>
     <form enctype="multipart/form-data" action="{% url 'phenotypePredictionApp:sendinput' %}" method="post">
@@ -43,7 +42,7 @@
         </div>
     {% endif %}
 
-    {% include "phenotypePredictionApp/primeui_components.xhtml" %}
+    {% include "phenotypePredictionApp/ui_components.xhtml" %}
 
 
         <script type="text/javascript">
