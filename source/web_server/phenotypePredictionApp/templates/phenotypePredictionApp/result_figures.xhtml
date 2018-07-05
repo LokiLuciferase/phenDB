@@ -104,7 +104,7 @@
             dataTableData.trait_counts_titles = {{ trait_counts_titles |jsonify | safe }};
             dataTableData.bin_summary_values = {{ bin_summary_values | safe }};
             dataTableData.bin_summary_titles = {{ bin_summary_titles |jsonify | safe }};
-            var initializeAllDataTables = new InitializeAllDataTables(dataTableData);
+            window.initializeAllDataTables = new InitializeAllDataTables(dataTableData);
             initializeAllDataTables.initialize();
         });
     </script>
