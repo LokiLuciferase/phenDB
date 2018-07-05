@@ -37,9 +37,9 @@ class PicaResultForUI:
         bin_id_to_alias = {x.id: bin_id_to_bij_id[x.id] for x in self.all_bins}
         model_id_to_name = {x.id: x.model_name for x in self.newest_models_for_currentjob}
         for res in list(self.all_results_for_currentjob.values()):
-            model_id = res.get("bin_id")
-            bin_alias = bin_id_to_alias[model_id]
-            model_name = model_id_to_name[res.get("model_id")]
+            model_id = res.get("model_id")
+            bin_alias = bin_id_to_alias[res.get("bin_id")]
+            model_name = model_id_to_name[res.get(model_id)]
             verdict = res.get("verdict")
             mba = res.get("accuracy")
             pconf = res.get("pica_pval")
