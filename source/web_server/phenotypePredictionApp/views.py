@@ -211,17 +211,9 @@ def getResults(request):
     return HttpResponse(template.render(context, request))
 
 def updateResultsAjax(request):
-    pprint(request.GET.get('username', None))
-    if request.method == "POST":
-        #requested_balac = request.POST['results_advanced_requested_balac']
-        #requested_conf = request.POST['results_advanced_requested_conf']
-        #disable_cutoff = request.POST['results_advanced_disable_cutoffs']
-        #print(requested_balac)
-        #print(requested_conf)
-        #print(disable_cutoff)
-        pprint(request.GET.get('username', None))
-        data = {"message": "Message"}
-        return JsonResponse(data)
+    pprint(request.GET.get('trait_count_bin_filter', None))
+    data = {"message": "Message"}
+    return JsonResponse(data)
 
 def fileDownload(request):
     key = getKeyFromUrl(request)
