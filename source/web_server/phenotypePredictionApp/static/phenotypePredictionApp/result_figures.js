@@ -92,15 +92,14 @@ function performAjax(form_identifier, url, update_components) {
     $.ajaxSetup({
         headers: { "X-CSRFToken": Cookies.get('csrftoken')}
     });
-    var data = {};
-    $(form_identifier).serializeArray().map(function(x){data[x.name] = x.value;}),
     $.ajax({
-        type: "POST",
+        //type: "POST",
         url: "update/",
         dataType: "json",
-        method: "POST",
-        data: data,
-        contentType: "application/json",
+        data: {'username' : 'username1'},
+        //method: "POST",
+        //data: $(form_identifier).serializeArray(),
+        //contentType: "application/json",
         success: function(result) {
 
         },

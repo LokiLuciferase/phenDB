@@ -218,10 +218,7 @@ def updateResultsAjax(request):
         #print(requested_balac)
         #print(requested_conf)
         #print(disable_cutoff)
-        pprint(request)
-        pprint(request.POST)
-        pprint(request.body)
-        pprint(json.loads(request.body))
+        pprint(request.GET.get('username', None))
         data = {"message": "Message"}
         return JsonResponse(data)
 
