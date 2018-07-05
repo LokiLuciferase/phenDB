@@ -93,32 +93,18 @@
     </div>
     <script type="text/javascript">
         $(document).ready(function() {
-            try {
-                var table_prediction_details = new DataTable({{ prediction_details_values | safe}}, {{ prediction_details_titles | jsonify | safe}}, "#table_prediction_details");
-                table_prediction_details.addFiltering("#trait_prediction_details_bin_filter", {{ bin_alias_list | safe }}, 0);
-                table_prediction_details.addFiltering('#trait_prediction_details_model_filter', {{ model_list | safe }}, 1)
-                table_prediction_details.add_colvis_filter("Show/Hide columns", false);
-            } catch (e) {
-                console.log("table_prediction_details failed" + " " + e);
-            }
-            try {
-                var table_prediction = new DataTable({{ prediction_values | safe }}, {{ prediction_titles |jsonify | safe }}, "#table_prediction");
-                table_prediction.add_colvis_filter("Filter Model Columns", true);
-            } catch (e) {
-                console.log("table_prediction failed" + " " + e);
-            }
-            try {
-                var table_trait_counts = new DataTable({{ trait_counts_values | safe }}, {{ trait_counts_titles |jsonify | safe }}, "#table_trait_counts");
-                table_trait_counts.addFiltering("#trait_count_model_filter", {{ model_list | safe }}, 0)
-            } catch (e) {
-                console.log("table_trait_counts failed" + " " + e);
-            }
-            try {
-                var table_bin_summary = new DataTable({{ bin_summary_values | safe }}, {{ bin_summary_titles |jsonify | safe }}, "#table_bin_summary");
-                table_bin_summary.addFiltering("#trait_count_bin_filter", {{ bin_alias_list | safe }}, 0);
-            } catch (e) {
-                console.log("table_bin_summary failed" + " " + e);
-            }
+            var dataTableData = new DataTableData();
+            dataTableData.prediction_details_values = {{ prediction_details_values | safe}};
+            dataTableData.prediction_details_titles = {{ prediction_details_titles | jsonify | safe}};
+            dataTableData.bin_alias_list = {{ bin_alias_list | safe }};
+            dataTableData.model_list = {{ model_list | safe }};
+            dataTableData.prediction_values = {{ prediction_details_values | safe}};
+            dataTableData.prediction_titles = {{ prediction_titles |jsonify | safe }};
+            dataTableData.trait_counts_values = {{ trait_counts_values | safe }};
+            dataTableData.trait_counts_titles = {{ trait_counts_titles |jsonify | safe }};
+            dataTableData.bin_summary_values = {{ bin_summary_values | safe }};
+            dataTableData.bin_summary_titles = {{ bin_summary_titles |jsonify | safe }};
+            InitializeAllDataTables(dataTableData);
         });
     </script>
 {% endif %}
