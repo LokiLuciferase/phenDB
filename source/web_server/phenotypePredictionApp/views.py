@@ -211,8 +211,11 @@ def getResults(request):
     return HttpResponse(template.render(context, request))
 
 def updateResultsAjax(request):
-    pprint(request.GET.get('trait_count_bin_filter', None))
-    pprint(request.GET)
+    disable_cutoffs = False if request.GET.get('disable_cutoffs') is None else True
+    requested_balac = request.GET.get('requested_balac')
+    requested_conf = request.GET.get('requested_conf')
+    pprint([disable_cutoffs, requested_balac, requested_conf])
+
     data = {"message": "Message"}
     return JsonResponse(data)
 
