@@ -164,7 +164,7 @@ def load_unadded_genome_ids(savepath):
 def rerun_known_genomes(ppath, infolder, outfolder):
     if os.path.exists(infolder):
         shutil.rmtree(infolder)
-        os.makedirs(infolder)
+    os.makedirs(infolder)
 
     genomes_to_rerun = os.listdir(REFSEQ_GENOMES_BACKUP_LOC)
     thisbatch = genomes_to_rerun[-50:]
