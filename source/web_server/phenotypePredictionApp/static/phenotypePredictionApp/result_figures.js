@@ -95,7 +95,7 @@ function __performAjax(form_identifier, url, callback_success) {
         dataType: "json",
         data: $('#update_result_form').serialize(),
         success: function(result) {
-            callback_success(result);
+            callback_success.update(result);
         },
         error: function() {
             console.error("Ajax request failed");
