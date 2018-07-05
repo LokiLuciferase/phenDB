@@ -135,7 +135,7 @@ function InitializeAllDataTables(dataTableData) {
     this.update = function(dataTableData) {
         that.dataTableData = dataTableData;
         for(var key in that.tables) {
-            that.tables[key].dataTable.clear();
+            that.tables[key].dataTable.destroy();
         }
         that.initialize();
         for(var key in that.tables) {
