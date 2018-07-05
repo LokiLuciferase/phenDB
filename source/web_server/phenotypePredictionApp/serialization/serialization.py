@@ -213,7 +213,7 @@ class _BinSummary:
 
 class ModelLink:
     def createModelLink(model_id, model_name):
-        link = ModelLink._getLinkForModel(model_id)
+        link = ModelLink.__getLinkForModel(model_id)
         return "<a target='_blank' href='" + link + "'>" + model_name + "</a>"
 
     def __getLinkForModel(model_id):
