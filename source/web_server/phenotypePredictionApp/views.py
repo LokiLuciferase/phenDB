@@ -195,7 +195,6 @@ def getResults(request):
                'errorMessagePU' : errorMessagePU,
                'queuePos' : queuePos + 1,
                'queueLen' : queueLen,
-               'all_models' : PicaModel.objects.all,
                'prediction_details_values' : pica_result_for_ui.prediction_details.get_values() if pica_result_for_ui is not None else "",
                'prediction_details_titles' : pica_result_for_ui.prediction_details.get_titles() if pica_result_for_ui is not None else "",
                'prediction_values' : pica_result_for_ui.prediction.get_values() if pica_result_for_ui is not None else "",
@@ -214,9 +213,22 @@ def updateResultsAjax(request):
     disable_cutoffs = False if request.GET.get('disable_cutoffs') is None else True
     requested_balac = request.GET.get('requested_balac')
     requested_conf = request.GET.get('requested_conf')
-    print(getKeyFromUrl(request))
 
-    data = {"message": "Message"}
+    key = getKeyFromUrl(request)
+    job = Job.objects.get(key=key)
+    pica_result_for_ui = PicaResultForUI(job=job, requested_conf=requested_conf, requested_balac=requested_balac, disable_cutoffs=disable_cutoffs)
+
+    data = {'prediction_details_values': pica_result_for_ui.prediction_details.get_values() if pica_result_for_ui is not None else "",
+            'prediction_details_titles': pica_result_for_ui.prediction_details.get_titles() if pica_result_for_ui is not None else "",
+            'prediction_values': pica_result_for_ui.prediction.get_values() if pica_result_for_ui is not None else "",
+            'prediction_titles': pica_result_for_ui.prediction.get_titles() if pica_result_for_ui is not None else "",
+            'trait_counts_values': pica_result_for_ui.trait_counts.get_values() if pica_result_for_ui is not None else "",
+            'trait_counts_titles': pica_result_for_ui.trait_counts.get_titles() if pica_result_for_ui is not None else "",
+            'bin_summary_values': pica_result_for_ui.bin_summary.get_values() if pica_result_for_ui is not None else "",
+            'bin_summary_titles': pica_result_for_ui.bin_summary.get_titles() if pica_result_for_ui is not None else "",
+            'bin_alias_list': pica_result_for_ui.bin_alias_list if pica_result_for_ui is not None else "",
+            'model_list': pica_result_for_ui.prediction.get_raw_title_list() if pica_result_for_ui is not None else "",
+    }
     return JsonResponse(data)
 
 def fileDownload(request):
