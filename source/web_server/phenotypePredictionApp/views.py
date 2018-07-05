@@ -62,7 +62,8 @@ def index(request):
                'showInputFormCSS': 'block',
                'showProgressBar' : False,
                'refresh' : False,
-               'queueLen' : getQueueLength()}
+               'queueLen' : getQueueLength(),
+               }
     return HttpResponse(template.render(context, request))
 
 def sendinput(request):

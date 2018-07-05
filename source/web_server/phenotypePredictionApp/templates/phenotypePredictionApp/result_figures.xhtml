@@ -1,160 +1,124 @@
 {% load jsonify %}
-<style>
-    .result_figures {
-        display: {{ showResultCSS }};
-    }
-</style>
-<div id="result_figures" class="result_figures">
-    <div id="result_figure_trait_prediction" title="Explore Your Results Online" style="margin:10px;">
-        <!--
-        <div style="padding-bottom: 30px" class="row" id="dt_results_model_filter_wrapper">
-            <div class="column" style="width: 100px; padding-right:10px" id="dt_result_model_filter_name">Filter Models</div>
-            <div class="column">
-                <input id="dt_results_model_filter"></input>
-            </div>
-            <div class="column">
-                <button style="height:100%; margin-bottom:3px;" id="dt_results_model_filter_info">Model Overview</button>
-            </div>
-            <div id="dt_results_model_filter_info_text"></div>
-        </div>
-        <div style="padding-bottom: 30px" class="row" id="dt_results_bin_filter_wrapper">
-            <div class="column" style="width: 100px; padding-right:10px" id="dt_result_bin_filter_name">Filter Bins</div>
-            <div class="column">
-                <input id="dt_results_bin_filter"></input>
-            </div>
-        </div>
-        <div style="padding-bottom: 30px" class="row" id="dt_results_pval_filter_wrapper">
-            <div class="column" style="width: 100px; padding-right:10px" id="dt_result_pval_filter_name">Probability Cutoff</div>
-            <div class="column">
-                <input id="dt_results_pval_filter"></input>
-            </div>
-        </div>
-        <div style="padding-bottom: 30px" class="row" id="dt_results_accuracy_filter_wrapper">
-            <div class="column" style="width: 100px; padding-right:10px" id="dt_result_accuracy_filter_name">Accuracy Cutoff</div>
-            <div class="column">
-                <input id="dt_results_accuracy_filter"></input>
-            </div>
-        </div>
-        -->
-        <div id="all_result_tables">
-            <h3>Trait Prediction</h3>
-            <div id="trait_prediction">
-                <table id="table_prediction" class="result_table"></table>
-            </div>
-            <h3>Trait Prediction Details</h3>
-            <div id="trait_prediction_details">
-                <div class="row" style="padding-bottom: 30px">
-                    <div class="column" style="width: 100px; padding-right:10px">
-                        Filter Bins
+{% if showResultCSS != 'none' %}
+    <div id="result_figures" class="result_figures">
+        <div id="result_figure_trait_prediction" title="Explore Your Results Online" style="margin:10px;">
+            <div id="all_result_tables">
+                <h3>Trait Prediction</h3>
+                <div id="trait_prediction">
+                    <table id="table_prediction" class="result_table"></table>
+                </div>
+                <h3>Trait Prediction Details</h3>
+                <div id="trait_prediction_details">
+                    <div class="row" style="padding-bottom: 30px">
+                        <div class="column" style="width: 100px; padding-right:10px">
+                            Filter Bins
+                        </div>
+                        <div class="column">
+                            <input id="trait_prediction_details_bin_filter"></input>
+                        </div>
                     </div>
-                    <div class="column">
-                        <input id="trait_prediction_details_bin_filter"></input>
+                    <div class="row" style="padding-bottom: 30px">
+                        <div class="column" style="width: 100px; padding-right:10px">
+                            Filter Model
+                        </div>
+                        <div class="column">
+                            <input id="trait_prediction_details_model_filter"></input>
+                        </div>
+                    </div>
+                    <table id="table_prediction_details" class="result_table"></table>
+                </div>
+                <h3>Trait Count Summary</h3>
+                <div id="trait_counts_summary">
+                     <div class="row" style="padding-bottom: 30px">
+                        <div class="column" style="width: 100px; padding-right:10px">
+                            Filter Model
+                        </div>
+                        <div class="column">
+                            <input id="trait_count_model_filter"></input>
+                        </div>
+                    </div>
+                    <table id="table_trait_counts" class="result_table"></table>
+                </div>
+                <h3>Bin Summary</h3>
+                <div id="bin_summary">
+                    <div class="row" style="padding-bottom: 30px">
+                        <div class="column" style="width: 100px; padding-right:10px">
+                            Filter Bin
+                        </div>
+                        <div class="column">
+                            <input id="trait_count_bin_filter"></input>
+                        </div>
+                    </div>
+                    <table id="table_bin_summary" class="result_table"></table>
+                </div>
+            </div>
+        </div>
+        <div id="results_advanced" title="Advanced" style="margin:10px;">
+            <form enctype="multipart/form-data" method="post" id="update_result_form">
+                {% csrf_token %}
+                <div id="results_advanced_explanation" class="row">
+                Change the cut-offs and update the result figures (this only applies to the datatables in the
+                section "Explore Your Results Online", not to the zipped result folder provided in the section
+                "Download Your Full Results"
+                </div>
+                <div class="row">
+                    <div class="column" style="flex:50">
+                        <label for="results_advanced_requested_balac"><b>Balanced accuracy cut-off (0.5 - 1)</b></label>
+                    </div>
+                    <div class="column inputField" style="flex:50">
+                        <input id="results_advanced_requested_balac" name="requested_balac" type="text" value="0.75"></input>
                     </div>
                 </div>
-                <div class="row" style="padding-bottom: 30px">
-                    <div class="column" style="width: 100px; padding-right:10px">
-                        Filter Model
+                <div class="row">
+                    <div class="column" style="flex:50">
+                        <label for="results_advanced_requested_conf"><b>Prediction confidence cut-off (0.5 - 1)</b></label>
                     </div>
-                    <div class="column">
-                        <input id="trait_prediction_details_model_filter"></input>
-                    </div>
-                </div>
-                <table id="table_prediction_details" class="result_table"></table>
-            </div>
-            <h3>Trait Count Summary</h3>
-            <div id="trait_counts_summary">
-                 <div class="row" style="padding-bottom: 30px">
-                    <div class="column" style="width: 100px; padding-right:10px">
-                        Filter Model
-                    </div>
-                    <div class="column">
-                        <input id="trait_count_model_filter"></input>
+                    <div class="column inputField" style="flex:50">
+                        <input id="results_advanced_requested_conf" name="requested_conf" type="text" value="0.6"></input>
                     </div>
                 </div>
-                <table id="table_trait_counts" class="result_table"></table>
-            </div>
-            <h3>Bin Summary</h3>
-            <div id="bin_summary">
-                <div class="row" style="padding-bottom: 30px">
-                    <div class="column" style="width: 100px; padding-right:10px">
-                        Filter Bin
+                <div class="row">
+                    <div class="column" style="flex:50">
+                        <label for="results_advanced_disable_cutoffs"><b>Disable all filters and cut-offs</b></label>
                     </div>
-                    <div class="column">
-                        <input id="trait_count_bin_filter"></input>
+                    <div class="column inputField" style="flex:50">
+                        <input id="results_advanced_disable_cutoffs" name="disable_cutoffs" type="checkbox" value="0"></input>
                     </div>
                 </div>
-                <table id="table_bin_summary" class="result_table"></table>
-            </div>
+                <div class="row">
+                    <button id="results_advanced_submit" type="button">Submit</button>
+                </div>
+            </form>
         </div>
     </div>
-    <div id="results_advanced" title="Advanced" style="margin:10px;">
-        <form enctype="multipart/form-data" method="post" id="update_result_form">
-            {% csrf_token %}
-            <div id="results_advanced_explanation" class="row">
-            Change the cut-offs and update the result figures (this only applies to the datatables in the
-            section "Explore Your Results Online", not to the zipped result folder provided in the section
-            "Download Your Full Results"
-            </div>
-            <div class="row">
-                <div class="column" style="flex:50">
-                    <label for="results_advanced_requested_balac"><b>Balanced accuracy cut-off (0.5 - 1)</b></label>
-                </div>
-                <div class="column inputField" style="flex:50">
-                    <input id="results_advanced_requested_balac" name="requested_balac" type="text" value="0.75"></input>
-                </div>
-            </div>
-            <div class="row">
-                <div class="column" style="flex:50">
-                    <label for="results_advanced_requested_conf"><b>Prediction confidence cut-off (0.5 - 1)</b></label>
-                </div>
-                <div class="column inputField" style="flex:50">
-                    <input id="results_advanced_requested_conf" name="requested_conf" type="text" value="0.6"></input>
-                </div>
-            </div>
-            <div class="row">
-                <div class="column" style="flex:50">
-                    <label for="results_advanced_disable_cutoffs"><b>Disable all filters and cut-offs</b></label>
-                </div>
-                <div class="column inputField" style="flex:50">
-                    <input id="results_advanced_disable_cutoffs" name="disable_cutoffs" type="checkbox" value="0"></input>
-                </div>
-            </div>
-            <div class="row">
-                <button id="results_advanced_submit" type="button">Submit</button>
-            </div>
-        </form>
-    </div>
-</div>
-<script type="text/javascript">
-    $(document).ready(function() {
-        var resultFigures = window.getComputedStyle(document.getElementById('result_figures'))
-        if(resultFigures.display != 'none') {
+    <script type="text/javascript">
+        $(document).ready(function() {
             try {
-                var table_prediction_details = new DataTable({{ prediction_details_values | default:"" | safe}}, {{ prediction_details_titles | default:"" | jsonify | safe}}, "#table_prediction_details");
-                table_prediction_details.addFiltering("#trait_prediction_details_bin_filter", {{ bin_alias_list | default:"" | safe }}, 0);
-                table_prediction_details.addFiltering('#trait_prediction_details_model_filter', {{ model_list | default:"" | safe }}, 1)
+                var table_prediction_details = new DataTable({{ prediction_details_values | safe}}, {{ prediction_details_titles | jsonify | safe}}, "#table_prediction_details");
+                table_prediction_details.addFiltering("#trait_prediction_details_bin_filter", {{ bin_alias_list | safe }}, 0);
+                table_prediction_details.addFiltering('#trait_prediction_details_model_filter', {{ model_list | safe }}, 1)
                 table_prediction_details.add_colvis_filter("Show/Hide columns", false);
             } catch (e) {
                 console.log("table_prediction_details failed" + " " + e);
             }
             try {
-                var table_prediction = new DataTable({{ prediction_values | default:"" | safe }}, {{ prediction_titles | default:"" |jsonify | safe }}, "#table_prediction");
+                var table_prediction = new DataTable({{ prediction_values | safe }}, {{ prediction_titles |jsonify | safe }}, "#table_prediction");
                 table_prediction.add_colvis_filter("Filter Model Columns", true);
             } catch (e) {
                 console.log("table_prediction failed" + " " + e);
             }
             try {
-                var table_trait_counts = new DataTable({{ trait_counts_values | default:"" | safe }}, {{ trait_counts_titles | default:"" |jsonify | safe }}, "#table_trait_counts");
-                table_trait_counts.addFiltering("#trait_count_model_filter", {{ model_list | default:"" | safe }}, 0)
+                var table_trait_counts = new DataTable({{ trait_counts_values | safe }}, {{ trait_counts_titles |jsonify | safe }}, "#table_trait_counts");
+                table_trait_counts.addFiltering("#trait_count_model_filter", {{ model_list | safe }}, 0)
             } catch (e) {
                 console.log("table_trait_counts failed" + " " + e);
             }
             try {
-                var table_bin_summary = new DataTable({{ bin_summary_values | safe }}, {{ bin_summary_titles | default:"" |jsonify | safe }}, "#table_bin_summary");
-                table_bin_summary.addFiltering("#trait_count_bin_filter", {{ bin_alias_list | default:"" | safe }}, 0);
+                var table_bin_summary = new DataTable({{ bin_summary_values | safe }}, {{ bin_summary_titles |jsonify | safe }}, "#table_bin_summary");
+                table_bin_summary.addFiltering("#trait_count_bin_filter", {{ bin_alias_list | safe }}, 0);
             } catch (e) {
                 console.log("table_bin_summary failed" + " " + e);
             }
-        }
-    });
-</script>
+        });
+    </script>
+{% endif %}
