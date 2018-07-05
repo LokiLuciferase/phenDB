@@ -86,7 +86,7 @@ function DataTable(data, titles, identifier) {
 }
 
 
-function __performAjax(form_identifier, url) {
+function __performAjax(form_identifier, url, callback_success) {
     $.ajaxSetup({
         headers: { "X-CSRFToken": Cookies.get('csrftoken')}
     });
@@ -95,19 +95,17 @@ function __performAjax(form_identifier, url) {
         dataType: "json",
         data: $('#update_result_form').serialize(),
         success: function(result) {
-            return result;
+            callback_success(result);
         },
         error: function() {
             console.error("Ajax request failed");
             console.trace();
-            return null;
         }
     });
 }
 
 function updateDatatablesWithAjax() {
-    var result = __performAjax("#update_result_form", "update/");
-    initializeDataTablesSingleton.update(result);
+    __performAjax("#update_result_form", "update/", initializeDataTablesSingleton.update);
 }
 
 var initializeDataTablesSingleton;
