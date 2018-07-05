@@ -214,7 +214,7 @@ def updateResultsAjax(request):
     disable_cutoffs = False if request.GET.get('disable_cutoffs') is None else True
     requested_balac = request.GET.get('requested_balac')
     requested_conf = request.GET.get('requested_conf')
-    pprint([disable_cutoffs, requested_balac, requested_conf])
+    print(getKeyFromUrl(request))
 
     data = {"message": "Message"}
     return JsonResponse(data)
