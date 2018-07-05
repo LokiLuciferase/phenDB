@@ -212,6 +212,7 @@ def getResults(request):
 
 def updateResultsAjax(request):
     pprint(request.GET.get('trait_count_bin_filter', None))
+    pprint(request.GET)
     data = {"message": "Message"}
     return JsonResponse(data)
 
