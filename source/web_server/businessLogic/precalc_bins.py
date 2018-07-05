@@ -121,7 +121,9 @@ def download_genomes(los, path):
 # check if a job with id "PHENDB_PRECALC" exists in the DB; if not, create it (required for phenDB pipeline)
 def check_add_precalc_job():
     try:
-        Job.objects.get(key="PHENDB_PRECALC")
+        pc_job = Job.objects.get(key="PHENDB_PRECALC")
+        pc_job.job_date = datetime.now()
+        pc_job.save()
     except:
         new_precalc_job = Job(key="PHENDB_PRECALC")
         new_precalc_job.save()
