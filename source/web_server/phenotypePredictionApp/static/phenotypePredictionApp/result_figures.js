@@ -131,12 +131,12 @@ function InitializeAllDataTables(dataTableData) {
 
     this.update = function(dataTableData) {
         this.dataTableData = dataTableData;
-        for(var table in this.tables) {
-            table.dataTable.clear();
+        for(var key in this.tables) {
+            this.tables[key].dataTable.clear();
         }
         this.initialize();
-        for(var table in this.table) {
-            table.dataTable.draw()
+        for(var key in this.tables) {
+            this.tables[key].dataTable.draw()
         }
     };
 
