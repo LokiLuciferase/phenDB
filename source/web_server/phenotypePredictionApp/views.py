@@ -220,6 +220,7 @@ def updateResultsAjax(request):
         #print(disable_cutoff)
         pprint(request)
         pprint(request.POST)
+        pprint(request.body)
         pprint(json.loads(request.body))
         data = {"message": "Message"}
         return JsonResponse(data)
