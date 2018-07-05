@@ -82,7 +82,7 @@ class _PredictionDetails:
         self.picaResultForUI = picaResultForUI
         self.__calc()
 
-    TITLES = [{"title" : "Bin"}, {"title" : "<a href='http://phendb.org/reports/modeloverview'>link text</a>"}, {"title" : "Prediction"}, {"title" : "Prediction_Confidence"}, {"title" : "Balanced_Accuracy"}]
+    TITLES = [{"title" : "Bin"}, {"title" : "<a target='_top' href='http://phendb.org/reports/modeloverview'>Model</a>"}, {"title" : "Prediction"}, {"title" : "Prediction_Confidence"}, {"title" : "Balanced_Accuracy"}]
 
     def get_values(self):
         return self.values
