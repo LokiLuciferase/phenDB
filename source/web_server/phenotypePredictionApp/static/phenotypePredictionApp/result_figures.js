@@ -96,9 +96,9 @@ function performAjax(form_identifier, url, update_components) {
         //type: "POST",
         url: "update/",
         dataType: "json",
-        data: {'username' : 'username1'},
+        //data: {'username' : 'username1'},
         //method: "POST",
-        //data: $(form_identifier).serializeArray(),
+        data: $('#update_result_form').serialize(),
         //contentType: "application/json",
         success: function(result) {
 
