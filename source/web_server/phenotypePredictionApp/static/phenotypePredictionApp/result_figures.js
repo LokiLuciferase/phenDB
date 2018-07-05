@@ -123,43 +123,44 @@ function DataTableData() {
 function InitializeAllDataTables(dataTableData) {
 
     this.dataTableData = dataTableData;
-    this.table_prediction_details = null;
+    this.tables = {};
+    /*this.table_prediction_details = null;
     this.table_prediction = null;
     this.table_trait_counts = null;
-    this.table_bin_summary = null;
+    this.table_bin_summary = null; */
 
     this.update = function(dataTableData) {
         this.dataTableData = dataTableData;
-        this.dataTableData.clear();
+        this.tables.forEach(x => x.clear());
         this.initialize();
-        this.dataTableData.draw();
+        this.tables.forEach(x => x.draw());
     };
 
     this.initialize = function()
     {
         try {
-            this.table_prediction_details = new DataTable(this.dataTableData.prediction_details_values, this.dataTableData.prediction_details_titles, "#table_prediction_details");
-            this.table_prediction_details.addFiltering("#trait_prediction_details_bin_filter", this.dataTableData.bin_alias_list, 0);
-            this.table_prediction_details.addFiltering('#trait_prediction_details_model_filter', this.dataTableData.model_list, 1)
-            this.table_prediction_details.add_colvis_filter("Show/Hide columns", false);
+            this.tables['table_prediction_details'] = new DataTable(this.dataTableData.prediction_details_values, this.dataTableData.prediction_details_titles, "#table_prediction_details");
+            this.tables['table_prediction_details'].addFiltering("#trait_prediction_details_bin_filter", this.dataTableData.bin_alias_list, 0);
+            this.tables['table_prediction_details'].addFiltering('#trait_prediction_details_model_filter', this.dataTableData.model_list, 1)
+            this.tables['table_prediction_details'].add_colvis_filter("Show/Hide columns", false);
         } catch (e) {
             console.error("table_prediction_details failed" + " " + e);
         }
         try {
-            this.table_prediction = new DataTable(this.dataTableData.prediction_values, this.dataTableData.prediction_titles, "#table_prediction");
-            this.table_prediction.add_colvis_filter("Filter Model Columns", true);
+            this.tables['table_prediction'] = new DataTable(this.dataTableData.prediction_values, this.dataTableData.prediction_titles, "#table_prediction");
+            this.tables['table_prediction'].add_colvis_filter("Filter Model Columns", true);
         } catch (e) {
             console.error("table_prediction failed" + " " + e);
         }
         try {
-            this.table_trait_counts = new DataTable(this.dataTableData.trait_counts_values, this.dataTableData.trait_counts_titles, "#table_trait_counts");
-            this.table_trait_counts.addFiltering("#trait_count_model_filter", this.dataTableData.model_list, 0)
+            this.tables['table_trait_counts'] = new DataTable(this.dataTableData.trait_counts_values, this.dataTableData.trait_counts_titles, "#table_trait_counts");
+            this.tables['table_trait_counts'].addFiltering("#trait_count_model_filter", this.dataTableData.model_list, 0)
         } catch (e) {
             console.error("table_trait_counts failed" + " " + e);
         }
         try {
-            this.table_bin_summary = new DataTable(this.dataTableData.bin_summary_values, this.dataTableData.bin_summary_titles, "#table_bin_summary");
-            this.table_bin_summary.addFiltering("#trait_count_bin_filter", this.dataTableData.bin_alias_list, 0);
+            this.tables['table_bin_summary'] = new DataTable(this.dataTableData.bin_summary_values, this.dataTableData.bin_summary_titles, "#table_bin_summary");
+            this.tables['table_bin_summary'].addFiltering("#trait_count_bin_filter", this.dataTableData.bin_alias_list, 0);
         } catch (e) {
             console.error("table_bin_summary failed" + " " + e);
         }
