@@ -69,15 +69,13 @@
         </script>
         <script type="text/javascript">
             //--------DESKTOP-NOTIFICATIONS-------------------------//
+            {%  if showInputFormCSS != 'none' %}
+                Notification.requestPermission();
+            {% endif %}
             {% if showNotification %}
-            $(document).ready(function() {
-                Notification.requestPermission().then(function (result) {
-                    if (result === 'denied' || result === 'default') return;
-                    new Notification("PhenDB", {
-                        body: "Your request has been calculated"
-                    });
+                new Notification("PhenDB", {
+                    body: "Your request has been calculated"
                 });
-            });
             {% endif %}
         </script>
 
