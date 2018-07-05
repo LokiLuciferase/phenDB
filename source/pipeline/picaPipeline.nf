@@ -250,7 +250,8 @@ try:
         recon_cc_string = "\\t".join([str(x) for x in (thisbin.comple, 
                                                        thisbin.conta, 
                                                        thisbin.strainhet, 
-                                                       thisbin.tax_id, " ", " ")])
+                                                       thisbin.tax_id, 
+                                                       "dummy", "dummy")])
         complecon.write(recon_cc_string)
 
     print("NO", end='')
