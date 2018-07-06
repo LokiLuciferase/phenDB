@@ -111,6 +111,21 @@ function __initialize_controls() {
                 updateDatatablesWithAjax();
             }
     });
+    $('#example_data_button').puibutton({
+        click: function() {
+            var fileInputElm = document.getElementById('fileInput');
+            var example_data_button_elm = document.getElementById('example_data_button');
+            if(fileInputElm.isDisabled) {
+                fileInputElm.disabled = "false";
+                example_data_button_elm.innerHTML = "Use example data";
+            }
+            else {
+                fileInputElm.disabled = "true";
+                alert("Escherichia coli str. K-12 substr. MC4100 (GenBank: HG738867.1) will be used in this example");
+                example_data_button_elm.innerHTML = "Use own data";
+            }
+        }
+    });
     $('#dt_results_pval_filter').puispinner({step:0.05});
     $('#dt_results_accuracy_filter').puispinner({step:0.05});
 }
