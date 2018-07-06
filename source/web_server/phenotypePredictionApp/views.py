@@ -1,26 +1,21 @@
-from django.shortcuts import render
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse
 from django.template import loader
-from django.urls import reverse
 from .forms import FileForm
 from .variables import PHENDB_BASEDIR, PHENDB_QUEUE, PHENDB_DEBUG
 from django.shortcuts import redirect
 from businessLogic.mailNotification import MailNotification
 import uuid
-from django.core.urlresolvers import resolve
 from businessLogic.startProcess import StartProcessThread
 from phenotypePredictionApp.models import Job, PicaResult, BinInJob, PicaModel
-from pprint import pprint
 from ipware.ip import get_real_ip
 from redis import Redis
 from rq import Queue, get_current_job
 from .serialization.serialization import PicaResultForUI
 import struct
+from default_values import DEFAULT_VALUES
 from django.http import JsonResponse
-import traceback
 import os
-from pprint import pprint
-import json
+
 
 
 #------------------functions---------------------------------------------
@@ -64,6 +59,8 @@ def index(request):
                'showProgressBar' : False,
                'refresh' : False,
                'queueLen' : getQueueLength(),
+               'requested_balac_default' : DEFAULT_VALUES['balanced_accuracy_cutoff'],
+               'requested_conf_default' : DEFAULT_VALUES['prediction_confidence_cutoff'],
                }
     return HttpResponse(template.render(context, request))
 

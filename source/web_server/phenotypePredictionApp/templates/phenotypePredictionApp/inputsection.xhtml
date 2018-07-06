@@ -32,7 +32,7 @@
                 <label for="requested_balac"><b>Balanced accuracy cut-off (0.5 - 1)</b></label>
             </div>
             <div class="column inputField" style="flex:50">
-                <input id="requested_balac" name="requested_balac" type="text" value="0.75"></input>
+                <input id="requested_balac" name="requested_balac" type="text" value="{{ requested_balac_default }}"></input>
             </div>
         </div>
         <div class="row">
@@ -40,7 +40,7 @@
                 <label for="requested_conf"><b>Prediction confidence cut-off (0.5 - 1)</b></label>
             </div>
             <div class="column inputField" style="flex:50">
-                <input id="requested_conf" name="requested_conf" type="text" value="0.6"></input>
+                <input id="requested_conf" name="requested_conf" type="text" value="{{ requested_conf_default }}"></input>
             </div>
         </div>
         <div class="row">
