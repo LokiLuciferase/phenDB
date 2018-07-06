@@ -108,3 +108,9 @@ form {
 .dataTables_length {
     margin-right:20px;
 }
+
+/* PhenDB themed layout override */
+
+.ui-widget-header {
+    background:#e3e3e3 !important;
+}
