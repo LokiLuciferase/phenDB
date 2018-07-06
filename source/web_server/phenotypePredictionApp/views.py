@@ -12,7 +12,7 @@ from redis import Redis
 from rq import Queue, get_current_job
 from .serialization.serialization import PicaResultForUI
 import struct
-from default_values import DEFAULT_VALUES
+from phenotypePredictionApp.default_values import DEFAULT_VALUES
 from django.http import JsonResponse
 import os
 
