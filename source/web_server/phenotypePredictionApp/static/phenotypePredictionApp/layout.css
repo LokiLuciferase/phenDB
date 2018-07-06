@@ -102,3 +102,9 @@ form {
     z-index:50;
     background:rgba(255,255,255,0.9);
 }
+
+/* fixes datatable bug with fixedColumn */
+
+#DTFC_LeftBodyLiner {
+    overflow:hidden;
+}
