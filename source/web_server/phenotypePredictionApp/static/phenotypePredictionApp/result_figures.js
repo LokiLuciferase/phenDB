@@ -156,6 +156,7 @@ function InitializeAllDataTables(dataTableData) {
         }
         try {
             this.tables['table_prediction'] = new DataTable(this.dataTableData.prediction_values, this.dataTableData.prediction_titles, "#table_prediction");
+            this.tables['table_prediction'].addFiltering("#trait_prediction_bin_filter", this.dataTableData.bin_alias_list, 0);
             this.tables['table_prediction'].add_colvis_filter("Filter Model Columns", true);
         } catch (e) {
             console.error("table_prediction failed" + " " + e);
