@@ -11,7 +11,7 @@ function DataTable(data, titles, identifier) {
             columns: this.titles,
             searching: true,
             autoWidth: false,
-            dom: '<"table_buttons"B>l<"result_table"t><"table_pagination"p>',
+            dom: 'l<"table_buttons"B><"result_table"t><"table_pagination"p>',
             columnDefs: [
                 {
                     targets: "_all",
