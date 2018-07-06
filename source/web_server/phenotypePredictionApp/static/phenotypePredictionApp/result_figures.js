@@ -50,7 +50,6 @@ function DataTable(data, titles, identifier) {
             //makes a collection of the raw text, removes empty entries and builds a regex string out of this collection
             var search_expr = all_items
                                 .map(x => x.textContent)
-                                .map(x => x.replace(/\s/g,'')) //remove whitespace
                                 .filter(x => x.length > 0)
                                 .map(x => '^' + x + '$')
                                 .join("|");
