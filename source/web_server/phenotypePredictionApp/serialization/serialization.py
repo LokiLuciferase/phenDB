@@ -132,7 +132,7 @@ class _Prediction:
             self.raw_title_list = []
             for model_name in sorted(bin_dic.keys()):
                 model_dic = result_dic[bin_name][model_name]
-                model_id = model_dic[model_name]
+                model_id = model_dic["model_id"]
                 link_with_title = ModelLink.createModelLink(model_id, model_name)
                 self.titles.append({"title": link_with_title})
                 self.raw_title_list.append(model_name)
