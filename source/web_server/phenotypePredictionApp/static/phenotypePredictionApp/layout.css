@@ -113,5 +113,10 @@ form {
 
 .ui-widget-header {
     background:#38761d !important;
-    color:white;
+    color:white !important;
+}
+
+.ui-accordion-header .ui-state-active {
+    background:#38761d !important;
+    color:white !important;
 }
