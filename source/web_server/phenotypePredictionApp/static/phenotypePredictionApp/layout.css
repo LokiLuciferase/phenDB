@@ -112,5 +112,9 @@ form {
 /* PhenDB themed layout override */
 
 .ui-widget-header {
-    background:#e3e3e3 !important;
+    background:#38761d !important;
+}
+
+.ui-widget-header {
+    color:white;
 }
