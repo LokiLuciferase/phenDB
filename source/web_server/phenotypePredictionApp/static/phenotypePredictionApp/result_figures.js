@@ -12,11 +12,6 @@ function DataTable(data, titles, identifier) {
             searching: true,
             autoWidth: false,
             dom: '<"table_buttons"B>l<"result_table"t><"table_pagination"p>',
-            scrollX: true,
-            scrollY: '200px',
-            fixedColumns:   {
-                leftColumns: 1,
-            },
             columnDefs: [
                 {
                     targets: "_all",
