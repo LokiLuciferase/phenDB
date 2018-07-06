@@ -6,7 +6,7 @@ function DataTable(data, titles, identifier) {
 
     this.initialize_data_table = function () {
         var dataTable = $(this.identifier).DataTable({
-            "lengthMenu": [[30,50, 100, -1], [50, 100, "All"]],
+            "lengthMenu": [[30,50, 100, -1], [30, 50, 100, "All"]],
             data: this.data,
             columns: this.titles,
             searching: true,
