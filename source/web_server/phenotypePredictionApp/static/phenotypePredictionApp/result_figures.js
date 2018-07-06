@@ -6,12 +6,12 @@ function DataTable(data, titles, identifier) {
 
     this.initialize_data_table = function () {
         var dataTable = $(this.identifier).DataTable({
-            "lengthMenu": [[50, 100, -1], [50, 100, "All"]],
+            "lengthMenu": [[30,50, 100, -1], [50, 100, "All"]],
             data: this.data,
             columns: this.titles,
             searching: true,
             autoWidth: false,
-            dom: 'l<"table_buttons"B><"result_table"t><"table_pagination"p>',
+            dom: '<"length_menu"l><"table_buttons"B><"result_table"t><"table_pagination"p>',
             columnDefs: [
                 {
                     targets: "_all",
