@@ -16,25 +16,38 @@
     font-weight: 600;
 }
 
+.header_links_related_ul {
+    float: right;
+    margin-right: 50px;
+    margin-top: 10px;
+}
+
+.header_link_section {
+    border-bottom: 1px solid #e3e3e3;
+    background-color: #f8f8f8;
+}
+
 
 </style>
 <div id="header">
-    <ul>
-        <li class="header_links_related">
-            <a href="http://cube.univie.ac.at/resources/simap" rel="noopener noreferrer" id="A_3">SIMAP</a>
-        </li>
-        <li class="header_links_related">
-            <a href="http://cube.univie.ac.at/gepard" title="GEnome PAir - Rapid Dotter (Gepard)" rel="noopener noreferrer" id="A_5">Gepard</a>
-        </li>
-        <li class="header_links_related">
-            <a href="http://genskew.csb.univie.ac.at/" title="Genomic Nucleotide Skew Application (GenSkew)" rel="noopener noreferrer" id="A_7">GenSkew</a>
-        </li>
-        <li class="header_links_related">
-            <a href="http://cube.univie.ac.at/conspred" title="Automatic annotation of microbial genomes" rel="noopener noreferrer" id="A_9">ConsPred</a>
-        </li>
-        <li class="header_links_related">
-            <a href="https://github.com/univieCUBE/PICA" title="Microbial phenotype prediction" rel="noopener noreferrer" id="A_11">PICA</a>
-        </li>
-    </ul>
+    <div class="header_link_section">
+        <ul class="header_links_related_ul">
+            <li class="header_links_related">
+                <a href="http://cube.univie.ac.at/resources/simap" rel="noopener noreferrer" id="A_3">SIMAP</a>
+            </li>
+            <li class="header_links_related">
+                <a href="http://cube.univie.ac.at/gepard" title="GEnome PAir - Rapid Dotter (Gepard)" rel="noopener noreferrer" id="A_5">Gepard</a>
+            </li>
+            <li class="header_links_related">
+                <a href="http://genskew.csb.univie.ac.at/" title="Genomic Nucleotide Skew Application (GenSkew)" rel="noopener noreferrer" id="A_7">GenSkew</a>
+            </li>
+            <li class="header_links_related">
+                <a href="http://cube.univie.ac.at/conspred" title="Automatic annotation of microbial genomes" rel="noopener noreferrer" id="A_9">ConsPred</a>
+            </li>
+            <li class="header_links_related">
+                <a href="https://github.com/univieCUBE/PICA" title="Microbial phenotype prediction" rel="noopener noreferrer" id="A_11">PICA</a>
+            </li>
+        </ul>
+    </div>
     <img id="phendb_logo" src="{% static 'phenotypePredictionApp/phendb_logo.png' %}" ></img>
 </div>
