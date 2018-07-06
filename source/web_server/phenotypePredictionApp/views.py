@@ -73,7 +73,10 @@ def sendinput(request):
     #works only if just one file is uploaded
     for filename, file in request.FILES.items():
         name = request.FILES[filename].name
-    postobj['filename'] = name
+    if(postobj['example_data_button'] != None):
+        pass
+        #TODO LL: implement logic
+    postobj['filename'] = name #this will return error if example data is used (if/else logic needed)
     postobj['fileInput'] = fileobj['fileInput']
     postobj['user_ip'] = get_real_ip(request)
     postobj['errors'] = False
