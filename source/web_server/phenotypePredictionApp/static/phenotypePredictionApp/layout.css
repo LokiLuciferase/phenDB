@@ -116,7 +116,7 @@ form {
     color:white !important;
 }
 
-.ui-accordion-header .ui-state-active {
+.ui-accordion-header.ui-state-active {
     background:#38761d !important;
     color:white !important;
 }
