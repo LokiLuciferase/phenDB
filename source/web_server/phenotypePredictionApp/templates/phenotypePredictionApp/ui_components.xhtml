@@ -115,8 +115,7 @@ function __initialize_controls() {
     $('#dt_results_accuracy_filter').puispinner({step:0.05});
 }
 
-function click_on_example_data_checkbox(e) {
-    e.preventDefault();
+function click_on_example_data_checkbox() {
     var fileInputElm = document.getElementById('fileInput');
     var example_data_button_elm = document.getElementById('example_data_button');
     if(fileInputElm.disabled) {
