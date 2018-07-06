@@ -117,11 +117,11 @@ function __initialize_controls() {
             var fileInputElm = document.getElementById('fileInput');
             var example_data_button_elm = document.getElementById('example_data_button');
             if(fileInputElm.disabled) {
-                fileInputElm.disabled = "false";
+                fileInputElm.disabled = false;
                 example_data_button_elm.innerHTML = "Use example data";
             }
             else {
-                fileInputElm.disabled = "true";
+                fileInputElm.disabled = true;
                 alert("Escherichia coli str. K-12 substr. MC4100 (GenBank: HG738867.1) will be used in this example");
                 example_data_button_elm.innerHTML = "Use own data";
             }
