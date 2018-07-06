@@ -27,6 +27,12 @@
     </div>
     <fieldset id="input_section_advanced">
         <legend>Advanced</legend>
+        <div>
+            Per default, we suggest to use {{ requested_balac_default }} as balanced accuracy cutoff
+            and {{ requested_conf_default }} as cutoff for the prediction confidence. However, you can
+            set your own cutoffs for the prediction. Go to our <a href="http://phendb.org/help">Help section</a> to
+            learn more about these cutoffs.
+        </div>
         <div class="row">
             <div class="column" style="flex:50">
                 <label for="requested_balac"><b>Balanced accuracy cut-off (0.5 - 1)</b></label>
