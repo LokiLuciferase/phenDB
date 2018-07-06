@@ -105,6 +105,6 @@ form {
 
 /* fixes datatable bug with fixedColumn */
 
-#DTFC_LeftBodyLiner {
+.DTFC_LeftBodyLiner {
     overflow:hidden;
 }
