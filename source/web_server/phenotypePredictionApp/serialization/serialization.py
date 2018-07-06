@@ -1,5 +1,7 @@
 from phenotypePredictionApp.models import Job, PicaResult, BinInJob, PicaModel, Taxon
 
+#TODO for LL: variable naming -> speaking names (+ comments + clear structure)
+
 class PicaResultForUI:
 
     def __init__(self, job, requested_conf=None, requested_balac=None, disable_cutoffs=None):
@@ -122,15 +124,17 @@ class _Prediction:
 
     def __calc(self):
         self.values = []
-        rd = self.picaResultForUI.resdic
-        for bin_name in rd.keys():
-            bin_dic = rd[bin_name]
+        result_dic = self.picaResultForUI.resdic
+        for bin_name in result_dic.keys():
+            bin_dic = result_dic[bin_name]
             values_tmp = [bin_name]
             self.titles = [{"title" : "Bin_name"}]
             self.raw_title_list = []
             for model_name in sorted(bin_dic.keys()):
-                model_dic = rd[bin_name][model_name]
-                self.titles.append({"title": model_name})
+                model_dic = result_dic[bin_name][model_name]
+                model_id = model_dic[model_name]
+                link_with_title = ModelLink.createModelLink(model_id, model_name)
+                self.titles.append({"title": link_with_title})
                 self.raw_title_list.append(model_name)
                 values_tmp.append(self.picaResultForUI._apply_masks(model_dic))
             self.values.append(values_tmp)
@@ -212,10 +216,12 @@ class _BinSummary:
         return _BinSummary.TITLES
 
 class ModelLink:
+
+    URL_SCELETON = "http://phendb.org/reports/modeldetails?model_id="
+
     def createModelLink(model_id, model_name):
-        link = ModelLink.__getLinkForModel(model_id)
+        link = ModelLink.__getUrlForModel(model_id)
         return "<a target='_blank' href='" + link + "'>" + model_name + "</a>"
 
-    def __getLinkForModel(model_id):
-        sceleton = "http://phendb.org/reports/modeldetails?model_id="
-        return sceleton + str(model_id)
+    def __getUrlForModel(model_id):
+        return ModelLink.URL_SCELETON + str(model_id)
