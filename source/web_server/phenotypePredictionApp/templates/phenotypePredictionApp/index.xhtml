@@ -46,41 +46,9 @@
 
     {% include "phenotypePredictionApp/ui_components.xhtml" %}
 
+    {% include "phenotypePredictionApp/page_reload.xhtml" %}
 
-        <script type="text/javascript">
-
-            //------------RELOAD OF PAGE----------------------------//
-
-            var minReload = 1000; //TODO: change to 10000 (10 seconds)
-            var maxReload = 1200000; //reload time maximum: 20 minutes
-
-            {% if refresh %}
-                if(sessionStorage.getItem('reloadCounter') == null || sessionStorage.getItem('reloadCounter') == '') {
-                    sessionStorage.setItem('reloadCounter', 1);
-                    console.log("is null"); //TODO: delete
-                }
-                var reloadCounter = sessionStorage.getItem('reloadCounter');
-                var reloadTime = minReload * reloadCounter;
-                if(reloadTime > maxReload) reloadTime == maxReload;
-                setTimeout(function() {location.reload(true)}, reloadTime);
-                sessionStorage.setItem('reloadCounter', ++reloadCounter);
-
-            {% else %}
-                sessionStorage.setItem('reloadCounter', "")
-            {% endif %}
-        </script>
-        <script type="text/javascript">
-            //--------DESKTOP-NOTIFICATIONS-------------------------//
-            {%  if showInputFormCSS != 'none' %}
-                Notification.requestPermission();
-            {% endif %}
-            {% if showNotification %}
-                new Notification("PhenDB", {
-                    body: "Your request has been calculated"
-                });
-            {% endif %}
-        </script>
-
+    {% include "phenotypePredictionApp/desktop_notifications.xhtml" %}
 
 
     </body>

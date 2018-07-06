@@ -1,0 +1,22 @@
+<script type="text/javascript">
+
+    //------------RELOAD OF PAGE----------------------------//
+
+    var minReload = 1000; //TODO: change to 10000 (10 seconds)
+    var maxReload = 1200000; //reload time maximum: 20 minutes
+
+    {% if refresh %}
+        if(sessionStorage.getItem('reloadCounter') == null || sessionStorage.getItem('reloadCounter') == '') {
+            sessionStorage.setItem('reloadCounter', 1);
+            console.log("is null"); //TODO: delete
+        }
+        var reloadCounter = sessionStorage.getItem('reloadCounter');
+        var reloadTime = minReload * reloadCounter;
+        if(reloadTime > maxReload) reloadTime == maxReload;
+        setTimeout(function() {location.reload(true)}, reloadTime);
+        sessionStorage.setItem('reloadCounter', ++reloadCounter);
+
+    {% else %}
+        sessionStorage.setItem('reloadCounter', "")
+    {% endif %}
+</script>
