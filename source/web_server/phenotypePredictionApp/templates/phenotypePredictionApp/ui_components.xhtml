@@ -8,6 +8,7 @@ $(document).ready(function() {
     __initialize_error_messages();
     __initialize_controls();
     __initialize_accordions();
+    __initialize_fieldsets();
 });
 
 //TODO: seperate progressbar
@@ -39,6 +40,10 @@ function __initialize_popups(showProgressBar) {
 
 function __initialize_accordions() {
     $('#all_result_tables').puiaccordion();
+}
+
+function __initialize_fieldsets() {
+    $('#input_section_advanced').puifieldset();
 }
 
 function __initialize_widgets() {

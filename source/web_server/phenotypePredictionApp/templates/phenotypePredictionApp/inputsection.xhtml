@@ -17,30 +17,33 @@
             <input id="fileInput" name="fileInput" type="file" accept=".tar.gz, .zip, .fasta, .fna, .fa, .gz, .faa" required="true" ></input>
         </div>
     </div>
-    <div class="row">
-        <div class="column" style="flex:50">
-            <label for="requested_balac"><b>Balanced accuracy cut-off (0.5 - 1)</b></label>
+    <fieldset id="input_section_advanced">
+        <legend>Advanced</legend>
+        <div class="row">
+            <div class="column" style="flex:50">
+                <label for="requested_balac"><b>Balanced accuracy cut-off (0.5 - 1)</b></label>
+            </div>
+            <div class="column inputField" style="flex:50">
+                <input id="requested_balac" name="requested_balac" type="text" value="0.75"></input>
+            </div>
         </div>
-        <div class="column inputField" style="flex:50">
-            <input id="requested_balac" name="requested_balac" type="text" value="0.75"></input>
+        <div class="row">
+            <div class="column" style="flex:50">
+                <label for="requested_conf"><b>Prediction confidence cut-off (0.5 - 1)</b></label>
+            </div>
+            <div class="column inputField" style="flex:50">
+                <input id="requested_conf" name="requested_conf" type="text" value="0.6"></input>
+            </div>
         </div>
-    </div>
-    <div class="row">
-        <div class="column" style="flex:50">
-            <label for="requested_conf"><b>Prediction confidence cut-off (0.5 - 1)</b></label>
+        <div class="row">
+            <div class="column" style="flex:50">
+                <label for="disable_cutoffs"><b>Disable all filters and cut-offs</b></label>
+            </div>
+            <div class="column inputField" style="flex:50">
+                <input id="disable_cutoffs" name="disable_cutoffs" type="checkbox" value="0"></input>
+            </div>
         </div>
-        <div class="column inputField" style="flex:50">
-            <input id="requested_conf" name="requested_conf" type="text" value="0.6"></input>
-        </div>
-    </div>
-    <div class="row">
-        <div class="column" style="flex:50">
-            <label for="disable_cutoffs"><b>Disable all filters and cut-offs</b></label>
-        </div>
-        <div class="column inputField" style="flex:50">
-            <input id="disable_cutoffs" name="disable_cutoffs" type="checkbox" value="0"></input>
-        </div>
-    </div>
+    </fieldset>
     <div class="row">
         <div class="column" style="flex:50">
             <label for="fileInput"><b>email (optional) </b></label>
