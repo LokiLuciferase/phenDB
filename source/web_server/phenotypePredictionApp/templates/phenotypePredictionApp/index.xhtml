@@ -38,15 +38,10 @@
 
     {% if not showProgressBar %}
         <div class="row">
-            <div class="column" style="text-align:right; margin:10px;"  id="help_section" title="Help">
-                <button id="get_help">Need Help?</button>
-            </div>
-            <div class="column" style="text-align:left; margin:10px;">
-                <button id="browse_phendb">Browse PhenDB</button>
-            </div>
-            <div class="column" style="text-align:left; margin:10px;">
-                <button id="about_phendb">About PhenDB</button>
-            </div>
+            <div class="column" style="flex:100"></div>
+            <button class="column" id="get_help">Need Help?</button>
+            <button class="column" id="browse_phendb">Browse PhenDB</button>
+            <button class="column" id="about_phendb">About PhenDB</button>
         </div>
 
     {% endif %}
