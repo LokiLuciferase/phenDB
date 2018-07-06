@@ -112,10 +112,11 @@ function __initialize_controls() {
             }
     });
     $('#example_data_button').puibutton({
-        click: function() {
+        click: function(e) {
+            e.preventDefault();
             var fileInputElm = document.getElementById('fileInput');
             var example_data_button_elm = document.getElementById('example_data_button');
-            if(fileInputElm.isDisabled) {
+            if(fileInputElm.disabled) {
                 fileInputElm.disabled = "false";
                 example_data_button_elm.innerHTML = "Use example data";
             }
