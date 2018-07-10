@@ -122,8 +122,9 @@ function click_on_example_data_checkbox() {
     }
     else {
         fileInputElm.disabled = true;
-        var infobox = function() => alert("Escherichia coli str. K-12 substr. MG1655 (Refseq accession GCF 000005845.2) will be used in this example");
-        setTimeout(infobox, 500);
+        setTimeout(() => {
+            alert("Escherichia coli str. K-12 substr. MG1655 (Refseq accession GCF 000005845.2) will be used in this example");
+        }, 500);
     }
 }
 
