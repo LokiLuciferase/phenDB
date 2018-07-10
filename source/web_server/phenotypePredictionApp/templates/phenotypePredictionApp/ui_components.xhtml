@@ -128,15 +128,13 @@ function click_on_example_data_checkbox() {
 
 function click_on_disable_cutoffs_checkbox() {
     var balancedAccuracyElm = document.getElementById('requested_balac');
-    var predConfElm = document.getElementById('requested_conf');
-    var disable_checkbox_elm = document.getElementById('disable_cutoffs');
     if(balancedAccuracyElm.disabled){
-        balancedAccuracyElm.disabled = false;
-        predConfElm.disabled = false;
+        $('#requested_balac').puispinner('enable');
+        $('#requested_conf').puispinner('enable');
     }
     else {
-        balancedAccuracyElm.disabled = true;
-        predConfElm.disabled = true;
+        $('#requested_balac').puispinner('disable');
+        $('#requested_conf').puispinner('disable');
     }
 }
 
