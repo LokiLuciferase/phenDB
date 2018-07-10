@@ -197,7 +197,7 @@ def getResults(request):
                'showResultCSS' : showResultCSS,
                'showNotification' : True if numAccessed == 1 else False,
                'showProgressBar' : showProgressBar,
-               'progress' : (job.finished_bins * 1.0 / job.total_bins) * 100 if job.total_bins != 0 else 0.0001, # necessary to avoid DivBy0 Exception
+               'progress' : (job.finished_bins * 1.0 / job.total_bins) * 100 if job.total_bins != 0 else 0, # necessary to avoid DivBy0 Exception
                'finished_bins' : str(job.finished_bins),
                'total_bins' : str(job.total_bins),
                'refresh' : refresh,
