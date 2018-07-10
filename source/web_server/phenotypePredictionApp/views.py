@@ -92,8 +92,8 @@ def sendinput(request):
     postobj['errors'] = False
 
     if postobj.get('requested_balac', None) is None:
-        postobj['requested_balac'] = 0
-        postobj['requested_conf'] = 0
+        postobj['requested_balac'] = DEFAULT_VALUES['balanced_accuracy_cutoff']
+        postobj['requested_conf'] = DEFAULT_VALUES['prediction_confidence_cutoff']
 
     form = FileForm(postobj, fileobj)
 
