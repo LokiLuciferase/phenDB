@@ -51,8 +51,8 @@ def getQueueLength():
 def get_sample_fileobj():
     example_file_path = DEFAULT_VALUES["example_file_path"]
     example_file_name = os.path.basename(example_file_path)
-    with open(example_file_path, "r") as example_file:
-        django_example_file = File(example_file)
+    example_file = open(example_file_path, "r")
+    django_example_file = File(example_file)
     return django_example_file, example_file_name
 
 
