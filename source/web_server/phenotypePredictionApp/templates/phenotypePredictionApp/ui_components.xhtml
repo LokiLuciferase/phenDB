@@ -136,8 +136,7 @@ var UIDisableLogic =
                 .filter(x => x.elm_type == null)
                 .forEach(x => document.getElementById(x.id).disabled = false)
         }
-        if(callback == null) return;
-        else callback();
+        if(callback != null && that.checked) callback();
     },
     click_on_example_data_checkbox : function(disableIdArr, that)
     {
