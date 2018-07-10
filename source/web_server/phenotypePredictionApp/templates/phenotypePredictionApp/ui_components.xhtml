@@ -75,6 +75,18 @@ function __initialize_widgets() {
             }
         }
     });
+    $('#example_data_button').puicheckbox({
+        change: function(event, checked) {
+            var fileInputElm = document.getElementById('fileInput');
+            if (fileInputElm.disabled) {
+                fileInputElm.disabled = false;
+            }
+            else {
+                fileInputElm.disabled = true;
+                alert("Escherichia coli str. K-12 substr. MG1655 (Refseq accession GCF 000005845.2) will be used in this example");
+            }
+        }
+    });
     $('#result_download').puipanel();
     $('#result_figure_trait_prediction').puipanel({closable:false, collapsed:false});
     $('#results_advanced').puipanel({collapsed:true, toggleable:true});
