@@ -1,6 +1,5 @@
 from phenotypePredictionApp.models import Job, PicaResult, BinInJob, PicaModel, Taxon
 
-#TODO for LL: variable naming -> speaking names (+ comments + clear structure)
 
 class PicaResultForUI:
 
@@ -13,20 +12,20 @@ class PicaResultForUI:
         self.all_bins_in_job = BinInJob.objects.filter(job=job).select_related('bin')
         self.all_bins = [x.bin for x in self.all_bins_in_job]
         self.bin_alias_list = [x.bin_alias for x in self.all_bins_in_job]
-        print("fetched all bins")
         all_models_for_currentjob = [x.model for x in PicaResult.objects.filter(bin=self.all_bins[0]).select_related('model')]
-        all_model_names_for_cj = set()
+        all_model_names_for_currentjob = set()
         self.newest_models_for_currentjob = []
-        # sort by model train date and add newest possible results for models older than job
-        for pm in sorted(all_models_for_currentjob, key=lambda x: x.model_train_date, reverse=True):
-            pmn = pm.model_name
-            pmd = pm.model_train_date
-            if pmd > self.job_date:
+        # sort by model train date and add newest possible results for models older than job. Only add unique models
+        for picamodel in sorted(all_models_for_currentjob, key=lambda x: x.model_train_date, reverse=True):
+            picamodel_name = picamodel.model_name
+            picamodel_train_date = picamodel.model_train_date
+            if picamodel_train_date > self.job_date:
                 continue
-            if pmn not in all_model_names_for_cj:
-                all_model_names_for_cj.add(pmn)
-                self.newest_models_for_currentjob.append(pm)
-        self.all_results_for_currentjob = PicaResult.objects.filter(bin__in=self.all_bins, model__in=self.newest_models_for_currentjob)
+            if picamodel_name not in all_model_names_for_currentjob:
+                all_model_names_for_currentjob.add(picamodel_name)
+                self.newest_models_for_currentjob.append(picamodel)
+        self.all_results_for_currentjob = PicaResult.objects.filter(bin__in=self.all_bins,
+                                                                    model__in=self.newest_models_for_currentjob)
         self.resdic = self.__make_results_dict()
         self.__calc_prediction_details()
         self.__calc_prediction()
@@ -34,6 +33,9 @@ class PicaResultForUI:
         self.__calc_bin_summary()
 
     def __make_results_dict(self):
+        """Make a dictionary for each bin represented in the job (via BinInJob)
+        and for each PicaModel used in the Job (determined by model_train_date < job_date).
+        This reduces database access massively and speeds up loading of web results."""
         resdic = {}
         bin_id_to_bij_id = {x.bin_id: x.bin_alias for x in self.all_bins_in_job}
         bin_id_to_alias = {x.id: bin_id_to_bij_id[x.id] for x in self.all_bins}
@@ -43,15 +45,15 @@ class PicaResultForUI:
             bin_alias = bin_id_to_alias[res.get("bin_id")]
             model_name = model_id_to_name[model_id]
             verdict = res.get("verdict")
-            mba = res.get("accuracy")
-            pconf = res.get("pica_pval")
+            mean_balac = res.get("accuracy")
+            pred_conf = res.get("pica_pval")
             nc_masked = res.get("nc_masked")
             bin_in_resdic = resdic.setdefault(bin_alias, {})
             bin_in_resdic[model_name] = {"verdict": verdict,
-                                         "accuracy": mba,
-                                         "pica_pval": pconf,
+                                         "accuracy": mean_balac,
+                                         "pica_pval": pred_conf,
                                          "nc_masked": nc_masked,
-                                         "model_id": model_id,}
+                                         "model_id": model_id}
         return resdic
 
     def __calc_prediction_details(self):
@@ -86,7 +88,11 @@ class _PredictionDetails:
         self.picaResultForUI = picaResultForUI
         self.__calc()
 
-    TITLES = [{"title" : "Bin"}, {"title" : "<a target='_blank' href='http://phendb.org/reports/modeloverview'>Model</a>"}, {"title" : "Prediction"}, {"title" : "Prediction_Confidence"}, {"title" : "Balanced_Accuracy"}]
+    TITLES = [{"title": "Bin"},
+              {"title": "<a target='_blank' href='http://phendb.org/reports/modeloverview'>Model</a>"},
+              {"title": "Prediction"},
+              {"title": "Prediction_Confidence"},
+              {"title": "Balanced_Accuracy"}]
 
     def get_values(self):
         return self.values
@@ -104,6 +110,7 @@ class _PredictionDetails:
 
     def __parse_bin(self, bin_dic, bin_name):
         arr = []
+
         for model_name in sorted(bin_dic.keys()):
             model_dic = bin_dic[model_name]
             model_id = model_dic['model_id']
@@ -125,11 +132,13 @@ class _Prediction:
     def __calc(self):
         self.values = []
         result_dic = self.picaResultForUI.resdic
+
         for bin_name in result_dic.keys():
             bin_dic = result_dic[bin_name]
             values_tmp = [bin_name]
             self.titles = [{"title" : "Bin_name"}]
             self.raw_title_list = []
+
             for model_name in sorted(bin_dic.keys()):
                 model_dic = result_dic[bin_name][model_name]
                 model_id = model_dic["model_id"]
@@ -150,11 +159,16 @@ class _Prediction:
 
 
 class _TraitCounts:
+    """iterate over all results in result_dict, and increment counters in countdic."""
     def __init__(self, picaResultForUI):
         self.picaResultForUI = picaResultForUI
         self.__calc()
 
-    TITLES = [{"title" : ""}, {"title" : "+"}, {"title" : "-"}, {"title" : "n.d."}, {"title" : "n.c."}]
+    TITLES = [{"title": ""},
+              {"title": "+"},
+              {"title": "-"},
+              {"title": "n.d."},
+              {"title": "n.c."}]
 
     def __calc(self):
         self.values = []
@@ -215,13 +229,13 @@ class _BinSummary:
     def get_titles(self):
         return _BinSummary.TITLES
 
-class ModelLink:
 
-    URL_SCELETON = "http://phendb.org/reports/modeldetails?model_id="
+class ModelLink:
+    URL_SKELETON = "http://phendb.org/reports/modeldetails?model_id="
 
     def createModelLink(model_id, model_name):
         link = ModelLink.__getUrlForModel(model_id)
         return "<a target='_blank' href='" + link + "'>" + model_name + "</a>"
 
     def __getUrlForModel(model_id):
-        return ModelLink.URL_SCELETON + str(model_id)
+        return ModelLink.URL_SKELETON + str(model_id)
