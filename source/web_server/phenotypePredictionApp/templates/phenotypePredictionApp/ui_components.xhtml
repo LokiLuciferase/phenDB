@@ -125,7 +125,7 @@ var UIDisableLogic =
 
             disableIdArr
                 .filter(x => x.elm_type == null)
-                .forEach(x => document.getElementById(x).disabled = true)
+                .forEach(x => document.getElementById(x.id).disabled = true)
         }
         else {
             disableIdArr
@@ -134,7 +134,7 @@ var UIDisableLogic =
 
             disableIdArr
                 .filter(x => x.elm_type == null)
-                .forEach(x => document.getElementById(x).disabled = false)
+                .forEach(x => document.getElementById(x.id).disabled = false)
         }
         if(callback == null) return;
         else callback();
