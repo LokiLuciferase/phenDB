@@ -100,7 +100,7 @@ def sendinput(request):
     if(form.is_valid()):
         modelInstance = form.save(commit=False)
         modelInstance.save()
-        StartProcessThread(key, postobj['requested_balac']).start()
+        StartProcessThread(key).start()
         if postobj['user_email'] != '':
             MailNotification(key).start()
 
