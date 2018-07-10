@@ -6,9 +6,9 @@ class PicaResultForUI:
     def __init__(self, job, requested_conf=None, requested_balac=None, disable_cutoffs=None):
         self.job = job
         self.job_date = self.job.job_date
-        self.requested_balac = float(job.requested_balac) if not requested_balac else float(requested_balac)
-        self.requested_conf = float(job.requested_conf) if not requested_conf else float(requested_conf)
-        self.disable_cutoffs = bool(job.disable_cutoffs) if not disable_cutoffs else bool(disable_cutoffs)
+        self.requested_balac = float(job.requested_balac) if requested_balac is None else float(requested_balac)
+        self.requested_conf = float(job.requested_conf) if requested_conf is None else float(requested_conf)
+        self.disable_cutoffs = bool(job.disable_cutoffs) if disable_cutoffs is None else bool(disable_cutoffs)
         self.all_bins_in_job = BinInJob.objects.filter(job=job).select_related('bin')
         self.all_bins = [x.bin for x in self.all_bins_in_job]
         self.bin_alias_list = [x.bin_alias for x in self.all_bins_in_job]
