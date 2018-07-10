@@ -128,8 +128,13 @@ function click_on_example_data_checkbox() {
     }
 }
 
-function click_on_disable_cutoffs_checkbox() {
-    var balancedAccuracyElm = document.getElementById('requested_balac');
+function click_on_disable_cutoffs_checkbox(disableIdArr) {
+
+    var firstItemElm = document.getElementById(disableIdArr[0]);
+    if(firstItemElm.disabled) disableIdArr.forEach(x => $('#' + x).puispinner('enable'));
+    else disableIdArr.forEach(x => $('#' + x).puispinner('disable'));
+
+    /* var balancedAccuracyElm = document.getElementById('requested_balac');
     if(balancedAccuracyElm.disabled){
         $('#requested_balac').puispinner('enable');
         $('#requested_conf').puispinner('enable');
@@ -137,7 +142,7 @@ function click_on_disable_cutoffs_checkbox() {
     else {
         $('#requested_balac').puispinner('disable');
         $('#requested_conf').puispinner('disable');
-    }
+    } */
 }
 
 function showAjaxLoader() {
