@@ -115,10 +115,27 @@ function __initialize_controls() {
 }
 
 var UIDisableLogic =
+    //disbaleIdArr should be like [{id : the actual id, elm_type: primeui identifier or null if plain html}, ...]
 {
     click_on_disable_cutoffs_checkbox : function(disableIdArr, that, callback) {
-        if (that.checked) disableIdArr.forEach(x => $('#' + x).puispinner('disable'));
-        else disableIdArr.forEach(x => $('#' + x).puispinner('enable'));
+        if (that.checked) {
+            disableIdArr
+                .filter(x => x.elm_type != null)
+                .forEach(x => $('#' + x.id)[x.elm_type]('disable'));
+
+            disableIdArr
+                .filter(x => x.elm_type == null)
+                .forEach(x => document.getElementById(x).disabled = true)
+        }
+        else {
+            disableIdArr
+                .filter(x => x.elm_type != null)
+                .forEach(x => $('#' + x.id)[x.elm_type]('enable'));
+
+            disableIdArr
+                .filter(x => x.elm_type == null)
+                .forEach(x => document.getElementById(x).disabled = false)
+        }
         if(callback == null) return;
         else callback();
     },
