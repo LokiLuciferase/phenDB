@@ -111,10 +111,10 @@ function __performAjax(form_identifier, url, callback_success) {
 }
 
 function updateDatatablesWithAjax() {
-    __performAjax("#update_result_form", "update/", initializeDataTablesSingleton.update);
+    __performAjax("#update_result_form", "update/", initializeDataTablesGlobal.update);
 }
 
-var initializeDataTablesSingleton;
+var initializeDataTablesGlobal;
 
 function DataTableData() {
     this.prediction_details_values;
