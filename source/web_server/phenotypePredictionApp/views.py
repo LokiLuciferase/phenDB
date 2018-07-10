@@ -14,6 +14,7 @@ from .serialization.serialization import PicaResultForUI
 import struct
 from phenotypePredictionApp.default_values import DEFAULT_VALUES
 from django.http import JsonResponse
+from django.core.files import File
 import os
 
 
@@ -47,6 +48,13 @@ def getQueueLength():
     jobs = list(que.jobs)
     return len(jobs)
 
+def get_sample_fileobj():
+    example_file_path = DEFAULT_VALUES["example_file_path"]
+    example_file_name = os.path.basename(example_file_path)
+    with open(example_file_path, "r") as example_file:
+        django_example_file = File(example_file)
+    return django_example_file, example_file_name
+
 
 #-------------------Views-------------------------------------------------
 
@@ -70,23 +78,27 @@ def sendinput(request):
     key = str(uuid.uuid4())
     postobj['key'] = key
 
-    #works only if just one file is uploaded
-    for filename, file in request.FILES.items():
-        name = request.FILES[filename].name
-    if(postobj['example_data_button'] != None):
-        pass
-        #TODO LL: implement logic
-    postobj['filename'] = name #this will return error if example data is used (if/else logic needed)
-    postobj['fileInput'] = fileobj['fileInput']
+    if postobj['example_data_button'] is not None:
+        example_file, example_name = get_sample_fileobj()
+        postobj['filename'] = example_name
+        postobj['fileInput'] = example_file
+    else:
+        # works only if just one file is uploaded
+        for filename, file in request.FILES.items():
+            name = request.FILES[filename].name
+        postobj['filename'] = name  # this will return error if example data is used (if/else logic needed)
+        postobj['fileInput'] = fileobj['fileInput']
     postobj['user_ip'] = get_real_ip(request)
     postobj['errors'] = False
     form = FileForm(postobj, fileobj)
+
     if(form.is_valid()):
         modelInstance = form.save(commit=False)
         modelInstance.save()
         StartProcessThread(key, postobj['requested_balac']).start()
         if postobj['user_email'] != '':
             MailNotification(key).start()
+
     resultObj = Job.objects.get(key=key)
     return redirect(resultObj)
 
