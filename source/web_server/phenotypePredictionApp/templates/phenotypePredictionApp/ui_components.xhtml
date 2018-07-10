@@ -116,24 +116,10 @@ function __initialize_controls() {
     $('#dt_results_accuracy_filter').puispinner({step:0.05});
 }
 
-function clicked_disable_all_filters(){
-    var balancedAccuracyElm = document.getElementById('requested_balac');
-    var predConfElm = document.getElementById('requested_conf');
-    if(predConfElm.disabled){
-        balancedAccuracyElm.disabled = false;
-        predConfElm.disabled = false;
-    }
-    else {
-        balancedAccuracyElm.disabled = true;
-        predConfElm.disabled = true;
-    }
-    console.log("changed");
-    console.log(predConfElm.disabled);
-}
-
-function clicked_example_data_button() {
+function click_on_example_data_checkbox() {
     var fileInputElm = document.getElementById('fileInput');
-    if (fileInputElm.disabled) {
+    var example_data_button_elm = document.getElementById('example_data_button');
+    if(fileInputElm.disabled) {
         fileInputElm.disabled = false;
     }
     else {
