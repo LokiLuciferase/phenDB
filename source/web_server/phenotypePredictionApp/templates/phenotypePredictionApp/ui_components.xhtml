@@ -26,7 +26,7 @@ function __initialize_popups(showProgressBar) {
                     value : {{  progress|default:0}},
                     {% if queuePos > 0 %}
                         labelTemplate: "Queue: {{ queuePos }} job(s) ahead of your job",
-                    {% elif total_bins != 0  %}
+                    {% elif total_bins != "0"  %}
                         labelTemplate: "Finished/Total: " + "{{ finished_bins }}/{{ total_bins }}",
                     {% endif %}
                 });
