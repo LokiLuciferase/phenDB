@@ -78,7 +78,7 @@ def sendinput(request):
     key = str(uuid.uuid4())
     postobj['key'] = key
 
-    if postobj['example_data_button'] is not None:
+    if postobj.get('example_data_button', None) is not None:
         example_file, example_name = get_sample_fileobj()
         postobj['filename'] = example_name
         postobj['fileInput'] = example_file
