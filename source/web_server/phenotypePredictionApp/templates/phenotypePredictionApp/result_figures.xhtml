@@ -92,7 +92,7 @@
                         <label for="results_advanced_disable_cutoffs"><b>Disable all filters and cut-offs</b></label>
                     </div>
                     <div class="column inputField" style="flex:50">
-                        <input id="results_advanced_disable_cutoffs" name="disable_cutoffs" type="checkbox" value="0"></input>
+                        <input id="results_advanced_disable_cutoffs" name="disable_cutoffs" type="checkbox" value="0" onclick="try {UIDisableLogic.click_on_disable_cutoffs_checkbox([{id: 'results_advanced_requested_conf', elm_type: 'puispinner'}, {id : 'results_advanced_requested_balac', elm_type: 'puispinner'}], this);} catch(e) {console.error(e.message);}"></input>
                     </div>
                 </div>
                 <div class="row">
@@ -114,8 +114,8 @@
             dataTableData.trait_counts_titles = {{ trait_counts_titles |jsonify | safe }};
             dataTableData.bin_summary_values = {{ bin_summary_values | safe }};
             dataTableData.bin_summary_titles = {{ bin_summary_titles |jsonify | safe }};
-            initializeDataTablesSingleton = new InitializeAllDataTables(dataTableData);
-            initializeDataTablesSingleton.initialize();
+            initializeAllDataTables = new InitializeAllDataTables(dataTableData);
+            initializeAllDataTables.initialize();
         });
     </script>
 {% endif %}
