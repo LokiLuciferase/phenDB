@@ -90,6 +90,11 @@ def sendinput(request):
         postobj['fileInput'] = fileobj['fileInput']
     postobj['user_ip'] = get_real_ip(request)
     postobj['errors'] = False
+
+    if postobj.get('requested_balac', None) is None:
+        postobj['requested_balac'] = 0
+        postobj['requested_conf'] = 0
+
     form = FileForm(postobj, fileobj)
 
     if(form.is_valid()):

@@ -191,7 +191,7 @@ def start_precalc_queue(ppath, infolder, outfolder):
     pipeline_path = os.path.join(PHENDB_BASEDIR, "source/pipeline/picaPipeline.nf")
     q = Queue(PHENDB_QUEUE, connection=Redis())
     pipeline_call = q.enqueue_call(func=phenDB_enqueue,
-                                   args=(ppath, pipeline_path, infolder, outfolder, 0.5, ""),
+                                   args=(ppath, pipeline_path, infolder, outfolder, ""),
                                    timeout='72h',
                                    ttl='72h',
                                    )

@@ -15,7 +15,7 @@ class JobDisplay(admin.ModelAdmin):
         return obj.requested_conf
 
     def disable_cutoffs(obj):
-        return "" if obj.disable_cutoffs else True
+        return True if obj.disable_cutoffs else ""
 
     def no_errors(obj):
         if obj.errors == None:
