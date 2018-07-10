@@ -62,30 +62,10 @@ function __initialize_widgets() {
         step: 0.01
     });
     $('#disable_cutoffs').puicheckbox({
-        change: function(event, checked){
-            var balancedAccuracyElm = document.getElementById('requested_balac');
-            var predConfElm = document.getElementById('requested_conf');
-            if(predConfElm.disabled){
-                balancedAccuracyElm.disabled = false;
-                predConfElm.disabled = false;
-            }
-            else {
-                balancedAccuracyElm.disabled = true;
-                predConfElm.disabled = true;
-            }
-        }
+        change: clicked_disable_all_filters()
     });
     $('#example_data_button').puicheckbox({
-        change: function(event, checked) {
-            var fileInputElm = document.getElementById('fileInput');
-            if (fileInputElm.disabled) {
-                fileInputElm.disabled = false;
-            }
-            else {
-                fileInputElm.disabled = true;
-                alert("Escherichia coli str. K-12 substr. MG1655 (Refseq accession GCF 000005845.2) will be used in this example");
-            }
-        }
+        change: clicked_example_data_button()
     });
     $('#result_download').puipanel();
     $('#result_figure_trait_prediction').puipanel({closable:false, collapsed:false});
@@ -140,16 +120,32 @@ function __initialize_controls() {
     $('#dt_results_accuracy_filter').puispinner({step:0.05});
 }
 
-function click_on_example_data_checkbox() {
+function clicked_disable_all_filters(){
+    var balancedAccuracyElm = document.getElementById('requested_balac');
+    var predConfElm = document.getElementById('requested_conf');
+    if(predConfElm.disabled){
+        balancedAccuracyElm.disabled = false;
+        predConfElm.disabled = false;
+    }
+    else {
+        balancedAccuracyElm.disabled = true;
+        predConfElm.disabled = true;
+    }
+    console.log("changed");
+    console.log(predConfElm.disabled);
+}
+
+function clicked_example_data_button() {
     var fileInputElm = document.getElementById('fileInput');
-    var example_data_button_elm = document.getElementById('example_data_button');
-    if(fileInputElm.disabled) {
+    if (fileInputElm.disabled) {
         fileInputElm.disabled = false;
     }
     else {
         fileInputElm.disabled = true;
         alert("Escherichia coli str. K-12 substr. MG1655 (Refseq accession GCF 000005845.2) will be used in this example");
     }
+    console.log("changed");
+    console.log(fileInputElm.disabled);
 }
 
 function showAjaxLoader() {
