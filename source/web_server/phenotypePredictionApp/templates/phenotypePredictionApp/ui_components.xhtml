@@ -128,7 +128,7 @@ function click_on_example_data_checkbox() {
     }
 }
 
-function click_on_disable_cutoffs_checkbox(this, disableIdArr) {
+function click_on_disable_cutoffs_checkbox(disableIdArr) {
     if(this.checked()) disableIdArr.forEach(x => $('#' + x).puispinner('disable'));
     else disableIdArr.forEach(x => $('#' + x).puispinner('enable'));
 
