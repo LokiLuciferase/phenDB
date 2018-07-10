@@ -141,7 +141,7 @@ var UIDisableLogic =
     click_on_example_data_checkbox : function(disableIdArr, that)
     {
         var EXAMPLE_DATA_ALERT = "{{ example_data_alert }}";
-        var callback = setTimeout(() => {alert(EXAMPLE_DATA_ALERT)}, 200);
+        var callback = () => setTimeout(() => {alert(EXAMPLE_DATA_ALERT)}, 200);
         this.click_on_disable_cutoffs_checkbox(disableIdArr, that, callback);
     },
 };
