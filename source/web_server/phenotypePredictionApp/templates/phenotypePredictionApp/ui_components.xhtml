@@ -117,7 +117,8 @@ function __initialize_controls() {
 
 function click_on_example_data_checkbox() {
     var fileInputElm = document.getElementById('fileInput');
-    if(fileInputElm.checked) {
+    var example_data_button_elm = document.getElementById('example_data_button');
+    if(fileInputElm.disabled) {
         fileInputElm.disabled = false;
     }
     else {
