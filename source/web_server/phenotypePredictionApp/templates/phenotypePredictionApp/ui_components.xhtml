@@ -114,34 +114,22 @@ function __initialize_controls() {
     $('#dt_results_accuracy_filter').puispinner({step:0.05});
 }
 
-function click_on_example_data_checkbox() {
-    var fileInputElm = document.getElementById('fileInput');
-    var example_data_button_elm = document.getElementById('example_data_button');
-    if(fileInputElm.disabled) {
-        fileInputElm.disabled = false;
-    }
-    else {
-        fileInputElm.disabled = true;
-        setTimeout(() => {
-            alert("Escherichia coli str. K-12 substr. MG1655 (Refseq accession GCF 000005845.2) will be used in this example");
-        }, 500);
-    }
-}
+var UIDisableLogic =
+{
+    click_on_example_data_checkbox : function(disableIdArr, that)
+    {
+        var EXAMPLE_DATA_ALERT = {{ example_data_alert | default:"\'\'" }};
+        var callback = setTimeout(() => {alert(EXAMPLE_DATA_ALERT)}, 200);
+        click_on_disable_cutoffs_checkbox(disableIdArr, that, callback);
+    },
 
-function click_on_disable_cutoffs_checkbox(disableIdArr, that) {
-    if(that.checked) disableIdArr.forEach(x => $('#' + x).puispinner('disable'));
-    else disableIdArr.forEach(x => $('#' + x).puispinner('enable'));
-
-    /* var balancedAccuracyElm = document.getElementById('requested_balac');
-    if(balancedAccuracyElm.disabled){
-        $('#requested_balac').puispinner('enable');
-        $('#requested_conf').puispinner('enable');
-    }
-    else {
-        $('#requested_balac').puispinner('disable');
-        $('#requested_conf').puispinner('disable');
-    } */
-}
+    click_on_disable_cutoffs_checkbox : function(disableIdArr, that, callback) {
+        if (that.checked) disableIdArr.forEach(x => $('#' + x).puispinner('disable'));
+        else disableIdArr.forEach(x => $('#' + x).puispinner('enable'));
+        if(callback == null) return;
+        else callback();
+    },
+};
 
 function showAjaxLoader() {
     document.getElementById('loading_gif_container').style.display = "block";

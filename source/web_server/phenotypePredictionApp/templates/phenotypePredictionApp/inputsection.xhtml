@@ -16,7 +16,7 @@
         <div class="column inputField" style="flex:50">
             <input id="fileInput" name="fileInput" type="file" accept=".tar.gz, .zip, .fasta, .fna, .fa, .gz, .faa" required="true" ></input>
             <div>
-                <input type="checkbox" name="example_data_button" onclick="click_on_example_data_checkbox()" id="example_data_button" value="0">Use example data</input>
+                <input type="checkbox" name="example_data_button" onclick="UIDisableLogic.click_on_example_data_checkbox(['fileInput'], this)" id="example_data_button" value="0">Use example data</input>
         </div>
         </div>
     </div>
@@ -57,7 +57,7 @@
                 <label for="disable_cutoffs"><b>Disable all filters and cut-offs</b></label>
             </div>
             <div class="column inputField" style="flex:50">
-                <input id="disable_cutoffs" onclick="click_on_disable_cutoffs_checkbox(['requested_conf', 'requested_balac'], this)" name="disable_cutoffs" type="checkbox" value="0"></input>
+                <input id="disable_cutoffs" onclick="UIDisableLogic.click_on_disable_cutoffs_checkbox(['requested_conf', 'requested_balac'], this)" name="disable_cutoffs" type="checkbox" value="0"></input>
             </div>
         </div>
     </fieldset>
