@@ -117,12 +117,11 @@ function __initialize_controls() {
 
 function click_on_example_data_checkbox() {
     var fileInputElm = document.getElementById('fileInput');
-    var example_data_button_elm = document.getElementById('example_data_button');
-    if(example_data_button_elm.checked) {
-        fileInputElm.disabled = true;
+    if(fileInputElm.checked) {
+        fileInputElm.disabled = false;
     }
     else {
-        fileInputElm.disabled = false;
+        fileInputElm.disabled = true;
         alert("Escherichia coli str. K-12 substr. MG1655 (Refseq accession GCF 000005845.2) will be used in this example");
     }
 }
@@ -130,12 +129,11 @@ function click_on_example_data_checkbox() {
 function click_on_disable_all_filters_checkbox() {
     var balancedAccuracyElm = document.getElementById('requested_balac');
     var predConfElm = document.getElementById('requested_conf');
-    var disableCutoffElm = document.getElementById('disable_cutoff');
-
-    if(disableCutoffElm.checked){
+    if(predConfElm.disabled){
         balancedAccuracyElm.disabled = false;
         predConfElm.disabled = false;
-    } else {
+    }
+    else {
         balancedAccuracyElm.disabled = true;
         predConfElm.disabled = true;
     }
