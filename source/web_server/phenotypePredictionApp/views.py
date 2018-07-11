@@ -12,7 +12,7 @@ from redis import Redis
 from rq import Queue, get_current_job
 from .serialization.serialization import PicaResultForUI
 import struct
-from phenotypePredictionApp.default_values import DEFAULT_VALUES
+from phenotypePredictionApp.global_variables import DEFAULT_VALUES
 from django.http import JsonResponse
 from django.core.files import File
 import os
@@ -69,6 +69,7 @@ def index(request):
                'queueLen' : getQueueLength(),
                'requested_balac_default' : DEFAULT_VALUES['balanced_accuracy_cutoff'],
                'requested_conf_default' : DEFAULT_VALUES['prediction_confidence_cutoff'],
+               'example_data_alert': DEFAULT_VALUES['example_file_alert'],
                }
     return HttpResponse(template.render(context, request))
 
@@ -201,7 +202,7 @@ def getResults(request):
                'showResultCSS' : showResultCSS,
                'showNotification' : True if numAccessed == 1 else False,
                'showProgressBar' : showProgressBar,
-               'progress' : (job.finished_bins * 1.0 / job.total_bins) * 100 if job.total_bins != 0 else 0.0001, # necessary to avoid DivBy0 Exception
+               'progress' : (job.finished_bins * 1.0 / job.total_bins) * 100 if job.total_bins != 0 else 0, # necessary to avoid DivBy0 Exception
                'finished_bins' : str(job.finished_bins),
                'total_bins' : str(job.total_bins),
                'refresh' : refresh,
