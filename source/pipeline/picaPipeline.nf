@@ -736,7 +736,7 @@ process zip_results {
     mv *.traits.csv ${jobname}/individual_results
     mv *.csv ${jobname}/summaries
     mv *.html ${jobname}/summaries
-    zip -r ${jobname}.zip ./${jobname}
+    zip -r phendb_${jobname}.zip ./${jobname}
     rm -rf ${jobname}
     """
 }
