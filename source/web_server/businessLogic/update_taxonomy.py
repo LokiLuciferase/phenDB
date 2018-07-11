@@ -20,8 +20,8 @@ from enqueue_job import update_taxonomy
 q = Queue(PHENDB_QUEUE, connection=Redis())
 q.enqueue_call(func=update_taxonomy,
                args=(PHENDB_BASEDIR,),
-               timeout='20m',
-               ttl='20m',
+               timeout='240m',
+               ttl='240m',
                job_id='db_maintenance_update_taxonomy',
                at_front=True
                )

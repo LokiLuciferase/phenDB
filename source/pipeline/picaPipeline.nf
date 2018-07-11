@@ -772,7 +772,7 @@ try:
     obj.update(errors=${errors_occurred}, error_type="${errtype}")
     file = open('${zip}', 'rb')
     djangoFile = File(file)
-    obj[0].fileOutput.save('${jobname}.zip', djangoFile, save="True")
+    obj[0].fileOutput.save('phendb_${jobname}.zip', djangoFile, save="True")
     totalbins = obj[0].total_bins
     obj.update(finished_bins = totalbins)
 except IntegrityError:

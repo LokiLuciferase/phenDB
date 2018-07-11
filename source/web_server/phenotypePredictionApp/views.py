@@ -252,7 +252,7 @@ def fileDownload(request):
     key = getKeyFromUrl(request)
     resFile = Job.objects.get(key=key)
     response = HttpResponse(resFile.fileOutput, content_type='application/tar+gzip')
-    response['Content-Disposition'] = 'attachment; filename="{k}.zip"'.format(k=key)
+    response['Content-Disposition'] = 'attachment; filename="phendb_{k}.zip"'.format(k=key)
     return response
 
 

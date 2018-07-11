@@ -47,15 +47,17 @@ def update_taxonomy(ppath):
 
     # drop all rows from old taxonomy DB
     print("Updating taxonomy DB...")
+    #Taxon.objects.all().delete()
     while len(taxonomy_entries) > 0:
         sys.stdout.write("{n}          entries left to add.\r".format(n=len(taxonomy_entries)))
         sys.stdout.flush()
         subset = taxonomy_entries[-10000:]
         taxonomy_entries = taxonomy_entries[:-10000]
+        #Taxon.objects.bulk_create(subset)
         for e in subset:
             pk = e[0]
             dflt = {"taxon_rank": e[1], "taxon_name": e[2]}
-            Taxon.objects.update_or_create(pk, defaults=dflt)
+            Taxon.objects.update_or_create(tax_id=pk, defaults=dflt)
     print("Finished updating Taxonomy Table.")
 
 
@@ -126,11 +128,22 @@ def delete_user_data(days):
 
     # delete results flat files older than days
     oldest_unixtime = float(time()) - (timedelta(days=days).total_seconds())
-    result_folders = glob.glob(os.path.join(PHENDB_BASEDIR, "data/results/*"))
+    result_basedir = os.path.join(PHENDB_BASEDIR, "data/results/*")
+    result_folders = glob.glob(result_basedir)
 
     for folder in result_folders:
         if float(os.path.getmtime(folder)) <= float(oldest_unixtime):
             shutil.rmtree(folder)
+
+    # delete any upload folder with a file size larger than 1 GB
+    uploadfolder = os.path.join(PHENDB_BASEDIR, "data/uploads")
+    retained_upload_folders = os.listdir(uploadfolder)
+    for key in retained_upload_folders:
+        try:
+            retained_upload_job = Job.objects.get(key=key)
+        except:
+            shutil.rmtree(os.path.join(uploadfolder, key))
+
 
 
 # submit a PhenDB job to Redis queue for later calculation.
