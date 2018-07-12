@@ -726,7 +726,7 @@ process zip_results {
     file(errorfile)
 
     output:
-    file("${jobname}.zip") into zip_to_db
+    file("phendb_${jobname}.zip") into zip_to_db
 
     script:
     """
