@@ -47,15 +47,17 @@ def update_taxonomy(ppath):
 
     # drop all rows from old taxonomy DB
     print("Updating taxonomy DB...")
+    #Taxon.objects.all().delete()
     while len(taxonomy_entries) > 0:
         sys.stdout.write("{n}          entries left to add.\r".format(n=len(taxonomy_entries)))
         sys.stdout.flush()
         subset = taxonomy_entries[-10000:]
         taxonomy_entries = taxonomy_entries[:-10000]
+        #Taxon.objects.bulk_create(subset)
         for e in subset:
             pk = e[0]
             dflt = {"taxon_rank": e[1], "taxon_name": e[2]}
-            Taxon.objects.update_or_create(pk, defaults=dflt)
+            Taxon.objects.update_or_create(tax_id=pk, defaults=dflt)
     print("Finished updating Taxonomy Table.")
 
 
@@ -126,27 +128,37 @@ def delete_user_data(days):
 
     # delete results flat files older than days
     oldest_unixtime = float(time()) - (timedelta(days=days).total_seconds())
-    result_folders = glob.glob(os.path.join(PHENDB_BASEDIR, "data/results/*"))
+    result_basedir = os.path.join(PHENDB_BASEDIR, "data/results/*")
+    result_folders = glob.glob(result_basedir)
 
     for folder in result_folders:
         if float(os.path.getmtime(folder)) <= float(oldest_unixtime):
             shutil.rmtree(folder)
 
+    # delete any upload folder with a file size larger than 1 GB
+    uploadfolder = os.path.join(PHENDB_BASEDIR, "data/uploads")
+    retained_upload_folders = os.listdir(uploadfolder)
+    for key in retained_upload_folders:
+        try:
+            retained_upload_job = Job.objects.get(key=key)
+        except:
+            shutil.rmtree(os.path.join(uploadfolder, key))
+
+
 
 # submit a PhenDB job to Redis queue for later calculation.
-def phenDB_enqueue(ppath, pipeline_path, infolder, outfolder, pica_cutoff, node_offs):
+def phenDB_enqueue(ppath, pipeline_path, infolder, outfolder, node_offs):
 
     # set environmental variables
     os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
     os.environ["PYTHONPATH"] = str(ppath)
 
     # set pipeline arguments
-    arguments = "nextflow {pp} --inputfolder {inf} --outdir {otf} --accuracy_cutoff {pco} \
-        --omit_nodes {no} -profile standard".format(pp=pipeline_path,
-                                                    inf=infolder,
-                                                    otf=outfolder,
-                                                    pco=pica_cutoff,
-                                                    no=node_offs)
+    arguments = "nextflow {pp} --inputfolder {inf} --outdir {otf} --omit_nodes {no} -profile standard"\
+        .format(pp=pipeline_path,
+                inf=infolder,
+                otf=outfolder,
+                no=node_offs)
     # call subprocess and wait for result
     with open(os.path.join(outfolder, "logs/nextflow.log"), "w") as logfile:
         pipeline_call = subprocess.Popen(arguments.split(), stdout=logfile, stderr=logfile)
@@ -162,7 +174,7 @@ def phenDB_enqueue(ppath, pipeline_path, infolder, outfolder, pica_cutoff, node_
 
         # if no output file has been generated despite no pipeline error
         # (= if error checking consumes all input files)
-        if not os.path.exists(os.path.join(outfolder, "{k}.zip".format(k=key))):
+        if not os.path.exists(os.path.join(outfolder, "phendb_{k}.zip".format(k=key))):
             clean_up_on_pipeline_fail(key, ppath, failtype="ALL_DROPPED")
             raise RuntimeError("No input files have passed error checking.")
         return pipeline_call.returncode

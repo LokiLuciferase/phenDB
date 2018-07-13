@@ -1,23 +1,22 @@
-from django.shortcuts import render
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse
 from django.template import loader
-from django.urls import reverse
 from .forms import FileForm
 from .variables import PHENDB_BASEDIR, PHENDB_QUEUE, PHENDB_DEBUG
 from django.shortcuts import redirect
 from businessLogic.mailNotification import MailNotification
 import uuid
-from django.core.urlresolvers import resolve
 from businessLogic.startProcess import StartProcessThread
 from phenotypePredictionApp.models import Job, PicaResult, BinInJob, PicaModel
-from pprint import pprint
 from ipware.ip import get_real_ip
 from redis import Redis
 from rq import Queue, get_current_job
 from .serialization.serialization import PicaResultForUI
 import struct
-import traceback
+from phenotypePredictionApp.global_variables import DEFAULT_VALUES
+from django.http import JsonResponse
+from django.core.files import File
 import os
+
 
 
 #------------------functions---------------------------------------------
@@ -29,7 +28,7 @@ def getKeyFromUrl(request):
         reqPath = reqPath[:-1]
     urlparts = reqPath.rsplit('/')
     for part in urlparts:
-        if len(part) == 36:
+        if len(part) == 36 or part == "PHENDB_PRECALC":
             return part
     return None
 
@@ -49,6 +48,13 @@ def getQueueLength():
     jobs = list(que.jobs)
     return len(jobs)
 
+def get_sample_fileobj():
+    example_file_path = DEFAULT_VALUES["example_file_path"]
+    example_file_name = os.path.basename(example_file_path)
+    example_file = open(example_file_path, "rb")
+    django_example_file = File(example_file)
+    return django_example_file, example_file_name
+
 
 #-------------------Views-------------------------------------------------
 
@@ -60,7 +66,11 @@ def index(request):
                'showInputFormCSS': 'block',
                'showProgressBar' : False,
                'refresh' : False,
-               'queueLen' : getQueueLength()}
+               'queueLen' : getQueueLength(),
+               'requested_balac_default' : DEFAULT_VALUES['balanced_accuracy_cutoff'],
+               'requested_conf_default' : DEFAULT_VALUES['prediction_confidence_cutoff'],
+               'example_data_alert': DEFAULT_VALUES['example_file_alert'],
+               }
     return HttpResponse(template.render(context, request))
 
 def sendinput(request):
@@ -69,20 +79,32 @@ def sendinput(request):
     key = str(uuid.uuid4())
     postobj['key'] = key
 
-    #works only if just one file is uploaded
-    for filename, file in request.FILES.items():
-        name = request.FILES[filename].name
-    postobj['filename'] = name
-    postobj['fileInput'] = fileobj['fileInput']
+    if postobj.get('example_data_button', None) is not None:
+        example_file, example_name = get_sample_fileobj()
+        postobj['filename'] = example_name
+        postobj['fileInput'] = example_file
+    else:
+        # works only if just one file is uploaded
+        for filename, file in request.FILES.items():
+            name = request.FILES[filename].name
+        postobj['filename'] = name  # this will return error if example data is used (if/else logic needed)
+        postobj['fileInput'] = fileobj['fileInput']
     postobj['user_ip'] = get_real_ip(request)
     postobj['errors'] = False
+
+    if postobj.get('requested_balac', None) is None:
+        postobj['requested_balac'] = DEFAULT_VALUES['balanced_accuracy_cutoff']
+        postobj['requested_conf'] = DEFAULT_VALUES['prediction_confidence_cutoff']
+
     form = FileForm(postobj, fileobj)
+
     if(form.is_valid()):
         modelInstance = form.save(commit=False)
         modelInstance.save()
-        StartProcessThread(key, postobj['requested_balac']).start()
+        StartProcessThread(key).start()
         if postobj['user_email'] != '':
             MailNotification(key).start()
+
     resultObj = Job.objects.get(key=key)
     return redirect(resultObj)
 
@@ -180,7 +202,7 @@ def getResults(request):
                'showResultCSS' : showResultCSS,
                'showNotification' : True if numAccessed == 1 else False,
                'showProgressBar' : showProgressBar,
-               'progress' : (job.finished_bins * 1.0 / job.total_bins) * 100 if job.total_bins != 0 else 0.0001, # necessary to avoid DivBy0 Exception
+               'progress' : (job.finished_bins * 1.0 / job.total_bins) * 100 if job.total_bins != 0 else 0, # necessary to avoid DivBy0 Exception
                'finished_bins' : str(job.finished_bins),
                'total_bins' : str(job.total_bins),
                'refresh' : refresh,
@@ -191,7 +213,6 @@ def getResults(request):
                'errorMessagePU' : errorMessagePU,
                'queuePos' : queuePos + 1,
                'queueLen' : queueLen,
-               'all_models' : PicaModel.objects.all,
                'prediction_details_values' : pica_result_for_ui.prediction_details.get_values() if pica_result_for_ui is not None else "",
                'prediction_details_titles' : pica_result_for_ui.prediction_details.get_titles() if pica_result_for_ui is not None else "",
                'prediction_values' : pica_result_for_ui.prediction.get_values() if pica_result_for_ui is not None else "",
@@ -201,15 +222,38 @@ def getResults(request):
                'bin_summary_values' : pica_result_for_ui.bin_summary.get_values() if pica_result_for_ui is not None else "",
                'bin_summary_titles': pica_result_for_ui.bin_summary.get_titles() if pica_result_for_ui is not None else "",
                'bin_alias_list' : pica_result_for_ui.bin_alias_list if pica_result_for_ui is not None else "",
+               'model_list' : pica_result_for_ui.prediction.get_raw_title_list() if pica_result_for_ui is not None else "",
                }
 
     return HttpResponse(template.render(context, request))
+
+def updateResultsAjax(request):
+    disable_cutoffs = False if request.GET.get('disable_cutoffs') is None else True
+    requested_balac = request.GET.get('requested_balac')
+    requested_conf = request.GET.get('requested_conf')
+
+    key = getKeyFromUrl(request)
+    job = Job.objects.get(key=key)
+    pica_result_for_ui = PicaResultForUI(job=job, requested_conf=requested_conf, requested_balac=requested_balac, disable_cutoffs=disable_cutoffs)
+
+    data = {'prediction_details_values': pica_result_for_ui.prediction_details.get_values() if pica_result_for_ui is not None else "",
+            'prediction_details_titles': pica_result_for_ui.prediction_details.get_titles() if pica_result_for_ui is not None else "",
+            'prediction_values': pica_result_for_ui.prediction.get_values() if pica_result_for_ui is not None else "",
+            'prediction_titles': pica_result_for_ui.prediction.get_titles() if pica_result_for_ui is not None else "",
+            'trait_counts_values': pica_result_for_ui.trait_counts.get_values() if pica_result_for_ui is not None else "",
+            'trait_counts_titles': pica_result_for_ui.trait_counts.get_titles() if pica_result_for_ui is not None else "",
+            'bin_summary_values': pica_result_for_ui.bin_summary.get_values() if pica_result_for_ui is not None else "",
+            'bin_summary_titles': pica_result_for_ui.bin_summary.get_titles() if pica_result_for_ui is not None else "",
+            'bin_alias_list': pica_result_for_ui.bin_alias_list if pica_result_for_ui is not None else "",
+            'model_list': pica_result_for_ui.prediction.get_raw_title_list() if pica_result_for_ui is not None else "",
+    }
+    return JsonResponse(data)
 
 def fileDownload(request):
     key = getKeyFromUrl(request)
     resFile = Job.objects.get(key=key)
     response = HttpResponse(resFile.fileOutput, content_type='application/tar+gzip')
-    response['Content-Disposition'] = 'attachment; filename="{k}.zip"'.format(k=key)
+    response['Content-Disposition'] = 'attachment; filename="phendb_{k}.zip"'.format(k=key)
     return response
 
 

@@ -1,0 +1,167 @@
+{% load boolean_js %}
+
+<script>
+
+$(document).ready(function() {
+    __initialize_popups({{ showProgressBar | boolean_js | safe }});
+    __initialize_widgets();
+    __initialize_error_messages();
+    __initialize_controls();
+    __initialize_accordions();
+    __initialize_fieldsets();
+});
+
+//TODO: seperate progressbar
+function __initialize_popups(showProgressBar) {
+        $('#overlay').puidialog({
+                 closable: false,
+                 minimizable: false,
+                 maximizable: false,
+                 modal: true,
+                 resizable: false
+             });
+            if(showProgressBar) {
+                $('#overlay').puidialog('show');
+                $('#progressbar').puiprogressbar({
+                    value : {{  progress|default:0}},
+                    {% if queuePos > 0 %}
+                        labelTemplate: "Queue: {{ queuePos }} job(s) ahead of your job",
+                    {% elif total_bins != "0"  %}
+                        labelTemplate: "Finished/Total: " + "{{ finished_bins }}/{{ total_bins }}",
+                    {% endif %}
+                });
+            }
+        $('#queue_info').puidialog({
+                 minimizable: false,
+                 maximizable: false,
+                 resizable: false
+            });
+}
+
+function __initialize_accordions() {
+    $('#all_result_tables').puiaccordion();
+}
+
+function __initialize_fieldsets() {
+    $('#input_section_advanced').puifieldset({
+        toggleable: true,
+        collapsed: true,
+    });
+}
+
+function __initialize_widgets() {
+    $('#input_section').puipanel();
+    $('#result_download').puipanel();
+    $('#result_figure_trait_prediction').puipanel({closable:false, collapsed:false});
+    $('#results_advanced').puipanel({collapsed:true, toggleable:true});
+}
+
+function __initialize_error_messages() {
+    $('#error_message').puigrowl({sticky:true});
+    {% if showErrorMessage %}
+        $('#error_message').puigrowl('show', [{severity: '{{ errorSeverityPU }}', summary: '{{ errorSummaryPU }}', detail: '{{ errorMessagePU }}' } ]);
+    {% endif %}
+}
+
+function __initialize_controls() {
+    $('#queue_show').puibutton({
+                icon: 'fa-external-link-square',
+                click: function() {
+                    $('#queue_info').puidialog('show');
+                }
+            });
+    $('#dt_results_model_filter_info').puibutton({
+            icon: 'fa-external-link-square',
+            click: function() {
+                window.open("http://phendb.csb.univie.ac.at/reports/modeloverview");
+            }
+        });
+    $('#get_help').puibutton({
+        icon: 'fa-external-link-square',
+            click: function() {
+                window.open("http://phendb.csb.univie.ac.at/help");
+            }
+    });
+    $('#browse_phendb').puibutton ({
+        icon: 'fa-external-link-square',
+            click: function() {
+                window.open("http://phendb.csb.univie.ac.at/browse-phendb");
+            }
+    });
+    $('#about_phendb').puibutton ({
+        icon: 'fa-external-link-square',
+            click: function() {
+                window.open("http://phendb.csb.univie.ac.at/methods");
+            }
+    });
+    $('#results_advanced_submit').puibutton({
+        icon: 'fa-external-link-square',
+            click: function() {
+                updateDatatablesWithAjax();
+            }
+    });
+    $('#requested_balac').puispinner({
+        min: 0.5,
+        max: 1,
+        step: 0.01
+    });
+    $('#requested_conf').puispinner({
+        min: 0.5,
+        max: 1,
+        step: 0.01
+    });
+    $('#results_advanced_requested_balac').puispinner({
+        min: 0.5,
+        max: 1,
+        step: 0.01
+    });
+    $('#results_advanced_requested_conf').puispinner({
+        min: 0.5,
+        max: 1,
+        step: 0.01
+    });
+}
+
+var UIDisableLogic =
+    //disableIdArr should be like [{id : the actual id, elm_type: primeui identifier or null if plain html}, ...]
+{
+    click_on_disable_cutoffs_checkbox : function(disableIdArr, that, callback) {
+        if (that.checked) {
+            disableIdArr
+                .filter(x => x.elm_type != null)
+                .forEach(x => $('#' + x.id)[x.elm_type]('disable'));
+
+            disableIdArr
+                .filter(x => x.elm_type == null)
+                .forEach(x => document.getElementById(x.id).disabled = true)
+        }
+        else {
+            disableIdArr
+                .filter(x => x.elm_type != null)
+                .forEach(x => $('#' + x.id)[x.elm_type]('enable'));
+
+            disableIdArr
+                .filter(x => x.elm_type == null)
+                .forEach(x => document.getElementById(x.id).disabled = false)
+        }
+        if(callback != null && that.checked) callback();
+    },
+    click_on_example_data_checkbox : function(disableIdArr, that)
+    {
+        var EXAMPLE_DATA_ALERT = "{{ example_data_alert }}";
+        var callback = () => setTimeout(() => {alert(EXAMPLE_DATA_ALERT)}, 200);
+        this.click_on_disable_cutoffs_checkbox(disableIdArr, that, callback);
+    },
+};
+
+function showAjaxLoader() {
+    document.getElementById('loading_gif_container').style.display = "block";
+    document.getElementById('white_overlay').style.display = "block";
+}
+
+function disableAjaxLoader() {
+    document.getElementById('loading_gif_container').style.display = "none";
+    document.getElementById('white_overlay').style.display = "none";
+}
+
+</script>

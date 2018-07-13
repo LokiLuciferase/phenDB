@@ -1,0 +1,94 @@
+{% load static %}
+<style>
+
+
+.header_links_related {
+    float: left;
+    list-style: none outside none;
+    margin:5px;
+}
+
+.header_links_related > a {
+    color: #38761d;
+    text-decoration:  none;
+    font-family: 'Open Sans',Arial,Verdana,sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.header_links_related_ul {
+    float: right;
+    margin-right: 140px;
+    margin-top: 2px;
+}
+
+.header_link_section {
+    border-bottom: 1px solid #e3e3e3;
+    background-color: #f8f8f8;
+    height:35px;
+}
+
+.header_links_intern_ul{
+    float: left;
+    margin-right: 140px;
+    margin-top: 8px;
+}
+
+.header_links_intern > a {
+    color: #474749;
+    font-weight:normal;
+    text-decoration:  none;
+    font-family: 'Open Sans',Arial,Verdana,sans-serif;
+    font-size: 11px;
+    font-weight: normal;
+}
+
+.header_links_intern {
+    float: left;
+    list-style: none outside none;
+    margin:0 0 0 0;
+    padding:0 0 0 0;
+}
+
+.header_links_intern_ul li + li:before {
+    content: '|';
+    padding-left:1px;
+}
+
+</style>
+<div id="header">
+    <div class="header_link_section">
+        <ul class="header_links_intern_ul">
+            <li class="header_links_intern">
+                <a href="http://univie.ac.at" target="_blank" rel="noopener noreferrer">University of Vienna</a>
+            </li>
+            <li class="header_links_intern">
+                <a href="http://cmm.univie.ac.at/" target="_blank" rel="noopener noreferrer">Research network CMM</a>
+            </li>
+            <li class="header_links_intern">
+                <a href="http://dmes.univie.ac.at/" target="_blank" rel="noopener noreferrer">Dept of Microbiology and Ecosystem Science</a>
+            </li>
+            <li class="header_links_intern">
+                <a href="http://cube.univie.ac.at/" target="_blank" rel="noopener noreferrer">CUBE</a>
+            </li>
+        </ul>
+        <ul class="header_links_related_ul">
+            <li class="header_links_related">
+                <a href="http://cube.univie.ac.at/resources/simap" target="_blank" rel="noopener noreferrer">SIMAP</a>
+            </li>
+            <li class="header_links_related">
+                <a href="http://cube.univie.ac.at/gepard" target="_blank" title="GEnome PAir - Rapid Dotter (Gepard)" rel="noopener noreferrer">Gepard</a>
+            </li>
+            <li class="header_links_related">
+                <a href="http://genskew.csb.univie.ac.at/" target="_blank" title="Genomic Nucleotide Skew Application (GenSkew)" rel="noopener noreferrer">GenSkew</a>
+            </li>
+            <li class="header_links_related">
+                <a href="http://cube.univie.ac.at/conspred" target="_blank" title="Automatic annotation of microbial genomes" rel="noopener noreferrer">ConsPred</a>
+            </li>
+            <li class="header_links_related">
+                <a href="https://github.com/univieCUBE/PICA" target="_blank" title="Microbial phenotype prediction" rel="noopener noreferrer">PICA</a>
+            </li>
+        </ul>
+    </div>
+    <img id="phendb_logo" src="{% static 'phenotypePredictionApp/phendb_logo.png' %}" ></img>
+</div>

@@ -28,8 +28,9 @@ TRAIT_DEPENDENCY_FILE = args.dep_file
 BIN_MDSUMS = sorted(args.md5sums, reverse=True)
 ROUND_TO = 2
 now = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
-INDIVIDUAL_RESULTS_HEADER = "Model_Name\tPrediction\tPrediction_Confidence\tBalanced_Accuracy\tModel_Description\n"
-BIN_SUMMARY_HEADER = "Bin_Name\tCompleteness\tContamination\tStrain_Heterogeneity\tTaxon_ID\tTaxon_Name\tTaxon_Rank\n"
+INDIVIDUAL_RESULTS_HEADER = "Model_Name,Prediction,Prediction_Confidence,Balanced_Accuracy,Model_Description\n"
+BIN_SUMMARY_HEADER = "Bin_Name,Completeness,Contamination,Strain_Heterogeneity,Taxon_ID,Taxon_Name,Taxon_Rank\n"
+COUNT_TABLE_HEADER = "Model_Name,+,-,n.d.,n.c.\n"
 KRONA_FILE_HEADER = "#bin name\t#taxon_id\n"
 
 
@@ -132,13 +133,15 @@ hf_job_results, bins_tax_fixed = filter_by_hierarchy(cutoff_filtered_job_results
 with open("trait_summary_matrix.csv", "w") as summary_matrix:
     summary_matrix.write("# PhenDB\n"
                          "# Time of run: {da}\n"
-                         "# Accuracy cut-off: {co}\n"
-                         "# Display all results? {unl}\n".format(da=now,
+                         "# Balanced accuracy cut-off: {co}\n"
+                         "# Prediction confidence cut-off: {pco}\n"
+                         "# Disable all cut-offs? {unl}\n".format(da=now,
                                                                   co=BALAC_CUTOFF,
+                                                                  pco=PICA_CONF_CUTOFF,
                                                                   unl=SHOW_ALL_RESULTS))
     summary_matrix.write("# Summary of Trait Prediction Results:\n\n")
-    summary_matrix.write("\t" + "\t".join(all_model_desc) + "\n")
-    summary_matrix.write("Bin Name\t" + "\t".join(all_model_names) + "\n")
+    summary_matrix.write("," + ",".join(all_model_desc) + "\n")
+    summary_matrix.write("Bin Name," + ",".join(all_model_names) + "\n")
 
     # write individual result files and append to list for each bin
     for bin in bins_tax_fixed:
@@ -154,7 +157,7 @@ with open("trait_summary_matrix.csv", "w") as summary_matrix:
                 all_bin_predictions.append(result_for_write["Prediction"])
                 model_results_count[model][result_for_write["Prediction"]] += 1
                 ind_t.write(
-                    "{mn}\t{pred}\t{pica_conf}\t{balac}\t{desc}\n".format(mn=result_for_write["Model_name"],
+                    "{mn},{pred},{pica_conf},{balac},{desc}\n".format(mn=result_for_write["Model_name"],
                                                                                pred=result_for_write["Prediction"],
                                                                                pica_conf=result_for_write[
                                                                                    "PICA_probability"],
@@ -163,16 +166,16 @@ with open("trait_summary_matrix.csv", "w") as summary_matrix:
                                                                                desc=result_for_write[
                                                                                    "Model_description"]
                                                                                ))
-        summary_matrix.write("\t".join([jam[bin.md5sum], *all_bin_predictions]) + "\n")
+        summary_matrix.write(",".join([jam[bin.md5sum], *all_bin_predictions]) + "\n")
 
 with open("trait_counts.csv", "w") as count_table:
-    count_table.write("Model Name\t+\t-\tn.d.\tn.c.\n")
+    count_table.write(COUNT_TABLE_HEADER)
     for model in all_model_names:
         y = str(model_results_count[model]["+"])
         n = str(model_results_count[model]["-"])
         nd = str(model_results_count[model]["n.d."])
         nc = str(model_results_count[model]["n.c."])
-        count_table.write("\t".join([model, y, n, nd, nc]) + "\n")
+        count_table.write(",".join([model, y, n, nd, nc]) + "\n")
 
 # summarize bin-related information
 with open("bin_summary.csv", "w") as taxfile:
@@ -187,7 +190,7 @@ with open("bin_summary.csv", "w") as taxfile:
             tid = "1"
             tname = "root"
             trank = "no rank"
-        taxfile.write("{bn}\t{com}\t{con}\t{sh}\t{ti}\t{tn}\t{tr}\n".format(bn=jam[bin.md5sum],
+        taxfile.write("{bn},{com},{con},{sh},{ti},{tn},{tr}\n".format(bn=jam[bin.md5sum],
                                                                                    com=bin.comple,
                                                                                    con=bin.conta,
                                                                                    sh=bin.strainhet,

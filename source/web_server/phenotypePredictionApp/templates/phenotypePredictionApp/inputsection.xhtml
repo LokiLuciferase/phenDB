@@ -7,7 +7,7 @@
     </div>
     <div class="row" id="description">
         Upload your FASTA-files (a single .fasta file or multiple files compressed in a tar.gz/zip archive). FASTA files may be .gz compressed. Nested directories cannot be processed.
-        <br/>To get a notification when phenDB is finished, submit your email address (optional).
+        <br/>To get a notification when PhenDB is finished, submit your email address (optional).
     </div>
     <div class="row">
         <div class="column" style="flex:50">
@@ -15,30 +15,9 @@
         </div>
         <div class="column inputField" style="flex:50">
             <input id="fileInput" name="fileInput" type="file" accept=".tar.gz, .zip, .fasta, .fna, .fa, .gz, .faa" required="true" ></input>
+            <div>
+                <input type="checkbox" name="example_data_button" onclick="try {UIDisableLogic.click_on_example_data_checkbox([{id: 'fileInput', elm_type: null}], this);} catch(e) {console.error(e.message);}" id="example_data_button" value="0">Use example data</input>
         </div>
-    </div>
-    <div class="row">
-        <div class="column" style="flex:50">
-            <label for="requested_balac"><b>Balanced accuracy cut-off (0.5 - 1)</b></label>
-        </div>
-        <div class="column inputField" style="flex:50">
-            <input id="requested_balac" name="requested_balac" type="text" value="0.75"></input>
-        </div>
-    </div>
-    <div class="row">
-        <div class="column" style="flex:50">
-            <label for="requested_conf"><b>Prediction confidence cut-off (0.5 - 1)</b></label>
-        </div>
-        <div class="column inputField" style="flex:50">
-            <input id="requested_conf" name="requested_conf" type="text" value="0.6"></input>
-        </div>
-    </div>
-    <div class="row">
-        <div class="column" style="flex:50">
-            <label for="disable_cutoffs"><b>Disable all filters and cut-offs</b></label>
-        </div>
-        <div class="column inputField" style="flex:50">
-            <input id="disable_cutoffs" name="disable_cutoffs" type="checkbox" value="0"></input>
         </div>
     </div>
     <div class="row">
@@ -49,6 +28,39 @@
             <input id="user_mail" name="user_email" type="email"></input>
         </div>
     </div>
+    <fieldset id="input_section_advanced">
+        <legend>Advanced</legend>
+        <div>
+            <span> Per default, we suggest to use {{ requested_balac_default }} as balanced accuracy cutoff
+            and {{ requested_conf_default }} as cutoff for the prediction confidence. However, you can
+            set your own cutoffs for the prediction. Go to our <a target="_blank" href="http://phendb.org/help">Help section</a> to
+                learn more about these cutoffs.</span>
+        </div>
+        <div class="row">
+            <div class="column" style="flex:50">
+                <label for="requested_balac"><b>Balanced accuracy cut-off (0.5 - 1)</b></label>
+            </div>
+            <div class="column inputField" style="flex:50">
+                <input id="requested_balac" name="requested_balac" type="text" value="{{ requested_balac_default }}"></input>
+            </div>
+        </div>
+        <div class="row">
+            <div class="column" style="flex:50">
+                <label for="requested_conf"><b>Prediction confidence cut-off (0.5 - 1)</b></label>
+            </div>
+            <div class="column inputField" style="flex:50">
+                <input id="requested_conf" name="requested_conf" type="text" value="{{ requested_conf_default }}"></input>
+            </div>
+        </div>
+        <div class="row">
+            <div class="column" style="flex:50">
+                <label for="disable_cutoffs"><b>Disable all filters and cut-offs</b></label>
+            </div>
+            <div class="column inputField" style="flex:50; align-items:flex-start">
+                <input id="disable_cutoffs" onclick="try {UIDisableLogic.click_on_disable_cutoffs_checkbox([{id: 'requested_conf', elm_type: 'puispinner'}, {id : 'requested_balac', elm_type: 'puispinner'}], this);} catch(e) {console.error(e.message);}" name="disable_cutoffs" type="checkbox" value="0"></input>
+            </div>
+        </div>
+    </fieldset>
     <div class="row">
         <div class="column" style="flex:100">
         </div>

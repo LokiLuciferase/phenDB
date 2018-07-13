@@ -1,6 +1,7 @@
 * {
     margin:0 0 0 0;
     box-sizing:border-box;
+    table-layout:auto;
 }
 
 body {
@@ -18,8 +19,10 @@ form {
 
 }
 
-#title {
+#header {
     text-align: center;
+    background-image:url(background_header/top-bg.png);
+    background-repeat: repeat;
 }
 
 #description {
@@ -70,4 +73,50 @@ form {
 .table_buttons {
     margin-bottom: 10px;
     text-align:right;
+}
+
+.show_hide_all_button {
+    font-style: italic;
+    font-size:12px !important;
+    padding: 1px 1px 1px 1px !important;
+}
+
+.dt-button.buttons-columnVisibility {
+    font-size:12px;
+    padding: 1px 1px 1px 1px !important;
+}
+
+#loading_gif_container {
+    position:fixed;
+    top:0;
+    left:0;
+    z-index: 100;
+}
+
+#white_overlay {
+    position:fixed;
+    top:0;
+    left:0;
+    padding:0;
+    margin:0;
+    width: 100%;
+    height: 100%;
+    z-index:50;
+    background:rgba(255,255,255,0.9);
+}
+
+.dataTables_length {
+    margin-right:20px;
+}
+
+/* PhenDB themed layout override */
+
+.ui-widget-header {
+    background:#38761d !important;
+    color:white !important;
+}
+
+.ui-accordion-header.ui-state-active {
+    background:#38761d !important;
+    color:white !important;
 }

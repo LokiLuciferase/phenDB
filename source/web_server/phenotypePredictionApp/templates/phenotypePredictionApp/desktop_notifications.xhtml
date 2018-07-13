@@ -1,0 +1,11 @@
+<script type="text/javascript">
+    //--------DESKTOP-NOTIFICATIONS-------------------------//
+    {%  if showInputFormCSS != 'none' %}
+        Notification.requestPermission();
+    {% endif %}
+    {% if showNotification %}
+        new Notification("PhenDB", {
+            body: "Your request has been calculated"
+        });
+    {% endif %}
+</script>

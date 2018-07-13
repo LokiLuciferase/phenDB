@@ -13,9 +13,16 @@
 
     <body>
     {% include "phenotypePredictionApp/pu-popups.xhtml" %}
-    <div id="title">
-            <img id="phendb_logo" src="{% static 'phenotypePredictionApp/phendb_logo.png' %}" ></img>
+    {% include "phenotypePredictionApp/header.xhtml" %}
+    <div style="position:fixed; top:0; left:0" id="loading_gif_container">
+        <img id="loading_gif" src="{% static 'phenotypePredictionApp/loading/ajax-loader.gif' %}"></img>
     </div>
+    <div id="white_overlay"></div>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            disableAjaxLoader();
+        });
+    </script>
     <form enctype="multipart/form-data" action="{% url 'phenotypePredictionApp:sendinput' %}" method="post">
         {% csrf_token %}
 
@@ -28,51 +35,20 @@
     {% include "phenotypePredictionApp/result_figures.xhtml" %}
 
     {% if not showProgressBar %}
-        <div style="text-align:right; margin:10px;"  id="help_section" title="Help">
-            <button id="get_help">Need Help?</button>
+        <div class="row">
+            <div class="column" style="flex:100"></div>
+            <button class="column" id="get_help">Need Help?</button>
+            <button class="column" id="browse_phendb">Browse PhenDB</button>
+            <button class="column" id="about_phendb">About PhenDB</button>
         </div>
+
     {% endif %}
 
-    {% include "phenotypePredictionApp/primeui_components.xhtml" %}
+    {% include "phenotypePredictionApp/ui_components.xhtml" %}
 
+    {% include "phenotypePredictionApp/page_reload.xhtml" %}
 
-        <script type="text/javascript">
-
-            //------------RELOAD OF PAGE----------------------------//
-
-            var minReload = 1000; //TODO: change to 10000 (10 seconds)
-            var maxReload = 1200000; //reload time maximum: 20 minutes
-
-            {% if refresh %}
-                if(sessionStorage.getItem('reloadCounter') == null || sessionStorage.getItem('reloadCounter') == '') {
-                    sessionStorage.setItem('reloadCounter', 1);
-                    console.log("is null"); //TODO: delete
-                }
-                var reloadCounter = sessionStorage.getItem('reloadCounter');
-                var reloadTime = minReload * reloadCounter;
-                if(reloadTime > maxReload) reloadTime == maxReload;
-                setTimeout(function() {location.reload(true)}, reloadTime);
-                sessionStorage.setItem('reloadCounter', ++reloadCounter);
-
-            {% else %}
-                sessionStorage.setItem('reloadCounter', "")
-            {% endif %}
-        </script>
-        <script type="text/javascript">
-            //--------DESKTOP-NOTIFICATIONS-------------------------//
-            {% if showNotification %}
-            $(document).ready(function() {
-                console.log("true");
-                Notification.requestPermission().then(function (result) {
-                    if (result === 'denied' || result === 'default') return;
-                    new Notification("PhenDB", {
-                        body: "Your request has been calculated"
-                    });
-                });
-            });
-            {% endif %}
-        </script>
-
+    {% include "phenotypePredictionApp/desktop_notifications.xhtml" %}
 
 
     </body>

@@ -1,82 +1,121 @@
 {% load jsonify %}
-<style>
-    .result_figures {
-        display: {{ showResultCSS }};
-        margin:10px 10px 10px 10px;
-    }
-</style>
-<div id="result_figures" class="result_figures">
-    <div id="result_figure_trait_prediction" title="Explore Your Results Online">
-        <!--
-        <div style="padding-bottom: 30px" class="row" id="dt_results_model_filter_wrapper">
-            <div class="column" style="width: 100px; padding-right:10px" id="dt_result_model_filter_name">Filter Models</div>
-            <div class="column">
-                <input id="dt_results_model_filter"></input>
-            </div>
-            <div class="column">
-                <button style="height:100%; margin-bottom:3px;" id="dt_results_model_filter_info">Model Overview</button>
-            </div>
-            <div id="dt_results_model_filter_info_text"></div>
-        </div>
-        <div style="padding-bottom: 30px" class="row" id="dt_results_bin_filter_wrapper">
-            <div class="column" style="width: 100px; padding-right:10px" id="dt_result_bin_filter_name">Filter Bins</div>
-            <div class="column">
-                <input id="dt_results_bin_filter"></input>
-            </div>
-        </div>
-        <div style="padding-bottom: 30px" class="row" id="dt_results_pval_filter_wrapper">
-            <div class="column" style="width: 100px; padding-right:10px" id="dt_result_pval_filter_name">Probability Cutoff</div>
-            <div class="column">
-                <input id="dt_results_pval_filter"></input>
-            </div>
-        </div>
-        <div style="padding-bottom: 30px" class="row" id="dt_results_accuracy_filter_wrapper">
-            <div class="column" style="width: 100px; padding-right:10px" id="dt_result_accuracy_filter_name">Accuracy Cutoff</div>
-            <div class="column">
-                <input id="dt_results_accuracy_filter"></input>
-            </div>
-        </div>
-        -->
-        <div id="all_result_tables">
-            <h3>Trait Prediction</h3>
-            <div id="trait_prediction">
-                <table id="table_prediction" class="result_table"></table>
-            </div>
-            <h3>Trait Prediction Details</h3>
-            <div id="trait_prediction_details">
-                <!--
-                <div>
-                    <input id="filter_test"></input>
+{% if showResultCSS != 'none' %}
+    <div id="result_figures" class="result_figures">
+        <div id="result_figure_trait_prediction" title="Explore Your Results Online" style="margin:10px;">
+            <div id="all_result_tables">
+                <h3>Trait Prediction</h3>
+                <div id="trait_prediction">
+                    <div class="row">
+                        <div class="column" style="width: 100px; padding-right:10px">
+                            Filter Bins
+                        </div>
+                        <div class="column">
+                            <input id="trait_prediction_bin_filter"></input>
+                        </div>
+                    </div>
+                    <table id="table_prediction" class="result_table"></table>
                 </div>
-                -->
-                <table id="table_prediction_details" class="result_table"></table>
+                <h3>Trait Prediction Details</h3>
+                <div id="trait_prediction_details">
+                    <div class="row" style="padding-bottom: 30px">
+                        <div class="column" style="width: 100px; padding-right:10px">
+                            Filter Bins
+                        </div>
+                        <div class="column">
+                            <input id="trait_prediction_details_bin_filter"></input>
+                        </div>
+                    </div>
+                    <div class="row" style="padding-bottom: 30px">
+                        <div class="column" style="width: 100px; padding-right:10px">
+                            Filter Model
+                        </div>
+                        <div class="column">
+                            <input id="trait_prediction_details_model_filter"></input>
+                        </div>
+                    </div>
+                    <table id="table_prediction_details" class="result_table"></table>
+                </div>
+                <h3>Trait Count Summary</h3>
+                <div id="trait_counts_summary">
+                     <div class="row" style="padding-bottom: 30px">
+                        <div class="column" style="width: 100px; padding-right:10px">
+                            Filter Model
+                        </div>
+                        <div class="column">
+                            <input id="trait_count_model_filter"></input>
+                        </div>
+                    </div>
+                    <table id="table_trait_counts" class="result_table"></table>
+                </div>
+                <h3>Bin Summary</h3>
+                <div id="bin_summary">
+                    <div class="row" style="padding-bottom: 30px">
+                        <div class="column" style="width: 100px; padding-right:10px">
+                            Filter Bin
+                        </div>
+                        <div class="column">
+                            <input id="trait_count_bin_filter"></input>
+                        </div>
+                    </div>
+                    <table id="table_bin_summary" class="result_table"></table>
+                </div>
             </div>
-            <h3>Trait Count Summary</h3>
-            <div id="trait_counts_summary">
-                <table id="table_trait_counts" class="result_table"></table>
-            </div>
-            <h3>Bin Summary</h3>
-            <div id="bin_summary">
-                <table id="table_bin_summary" class="result_table"></table>
-            </div>
+        </div>
+        <div id="results_advanced" title="Advanced" style="margin:10px;">
+            <form enctype="multipart/form-data" method="post" id="update_result_form">
+                {% csrf_token %}
+                <div id="results_advanced_explanation" class="row">
+                <span> Change the cut-offs and update the result figures (only applies to the online results in the
+                section "Explore Your Results Online", not to the zipped result folder provided in the section
+                "Download Your Full Results"). Go to our <a target="_blank" href="http://phendb.org/help">Help section</a> to
+                learn more about cut-offs and filtering applied by PhenDB.
+                </span>
+                </div>
+                <div class="row">
+                    <div class="column" style="flex:50">
+                        <label for="results_advanced_requested_balac"><b>Balanced accuracy cut-off (0.5 - 1)</b></label>
+                    </div>
+                    <div class="column inputField" style="flex:50">
+                        <input id="results_advanced_requested_balac" style="flex:100" name="requested_balac" type="text" value="0.75"></input>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="column" style="flex:50">
+                        <label for="results_advanced_requested_conf"><b>Prediction confidence cut-off (0.5 - 1)</b></label>
+                    </div>
+                    <div class="column inputField" style="flex:50">
+                        <input id="results_advanced_requested_conf" style="flex:100" name="requested_conf" type="text" value="0.6"></input>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="column" style="flex:50">
+                        <label for="results_advanced_disable_cutoffs"><b>Disable all filters and cut-offs</b></label>
+                    </div>
+                    <div class="column inputField" style="flex:50; align-items:flex-start">
+                        <input id="results_advanced_disable_cutoffs" name="disable_cutoffs" type="checkbox" value="0" onclick="try {UIDisableLogic.click_on_disable_cutoffs_checkbox([{id: 'results_advanced_requested_conf', elm_type: 'puispinner'}, {id : 'results_advanced_requested_balac', elm_type: 'puispinner'}], this);} catch(e) {console.error(e.message);}"></input>
+                    </div>
+                </div>
+                <div class="row">
+                    <button id="results_advanced_submit" type="button">Submit</button>
+                </div>
+            </form>
         </div>
     </div>
-</div>
-<script type="text/javascript">
-    $(document).ready(function() {
-        //window.bin_alias_list = {{ bin_alias_list | safe }}
-        try {
-            var table_prediction_details = new DataTable({{ prediction_details_values | safe}}, {{ prediction_details_titles | jsonify | safe}}, "#table_prediction_details");
-            table_prediction_details.addFiltering("#filter_test", [], 0);
-        } catch(e) {console.log("table_prediction_details failed" + " " + e);}
-        try {
-            var table_prediction = new DataTable({{ prediction_values | safe }}, {{ prediction_titles |jsonify | safe }}, "#table_prediction");
-        } catch(e) {console.log("table_prediction failed" + " " + e);}
-        try {
-            var table_trait_counts = new DataTable({{ trait_counts_values | safe }}, {{ trait_counts_titles |jsonify | safe }}, "#table_trait_counts");
-        } catch(e) {console.log("table_trait_counts failed" + " " + e);}
-        try {
-            var table_bin_summary = new DataTable({{ bin_summary_values | safe }}, {{ bin_summary_titles |jsonify | safe }}, "#table_bin_summary");
-        } catch(e) {console.log("table_bin_summary failed" + " " + e);}
-    });
-</script>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            var dataTableData = new DataTableData();
+            dataTableData.prediction_details_values = {{ prediction_details_values | safe}};
+            dataTableData.prediction_details_titles = {{ prediction_details_titles | jsonify | safe}};
+            dataTableData.bin_alias_list = {{ bin_alias_list | safe }};
+            dataTableData.model_list = {{ model_list | safe }};
+            dataTableData.prediction_values = {{ prediction_values | safe}};
+            dataTableData.prediction_titles = {{ prediction_titles |jsonify | safe }};
+            dataTableData.trait_counts_values = {{ trait_counts_values | safe }};
+            dataTableData.trait_counts_titles = {{ trait_counts_titles |jsonify | safe }};
+            dataTableData.bin_summary_values = {{ bin_summary_values | safe }};
+            dataTableData.bin_summary_titles = {{ bin_summary_titles |jsonify | safe }};
+            initializeDataTablesGlobal = new InitializeAllDataTables(dataTableData);
+            initializeDataTablesGlobal.initialize();
+        });
+    </script>
+{% endif %}

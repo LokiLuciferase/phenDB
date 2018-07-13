@@ -250,7 +250,8 @@ try:
         recon_cc_string = "\\t".join([str(x) for x in (thisbin.comple, 
                                                        thisbin.conta, 
                                                        thisbin.strainhet, 
-                                                       thisbin.tax_id, " ", " ")])
+                                                       thisbin.tax_id, 
+                                                       "dummy", "dummy")])
         complecon.write(recon_cc_string)
 
     print("NO", end='')
@@ -281,7 +282,8 @@ try:
 except IntegrityError:
     if "${binname}".startswith("PHENDB_PRECALC"):  # allow muliple identical files in same job if precalculation job
         pass
-    raise
+    else:
+        raise
 """
 
 }
@@ -724,7 +726,7 @@ process zip_results {
     file(errorfile)
 
     output:
-    file("${jobname}.zip") into zip_to_db
+    file("phendb_${jobname}.zip") into zip_to_db
 
     script:
     """
@@ -734,7 +736,7 @@ process zip_results {
     mv *.traits.csv ${jobname}/individual_results
     mv *.csv ${jobname}/summaries
     mv *.html ${jobname}/summaries
-    zip -r ${jobname}.zip ./${jobname}
+    zip -r phendb_${jobname}.zip ./${jobname}
     rm -rf ${jobname}
     """
 }
@@ -770,7 +772,7 @@ try:
     obj.update(errors=${errors_occurred}, error_type="${errtype}")
     file = open('${zip}', 'rb')
     djangoFile = File(file)
-    obj[0].fileOutput.save('${jobname}.zip', djangoFile, save="True")
+    obj[0].fileOutput.save('phendb_${jobname}.zip', djangoFile, save="True")
     totalbins = obj[0].total_bins
     obj.update(finished_bins = totalbins)
 except IntegrityError:

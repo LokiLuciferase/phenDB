@@ -11,6 +11,12 @@ class JobDisplay(admin.ModelAdmin):
     def bal_acc_cutoff(obj):
         return obj.requested_balac
 
+    def pred_conf_cutoff(obj):
+        return obj.requested_conf
+
+    def disable_cutoffs(obj):
+        return True if obj.disable_cutoffs else ""
+
     def no_errors(obj):
         if obj.errors == None:
             return None
@@ -37,7 +43,7 @@ class JobDisplay(admin.ModelAdmin):
     link_to_results.allow_tags = True
     actions = None
     list_display = ('job_date', 'user_email', 'user_ip', 'finished_bins',
-                    'total_bins', bal_acc_cutoff, "error_type", uploaded_file_name, link_to_results)
+                    'total_bins', bal_acc_cutoff, pred_conf_cutoff, disable_cutoffs, "error_type", uploaded_file_name, link_to_results)
     list_display_links = None
     search_fields = ('user_email', 'user_ip', 'filename')
 

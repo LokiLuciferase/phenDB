@@ -8,10 +8,9 @@ from rq import Queue
 
 
 class StartProcessThread(threading.Thread):
-    def __init__(self, keyname, req_balac):
+    def __init__(self, keyname):
         threading.Thread.__init__(self)
         self.keyname = keyname
-        self.req_balac = req_balac
 
     def run(self):
         from phenotypePredictionApp.variables import PHENDB_BASEDIR, PHENDB_QUEUE, PHENDB_DEBUG
@@ -27,7 +26,6 @@ class StartProcessThread(threading.Thread):
         above_workfolder = os.path.join(PHENDB_BASEDIR, "data/results")
         infolder = os.path.join(infolder_base, self.keyname)
 
-        pica_cutoff = float(self.req_balac)
         node_offs = ""
 
         # create workfolder and logfolder
@@ -39,7 +37,7 @@ class StartProcessThread(threading.Thread):
         # add the function call to the redis queue
         q = Queue(PHENDB_QUEUE, connection=Redis())
         q.enqueue_call(func=phenDB_enqueue,
-                       args=(ppath, pipeline_path, infolder, outfolder, pica_cutoff, node_offs),
+                       args=(ppath, pipeline_path, infolder, outfolder, node_offs),
                        timeout='48h',
                        ttl='48h',
                        job_id=self.keyname
