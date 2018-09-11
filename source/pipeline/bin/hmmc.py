@@ -372,7 +372,7 @@ if queries:
 
 ## Wait for threads to complete
 c = 0
-while threading.activeCount() >= 1 and c < args.finishtimeout:
+while threading.activeCount() >= 2 and c < args.finishtimeout:
   time.sleep(1)
   c += 1
 

@@ -22,7 +22,7 @@ class MailNotification(threading.Thread):
             self.runCounter += 1
             obj = Job.objects.get(key=self.key)
             if obj.total_bins == obj.finished_bins and obj.total_bins != 0:
-                self.__sendMail(obj.user_email, "phen.csb.univie.ac.at/phendb/results/" + self.key)
+                self.__sendMail(obj.user_email, "https://phen.csb.univie.ac.at/phendb/results/" + self.key)
                 break
             sleepTime = self.initialSleep * self.runCounter
             if sleepTime > self.maxSleep:
@@ -37,7 +37,7 @@ class MailNotification(threading.Thread):
         message = EmailMessage()
         message.from_email = "donotreply@phen.csb.univie.ac.at"
         message.subject = "PhenDB notification"
-        message.body = 'Your PhenDB results are now available under phen.csb.univie.ac.at/' + url + '\n \nThis mail was sent automatically. Please do not respond to it.'
+        message.body = 'Your PhenDB results are now available under ' + url + '\n \nThis mail was sent automatically. Please do not respond to it.'
 
         ps.stdin.write(message.message().as_bytes())
         (stdout, stderr) = ps.communicate()
