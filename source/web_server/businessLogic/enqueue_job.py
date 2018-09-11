@@ -135,7 +135,7 @@ def delete_user_data(days):
         if float(os.path.getmtime(folder)) <= float(oldest_unixtime):
             shutil.rmtree(folder)
 
-    # delete any upload folder with a file size larger than 1 GB
+    # delete any file for which no job is registered in the database
     uploadfolder = os.path.join(PHENDB_BASEDIR, "data/uploads")
     retained_upload_folders = os.listdir(uploadfolder)
     for key in retained_upload_folders:
@@ -143,7 +143,6 @@ def delete_user_data(days):
             retained_upload_job = Job.objects.get(key=key)
         except:
             shutil.rmtree(os.path.join(uploadfolder, key))
-
 
 
 # submit a PhenDB job to Redis queue for later calculation.

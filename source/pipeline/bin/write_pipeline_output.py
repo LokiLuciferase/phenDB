@@ -101,6 +101,7 @@ archaea_results.update(pica_pval="1")
 all_model_names = sorted(list(set([x.model.model_name for x in first_bin_results])))
 all_newest_models = [PicaModel.objects.filter(model_name=x).latest("model_train_date") for x in all_model_names]
 all_model_desc = [x.model_desc for x in all_newest_models]
+all_model_td = [x.model_train_date for x in all_newest_models]
 job_results_dict = {x.md5sum: {y: None for y in all_model_names} for x in job_bins}
 model_results_count = {x: {"+": 0, "-": 0, "n.d.": 0, "n.c.": 0} for x in all_model_names}
 
@@ -141,6 +142,7 @@ with open("trait_summary_matrix.csv", "w") as summary_matrix:
                                                                   unl=SHOW_ALL_RESULTS))
     summary_matrix.write("# Summary of Trait Prediction Results:\n\n")
     summary_matrix.write("," + ",".join(all_model_desc) + "\n")
+    summary_matrix.write("Model train date," + ",".join(all_model_td) + "\n")
     summary_matrix.write("Bin Name," + ",".join(all_model_names) + "\n")
 
     # write individual result files and append to list for each bin
