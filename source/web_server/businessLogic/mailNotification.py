@@ -22,7 +22,7 @@ class MailNotification(threading.Thread):
             self.runCounter += 1
             obj = Job.objects.get(key=self.key)
             if obj.total_bins == obj.finished_bins and obj.total_bins != 0:
-                self.__sendMail(obj.user_email, "phen.csb.univie.ac.at/phendb/results/" + self.key)
+                self.__sendMail(obj.user_email, "https://phen.csb.univie.ac.at/phendb/results/" + self.key)
                 break
             sleepTime = self.initialSleep * self.runCounter
             if sleepTime > self.maxSleep:
