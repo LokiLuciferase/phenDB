@@ -120,3 +120,8 @@ form {
     background:#38761d !important;
     color:white !important;
 }
+
+.info_icon {
+    height:1em;
+    margin-left:5px;
+}
