@@ -47,7 +47,14 @@
         </div>
         <div class="row">
             <div class="column" style="flex:50">
-                <label for="requested_conf"><b>Prediction confidence cut-off (0.5 - 1)</b></label>
+                <div class="row">
+                    <div class="column">
+                        <label for="requested_conf"><b>Prediction confidence cut-off (0.5 - 1)</b></label>
+                    </div>
+                    <div class="column">
+                        <input type="image" src="{% static "phenotypePredictionApp/info_icon-png" %}" class="info_icon"></input>
+                    </div>
+                </div>
             </div>
             <div class="column inputField" style="flex:50">
                 <input id="requested_conf" name="requested_conf" type="text" value="{{ requested_conf_default }}"></input>
@@ -55,14 +62,7 @@
         </div>
         <div class="row">
             <div class="column" style="flex:50">
-                <div class="row">
-                    <div class="column">
-                        <label for="disable_cutoffs"><b>Disable all filters and cut-offs</b></label>
-                    </div>
-                    <div class="column">
-                        <input type="image" src="{% static 'phenotypePredictionApp/info_icon.png' %}" class="info_icon" onclick="alert"></input>
-                    </div>
-                </div>
+                <label for="disable_cutoffs"><b>Disable all filters and cut-offs</b></label>
             </div>
             <div class="column inputField" style="flex:50; align-items:flex-start">
                 <input id="disable_cutoffs" onclick="try {UIDisableLogic.click_on_disable_cutoffs_checkbox([{id: 'requested_conf', elm_type: 'puispinner'}, {id : 'requested_balac', elm_type: 'puispinner'}], this);} catch(e) {console.error(e.message);}" name="disable_cutoffs" type="checkbox" value="0"></input>
