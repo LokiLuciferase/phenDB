@@ -39,7 +39,14 @@
         </div>
         <div class="row">
             <div class="column" style="flex:50">
-                <label for="requested_balac"><b>Balanced accuracy cut-off (0.5 - 1)</b></label>
+                <div class="row">
+                    <div class="column">
+                        <label for="requested_balac"><b>Balanced accuracy cut-off (0.5 - 1)</b></label>
+                    </div>
+                    <div class="column">
+                        <input type="image" src="{% static "phenotypePredictionApp/info_icon.png" %}" class="info_icon" onclick="alert(InfoButtonTexts.mean_balanced_accuracy)"></input>
+                    </div>
+                </div>
             </div>
             <div class="column inputField" style="flex:50">
                 <input id="requested_balac" name="requested_balac" type="text" value="{{ requested_balac_default }}"></input>
@@ -52,7 +59,7 @@
                         <label for="requested_conf"><b>Prediction confidence cut-off (0.5 - 1)</b></label>
                     </div>
                     <div class="column">
-                        <input type="image" src="{% static "phenotypePredictionApp/info_icon-png" %}" class="info_icon"></input>
+                        <input type="image" src="{% static "phenotypePredictionApp/info_icon.png" %}" class="info_icon" onclick="alert(InfoButtonTexts.prediction_confidence)"></input>
                     </div>
                 </div>
             </div>
