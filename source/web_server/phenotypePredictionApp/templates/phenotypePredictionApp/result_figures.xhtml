@@ -79,7 +79,7 @@
                                 <label for="results_advanced_requested_balac"><b>Balanced accuracy cut-off (0.5 - 1)</b></label>
                             </div>
                             <div class="column">
-                                <button style="background: no-repeat url({% static "phenotypePredictionApp/info_icon.png" %})" class="info_icon" onclick="alert(InfoButtonTexts.mean_balanced_accuracy)"></button>
+                                <button type="button" style="background: no-repeat url({% static "phenotypePredictionApp/info_icon.png" %})" class="info_icon" onclick="alert(InfoButtonTexts.mean_balanced_accuracy)"></button>
                             </div>
                         </div>
                     </div>
@@ -94,7 +94,7 @@
                                 <label for="results_advanced_requested_conf"><b>Prediction confidence cut-off (0.5 - 1)</b></label>
                             </div>
                             <div class="column">
-                                <button style="background: no-repeat url({% static "phenotypePredictionApp/info_icon.png" %})" class="info_icon" onclick="alert(InfoButtonTexts.prediction_confidence)"></button>
+                                <button type="button" style="background: no-repeat url({% static "phenotypePredictionApp/info_icon.png" %})" class="info_icon" onclick="alert(InfoButtonTexts.prediction_confidence)"></button>
                             </div>
                         </div>
                     </div>
@@ -109,6 +109,9 @@
                     <div class="column inputField" style="flex:50; align-items:flex-start">
                         <input id="results_advanced_disable_cutoffs" name="disable_cutoffs" type="checkbox" value="0" onclick="try {UIDisableLogic.click_on_disable_cutoffs_checkbox([{id: 'results_advanced_requested_conf', elm_type: 'puispinner'}, {id : 'results_advanced_requested_balac', elm_type: 'puispinner'}], this);} catch(e) {console.error(e.message);}"></input>
                     </div>
+                </div>
+                <div class="row">
+                    <button type="reset">reset to default</button>
                 </div>
                 <div class="row">
                     <button id="results_advanced_submit" type="button">Submit</button>

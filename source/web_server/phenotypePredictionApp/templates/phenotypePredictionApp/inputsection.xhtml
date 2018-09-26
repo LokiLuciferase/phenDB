@@ -44,7 +44,7 @@
                         <label for="requested_balac"><b>Balanced accuracy cut-off (0.5 - 1)</b></label>
                     </div>
                     <div class="column">
-                        <button style="background: no-repeat url({% static "phenotypePredictionApp/info_icon.png" %})" class="info_icon" onclick="alert(InfoButtonTexts.mean_balanced_accuracy)"></button>
+                        <button type="button" style="background: no-repeat url({% static "phenotypePredictionApp/info_icon.png" %})" class="info_icon" onclick="alert(InfoButtonTexts.mean_balanced_accuracy)"></button>
                     </div>
                 </div>
             </div>
@@ -59,7 +59,7 @@
                         <label for="requested_conf"><b>Prediction confidence cut-off (0.5 - 1)</b></label>
                     </div>
                     <div class="column">
-                        <button style="background: no-repeat url({% static "phenotypePredictionApp/info_icon.png" %})" class="info_icon" onclick="alert(InfoButtonTexts.prediction_confidence)"></button>
+                        <button type="button" style="background: no-repeat url({% static "phenotypePredictionApp/info_icon.png" %})" class="info_icon" onclick="alert(InfoButtonTexts.prediction_confidence)"></button>
                     </div>
                 </div>
             </div>
@@ -74,6 +74,9 @@
             <div class="column inputField" style="flex:50; align-items:flex-start">
                 <input id="disable_cutoffs" onclick="try {UIDisableLogic.click_on_disable_cutoffs_checkbox([{id: 'requested_conf', elm_type: 'puispinner'}, {id : 'requested_balac', elm_type: 'puispinner'}], this);} catch(e) {console.error(e.message);}" name="disable_cutoffs" type="checkbox" value="0"></input>
             </div>
+        </div>
+        <div class="row">
+            <button type="reset">reset to default</button>
         </div>
     </fieldset>
     <div class="row">
