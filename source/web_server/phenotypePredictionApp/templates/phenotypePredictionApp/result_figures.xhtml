@@ -73,7 +73,14 @@
                 </div>
                 <div class="row">
                     <div class="column" style="flex:50">
-                        <label for="results_advanced_requested_balac"><b>Balanced accuracy cut-off (0.5 - 1)</b></label>
+                        <div class="row">
+                            <div class="column">
+                                <label for="results_advanced_requested_balac"><b>Balanced accuracy cut-off (0.5 - 1)</b></label>
+                            </div>
+                            <div class="column">
+                                <button style="background: no-repeat url({% static "phenotypePredictionApp/info_icon.png" %})" class="info_icon" onclick="alert(InfoButtonTexts.mean_balanced_accuracy)"></button>
+                            </div>
+                        </div>
                     </div>
                     <div class="column inputField" style="flex:50">
                         <input id="results_advanced_requested_balac" style="flex:100" name="requested_balac" type="text" value="0.75"></input>
@@ -81,7 +88,14 @@
                 </div>
                 <div class="row">
                     <div class="column" style="flex:50">
-                        <label for="results_advanced_requested_conf"><b>Prediction confidence cut-off (0.5 - 1)</b></label>
+                        <div class="row">
+                            <div class="column">
+                                <label for="results_advanced_requested_conf"><b>Prediction confidence cut-off (0.5 - 1)</b></label>
+                            </div>
+                            <div class="column">
+                                <button style="background: no-repeat url({% static "phenotypePredictionApp/info_icon.png" %})" class="info_icon" onclick="alert(InfoButtonTexts.prediction_confidence)"></button>
+                            </div>
+                        </div>
                     </div>
                     <div class="column inputField" style="flex:50">
                         <input id="results_advanced_requested_conf" style="flex:100" name="requested_conf" type="text" value="0.6"></input>

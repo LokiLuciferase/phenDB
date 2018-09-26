@@ -124,4 +124,6 @@ form {
 .info_icon {
     height:1em;
     margin-left:5px;
+    border:none;
+    background-size:contain;
 }
