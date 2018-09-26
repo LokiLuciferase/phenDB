@@ -44,7 +44,7 @@
                         <label for="requested_balac"><b>Balanced accuracy cut-off (0.5 - 1)</b></label>
                     </div>
                     <div class="column">
-                        <input type="image" src="{% static "phenotypePredictionApp/info_icon.png" %}" class="info_icon" onclick="alert(InfoButtonTexts.mean_balanced_accuracy)"></input>
+                        <button style="background: url({% static "phenotypePredictionApp/info_icon.png" %})" class="info_icon" onclick="alert(InfoButtonTexts.mean_balanced_accuracy)"></button>
                     </div>
                 </div>
             </div>
@@ -59,7 +59,7 @@
                         <label for="requested_conf"><b>Prediction confidence cut-off (0.5 - 1)</b></label>
                     </div>
                     <div class="column">
-                        <input type="image" src="{% static "phenotypePredictionApp/info_icon.png" %}" class="info_icon" onclick="alert(InfoButtonTexts.prediction_confidence)"></input>
+                        <button style="background: url({% static "phenotypePredictionApp/info_icon.png" %})" class="info_icon" onclick="alert(InfoButtonTexts.prediction_confidence)"></button>
                     </div>
                 </div>
             </div>
