@@ -7,9 +7,9 @@ hmmdb = file(params.hmmdb)
 
 if (params.recalc) {
     jobname = "PHENDB_PRECALC"
-    input_gzipfiles = Channel()
-    input_barezipfiles = Channel()
-    all_input_files = Channel()
+    input_gzipfiles = Channel.empty()
+    input_barezipfiles = Channel.empty()
+    all_input_files = Channel.empty()
 } else {
     jobname = file(params.inputfolder).getBaseName()
     input_gzipfiles = Channel.fromPath("${params.inputfolder}/*.{tar.gz,tgz}")

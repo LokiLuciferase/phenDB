@@ -1,4 +1,4 @@
-# !/usr/bin/env python3
+#!/usr/bin/env python3
 #
 # Created by Lukas Lüftinger on 10/2/18.
 #

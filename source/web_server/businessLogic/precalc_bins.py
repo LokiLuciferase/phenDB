@@ -36,8 +36,8 @@ parser.add_argument("-b", "--n_batches", default=999999, help="How many 50-genom
 parser.add_argument("-m", "--max_n", default=None, help="Maximum number of sequences to precalculate")
 parser.add_argument("-t", "--update_taxids", default=False, help="Only get list of refseq entries, "
                                                                  "and add taxonomy info to those present in the DB.")
-parser.add_argument("-r", "--rerun_existing", default=False, help="Re-enter known genomes to PhenDB "
-                                                                  "(for re-calculation of results with updated models)")
+parser.add_argument("-r", "--rerun_existing", default=False, action="store_true",
+                    help="Re-enter known genomes to PhenDB (for re-calculation of results with updated models)")
 args = parser.parse_args()
 
 Entrez.email = "lukas.lueftinger@univie.ac.at"
@@ -119,13 +119,13 @@ def download_genomes(los, path):
 
 
 # check if a job with id "PHENDB_PRECALC" exists in the DB; if not, create it (required for phenDB pipeline)
-def check_add_precalc_job():
+def check_add_precalc_job(jobname="PHENDB_PRECALC"):
     try:
-        pc_job = Job.objects.get(key="PHENDB_PRECALC")
+        pc_job = Job.objects.get(key=jobname)
         pc_job.job_date = datetime.now()
         pc_job.save()
     except:
-        new_precalc_job = Job(key="PHENDB_PRECALC")
+        new_precalc_job = Job(key=jobname)
         new_precalc_job.save()
 
 
@@ -163,6 +163,7 @@ def load_unadded_genome_ids(savepath):
 
 # Re-add genomes from local cache to phenDB to make predictions on new picamodels
 def rerun_known_genomes(ppath, outfolder):
+        check_add_precalc_job()
         pipeline_path = os.path.join(PHENDB_BASEDIR, "source/pipeline/picaPipeline.nf")
         q = Queue(PHENDB_QUEUE, connection=Redis())
         pipeline_call = q.enqueue_call(func=phenDB_recalc,
