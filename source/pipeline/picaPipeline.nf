@@ -427,7 +427,8 @@ process get_recalc_hashes {
 
 }
 
-recalc_table_collated = recalc_table.splitcsv().map{l -> [l[0], l[1], l[2], file(l[3]), l[4]]}
+//TODO: This does not yet work!
+recalc_table_collated = recalc_table.first().splitcsv().map{l -> [l[0], l[1], l[2], file(l[3]), l[4]]}
 pica_in = accuracyout.mix(recalc_table_collated).view()
 
 // call pica for every sample for every condition
