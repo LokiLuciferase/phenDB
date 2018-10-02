@@ -1,16 +1,26 @@
 #!/usr/bin/env nextflow
 // define static variables
 
-jobname = file(params.inputfolder).getBaseName()
+params.recalc = false
+models = file(params.modelfolder).listFiles()
+hmmdb = file(params.hmmdb)
+
+if (params.recalc) {
+    jobname = "PHENDB_PRECALC"
+    input_gzipfiles = Channel()
+    input_barezipfiles = Channel()
+    all_input_files = Channel()
+} else {
+    jobname = file(params.inputfolder).getBaseName()
+    input_gzipfiles = Channel.fromPath("${params.inputfolder}/*.{tar.gz,tgz}")
+    input_barezipfiles = Channel.fromPath("${params.inputfolder}/*.zip")
+    all_input_files = Channel.fromPath("${params.inputfolder}/*")
+                      .filter{!it.name.endsWith('.tar.gz') && !it.name.endsWith('.zip') && !it.name.endsWith('.tgz')}
+}
+
 outdir = file(params.outdir)
 file(outdir).mkdir()
 
-models = file(params.modelfolder).listFiles()
-hmmdb = file(params.hmmdb)
-input_gzipfiles = Channel.fromPath("${params.inputfolder}/*.{tar.gz,tgz}")
-input_barezipfiles = Channel.fromPath("${params.inputfolder}/*.zip")
-all_input_files = Channel.fromPath("${params.inputfolder}/*")
-                  .filter{!it.name.endsWith('.tar.gz') && !it.name.endsWith('.zip') && !it.name.endsWith('.tgz')}
 
 log.info"""
     ##################################################################################
@@ -115,74 +125,10 @@ process fasta_sanity_check {
 
     script:
     binname = item.getName()
-"""
-#!/usr/bin/env python3
 
-from Bio import SeqIO
-from Bio.Seq import Seq
-from Bio.Alphabet import IUPAC, HasStopCodon
-from Bio import Alphabet
-import sys, os
-import tarfile
-import gzip
-
-full_prot_ab = Alphabet._consensus_alphabet([IUPAC.extended_protein, HasStopCodon(IUPAC.protein)])
-
-def parse_FASTA(inputfasta):
-    isdna = True
-    isprotein = True
-
-    with open("sanitychecked.fasta","w") as outfile:
-        for read in SeqIO.parse(inputfasta, "fasta", IUPAC.ambiguous_dna):
-            if not Alphabet._verify_alphabet(read.seq):
-                isdna = False
-                break
-            SeqIO.write(read, outfile, "fasta")
-    if isdna and os.stat("sanitychecked.fasta").st_size != 0:
-        print("DNA", end="")
-        return
-
-    with open("sanitychecked.fasta","w") as outfile:
-        for read in SeqIO.parse(inputfasta, "fasta", full_prot_ab):
-            if not Alphabet._verify_alphabet(read.seq):
-                isprotein = False
-                break
-            SeqIO.write(read, outfile, "fasta")
-    if isprotein and os.stat("sanitychecked.fasta").st_size != 0:
-        print("protein", end="")
-        return
-
-    if (not isdna and not isprotein) or os.stat("sanitychecked.fasta").st_size == 0:
-        with open("${errorfile}", "a") as myfile:
-            myfile.write("WARNING: The file ${binname} is empty or not a valid fasta file and was dropped from the analysis.\\n\\n")
-        os.remove("sanitychecked.fasta")
-        os._exit(1)
-
-def invalid_gz_error():
-    with open("${errorfile}", "a") as myfile:
-        myfile.write("WARNING: An error occured during parsing ${binname}. The file was dropped from the analysis.\\n\\n")
-    os.remove("sanitychecked.fasta")
-    os._exit(1)
-
-if "${item}".endswith(".gz"):
-    try:
-       with gzip.open("${item}","rt") as inputfasta:
-            try:
-                parse_FASTA(inputfasta)
-            except:
-                invalid_gz_error()
-    except OSError:
-       with open("${errorfile}", "a") as myfile:
-            myfile.write("WARNING: ${binname} is a compressed directory, not a file, or otherwise not a valid .gz file. It is dropped from further analysis; Nested directories cannot be analyzed! \\n\\n")
-            os._exit(1)
-else:
-    inputfasta="${item}"
-    try:
-        parse_FASTA(inputfasta)
-    except:
-        invalid_gz_error()
-"""
-
+    """
+    fasta_sanity_check.py ${binname} ${item} ${errorfile}
+    """
 }
 
 // get primary key for bins
@@ -216,76 +162,9 @@ process add_bin_to_db {
     set val(binname), val(mdsum), file(item), val(seqtype), stdout, file("reconstructed_hmmer_file.txt"), file("reconstructed_compleconta_file.txt") into bin_is_in_db, bin_is_not_in_db
 
     script:
-// language=Python
-"""
-#!/usr/bin/env python3
-
-import django
-import sys
-import os
-from django.core.exceptions import ObjectDoesNotExist
-from django.db import IntegrityError
-os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
-
-django.setup()
-from phenotypePredictionApp.models import *
-
-try:
-    parentjob = Job.objects.get(key="${jobname}")
-    parentjob.total_bins = ${nr_of_files}
-    parentjob.save()
-
-except ObjectDoesNotExist:
-    sys.exit("Job not found.")
-
-# if the bin exists, calculate its hmmer and compleconta file from the db entries
-try:
-    thisbin=Bin.objects.get(md5sum="${mdsum}")
-    
-    with open("reconstructed_hmmer_file.txt", "w") as hmmer:
-        for entry in HmmerResult.objects.filter(bin=thisbin):
-            hmmer.write("dummy\\t"+entry.enog.enog_name+"\\tdummy\\n")
-
-    with open("reconstructed_compleconta_file.txt", "w") as complecon:
-        recon_cc_string = "\\t".join([str(x) for x in (thisbin.comple, 
-                                                       thisbin.conta, 
-                                                       thisbin.strainhet, 
-                                                       thisbin.tax_id, 
-                                                       "dummy", "dummy")])
-        complecon.write(recon_cc_string)
-
-    print("NO", end='')
-
-    # Also update the job completeness here, because then hmmer wont be called
-    current_finished = parentjob.finished_bins
-    total_jobs = parentjob.total_bins
-    if current_finished < total_jobs - 1:
-        parentjob.finished_bins = int(current_finished) + 1
-        parentjob.save()
-
-
-except ObjectDoesNotExist:
-    # write impossible Nr. for comple and conta that would cause an error during get_accuracy if not overwritten:
-    thisbin = Bin(md5sum="${mdsum}", comple=2, conta=2, strainhet=2)
-    thisbin.save()
-    print("YES", end='')
-
-    #if it not in the db yet, just create dummy files
-    with open("reconstructed_hmmer_file.txt", "w") as hmmer:
-        hmmer.write("dummy")
-    with open("reconstructed_compleconta_file.txt", "w") as complecon:
-        complecon.write("dummy")
-        
-try:
-    assoc= BinInJob(bin=thisbin, job=parentjob, bin_alias="${binname}")
-    assoc.save()
-except IntegrityError:
-    if "${binname}".startswith("PHENDB_PRECALC"):  # allow muliple identical files in same job if precalculation job
-        pass
-    else:
-        raise
-"""
-
+    """
+    add_bin_to_db.py ${jobname} ${nr_of_files} ${mdsum} ${binname}
+    """
 }
 
 // call prodigal for every sample in parallel
@@ -354,7 +233,8 @@ process determine_models_that_need_recalculation {
 
     #if this succeeds, then there is a result for this bin and the newest model version in our db
     try:
-        PicaResult.objects.get(model=PicaModel.objects.filter(model_name="${model.getBaseName()}").latest('model_train_date'), bin=Bin.objects.get(md5sum="${mdsum}"))
+        PicaResult.objects.get(model=PicaModel.objects.filter(model_name="${model.getBaseName()}").latest('model_train_date'), 
+                               bin=Bin.objects.get(md5sum="${mdsum}"))
         print("NO", end='')
     except:
         print("YES", end='')
@@ -364,7 +244,6 @@ process determine_models_that_need_recalculation {
 // if the results in our db for this bin and model are outdated, pica needs to be called
 // this just reformats the input and just calls accuracy if the value is YES
 accuracy_in_from_old_model = calc_model.filter{ it[3] == "YES" }.map{ l -> [l[0], l[1], l[2], l[4], l[5]] }
-
 
 // call hmmer daemon for all bins for which prodigal was run (i.e. bins that have not yet been in the db)
 process hmmer {
@@ -520,64 +399,37 @@ process accuracy {
     set val(binname), val(mdsum), val(model), file(hmmeritem), stdout into accuracyout
 
     script:
+    modelname = model.getBaseName()
     """
-    #!/usr/bin/env python3
-
-    import django
-    import sys
-    import os
-    from django.core.exceptions import ObjectDoesNotExist
-    from django.db import IntegrityError
-    os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
-    django.setup()
-    from phenotypePredictionApp.models import *
-    import math
-    def round_nearest(x, a):
-        return round(round(x / a) * a, -int(math.floor(math.log10(a))))
-
-    # get completeness and contamination
-    try:
-        with open("${complecontaitem}", "r") as ccfile:
-            comple, conta, strainhet, taxid, tname, trank = ccfile.readline().strip().split("\t")
-    except ValueError:
-        raise ValueError
-        #comple, conta, strainhet, taxid, tname, trank = [0 for x in range(6)]
-
-    cc = [float(x) for x in [comple, conta, strainhet]]
-    for i in range(len(cc)):
-        if cc[i] < 0:
-            cc[i] = 0
-        if cc[i] > 1:
-            cc[i] = 1
-
-    # get taxonomic information
-    try:
-        taxon_entry = Taxon.objects.get(tax_id=taxid)
-        tid = taxon_entry.tax_id
-    except ObjectDoesNotExist:
-        tid = "1"
-    
-    # update bin with taxonomic and compleconta information
-    try:
-        parentbin = Bin.objects.get(md5sum="${mdsum}")
-        parentbin.comple = float(cc[0])
-        parentbin.conta = float(cc[1])
-        parentbin.strainhet = float(cc[2])
-        parentbin.tax_id = tid
-        parentbin.save()
-
-    except ObjectDoesNotExist:
-        sys.exit("Bin not found.")
-
-    # check the balanced accuracy. other metrices would be very similar to evaluate, just change the part after the last dot
-    # the print statments includes a newline at the end, this is important for processing further downstream
-
-    print(PicaModelAccuracy.objects.get(model=PicaModel.objects.filter(model_name="${model.getBaseName()}").latest('model_train_date'),
-    comple=round_nearest(float(cc[0]),0.05),
-    conta=round_nearest(float(cc[1]),0.05)).mean_balanced_accuracy)
-
+    accuracy.py ${complecontaitem} ${mdsum} ${modelname}
     """
 }
+
+//make dataset to recalculate PRECALC genomes already in database
+process get_recalc_hashes {
+
+    scratch true
+
+    input:
+    val model from models.collect()
+    val params.modelfolder
+
+    output:
+    val "recalc_table.csv" into recalc_table
+    file("*.out") into recalc_hmmerfiles
+
+    when:
+    params.recalc
+
+    script:
+    """
+    make_recalc_output_table.py ${params.modelfolder}
+    """
+
+}
+
+recalc_table_collated = recalc_table.splitcsv().map{l -> [l[0], l[1], l[2], file(l[3]), l[4]]}
+pica_in = accuracyout.mix(recalc_table_collated).view()
 
 // call pica for every sample for every condition
 process pica {
@@ -587,7 +439,7 @@ process pica {
     memory = '800 MB'
 
     input:
-    set val(binname), val(mdsum), val(model), file(hmmeritem), val(accuracy) from accuracyout
+    set val(binname), val(mdsum), val(model), file(hmmeritem), val(accuracy) from pica_in
 
     output:
     set val(binname), val(mdsum), val(RULEBOOK), stdout, val(accuracy) into picaout_db_files
@@ -620,57 +472,9 @@ process write_pica_result_to_db {
     file(mdsum_file) into resfiles_after_db_write
 
     script:
-// language=Python
-"""
-#!/usr/bin/env python3
-
-import django
-import sys
-import os
-from django.core.exceptions import ObjectDoesNotExist
-from django.db import IntegrityError
-os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
-
-django.setup()
-from phenotypePredictionApp.models import Job, Bin, PicaModel, PicaResult
-
-# get Bin from db
-try:
-    parentbin = Bin.objects.get(md5sum="${mdsum_file.getBaseName()}")
-except ObjectDoesNotExist:
-    sys.exit("Bin not found.")
-
-conditions = []
-with open("${mdsum_file}", "r") as picaresults:
-    for line in picaresults:
-        conditions.append(line.split())
-
-modelresultlist=[]
-for result in conditions:  # result = [modelname, verdict, pica_p_val, balanced_accuracy]
-    try:
-        get_bool = {"YES": True, "NO": False, "N/A": None}
-        if result[2]=="NA" or result[2]=="N/A":
-            get_pica_pval=float(0)
-        else:
-            get_pica_pval=float(result[2])
-        boolean_verdict = get_bool[result[1]]
-        #get model from db
-        try:
-            this_model=PicaModel.objects.filter(model_name=result[0]).latest('model_train_date')
-        except ObjectDoesNotExist:
-            sys.exit("Current Model for this result not found.")
-
-        modelresult = PicaResult(verdict=boolean_verdict,
-                                   accuracy=float(result[3]),
-                                   pica_pval=get_pica_pval,
-                                   bin=parentbin,
-                                   model=this_model
-                                   )
-        modelresultlist.append(modelresult)
-    except (IntegrityError, ) as e:
-        sys.exit(e)
-PicaResult.objects.bulk_create(modelresultlist)
-"""
+    """
+    write_pica_result_to_db.py ${mdsum_file} ${mdsum_file.getBaseName()}
+    """
 }
 
 job_mdsums = resfiles_after_db_write.map { item -> item.getBaseName() }.mix(do_not_calc_model).unique().collect()
