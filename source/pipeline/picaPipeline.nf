@@ -411,7 +411,6 @@ process get_recalc_hashes {
     scratch true
 
     input:
-    val model from models.collect()
     val params.modelfolder
 
     output:
