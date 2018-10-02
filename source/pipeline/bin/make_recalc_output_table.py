@@ -36,7 +36,7 @@ for bin in precalc_bins:
         accuracy = PicaModelAccuracy.objects.get(model=PicaModel.objects.filter(model_name=model_name).latest('model_train_date'),
                                                 comple=round_nearest(float(bin.comple),0.05),
                                                 conta=round_nearest(float(bin.conta),0.05)).mean_balanced_accuracy
-        return_tuples.append((binname, md5sum, model, str(accuracy)))
+        return_tuples.append((binname, md5sum, model, hmmeritem, str(accuracy)))
 
 with open("recalc_table.csv", "w") as out_table:
     for t in return_tuples:
