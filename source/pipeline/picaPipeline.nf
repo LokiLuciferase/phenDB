@@ -425,9 +425,16 @@ process get_recalc_hashes {
 
 }
 
-//TODO: This does not yet work!
-recalc_table_collated = recalc_table.splitcsv(sep: "\t").map{l -> [l[0], l[1], file(l[2]), file(l[3]), l[4]]}
-pica_in = accuracyout.mix(recalc_table_collated).view()
+recalc_table_idents = recalc_table.splitcsv(sep: "\t").map{l -> [ binname: l[0],
+                                                                  mdsum: l[1],
+                                                                  model: file(l[2]),
+                                                                  hmmeritem: file(l[3]),
+                                                                  accuracy: l[4] ]}
+recalc_hmmerfiles_idents = recalc_hmmerfiles.map { x -> [hmmeritem: x] }
+recalc_table_collated = recalc_table_idents
+                        .cross(recalc_hmmerfiles_idents){ it -> it.hmmeritem }
+                        .map { l, m -> [l.binname, l.mdsum, l.model, m.hmmeritem, l.accuracy] }
+pica_in = accuracyout.mix(recalc_table_collated)
 
 // call pica for every sample for every condition
 process pica {
