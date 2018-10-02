@@ -431,9 +431,9 @@ recalc_table_idents = recalc_table.splitcsv(sep: "\t").map{l -> [ binname: l[0],
                                                                   hmmeritem: file(l[3]),
                                                                   accuracy: l[4] ]}
 recalc_hmmerfiles_idents = recalc_hmmerfiles.map { x -> [hmmeritem: x] }
-recalc_table_collated = recalc_table_idents
-                        .cross(recalc_hmmerfiles_idents){ it -> it.hmmeritem }
-                        .map { l, m -> [l.binname, l.mdsum, l.model, m.hmmeritem, l.accuracy] }
+recalc_table_collated = recalc_hmmerfiles_idents
+                        .cross(recalc_table_idents) { it -> it.hmmeritem.getBaseName() }
+                        .map { m, l  -> [l.binname, l.mdsum, l.model, m.hmmeritem, l.accuracy] }
 pica_in = accuracyout.mix(recalc_table_collated)
 
 // call pica for every sample for every condition
