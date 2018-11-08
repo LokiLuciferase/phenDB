@@ -193,4 +193,6 @@ def phenDB_recalc(ppath, pipeline_path, outfolder, batch_no, total_batch_no):
         pipeline_call = subprocess.Popen(arguments.split(), stdout=logfile, stderr=logfile)
         pipeline_call.wait()
         remove_temp_files()
+        if pipeline_call.returncode != 0:
+            raise RuntimeError("Recalculation run has failed.")
         return pipeline_call.returncode

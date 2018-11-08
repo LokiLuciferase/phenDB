@@ -435,7 +435,7 @@ recalc_table_collated = recalc_table.splitcsv(sep: "\t")
                     mdsum: l[1],
                     model: file(l[2]),
                     hmmeritem: file(l[3]),
-                    accuracy: l[4] ]}
+                    accuracy: l[4] + "\n" ]}  //same output as given by process accuracy
 
 pica_in = accuracyout.mix(recalc_table_collated)
 // call pica for every sample for every condition
