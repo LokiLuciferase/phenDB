@@ -415,8 +415,6 @@ process get_recalc_hashes {
 
     input:
     val params.modelfolder
-    val params.batch_no
-    val params.total_batch_no
 
     output:
     file("recalc_table.csv") into recalc_table

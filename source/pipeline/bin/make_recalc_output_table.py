@@ -22,8 +22,8 @@ return_tuples = []
 precalc_bins = list(Bin.objects.filter(bininjob__job__key__icontains="PHENDB_PRECALC"))
 precalc_bins = sorted(precalc_bins, key=lambda x: x.md5sum)
 model_names = [x["model_name"] for x in list(PicaModel.objects.values("model_name").distinct())]
-batch_number = sys.argv[2]
-total_batch_no = sys.argv[3]
+batch_number = int(sys.argv[2])
+total_batch_no = int(sys.argv[3])
 if batch_number >= 0:
     split_bins = np.array_split(precalc_bins, total_batch_no)
     precalc_bins = list(split_bins[batch_number])
