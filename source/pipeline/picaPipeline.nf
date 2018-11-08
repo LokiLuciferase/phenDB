@@ -10,6 +10,9 @@ if (params.recalc) {
     input_gzipfiles = Channel.empty()
     input_barezipfiles = Channel.empty()
     all_input_files = Channel.empty()
+    params.batch_no = -1
+    params.total_batch_no = -1
+    log.info"""Recalculating batch ${params.batch_no} of ${params.total_batch_no}.""".stripIndent()
 } else {
     jobname = file(params.inputfolder).getBaseName()
     input_gzipfiles = Channel.fromPath("${params.inputfolder}/*.{tar.gz,tgz}")
@@ -30,7 +33,6 @@ log.info"""
     Input folder containing bin files: $params.inputfolder
     Output directory: $outdir
     Job name: $jobname
-
     ##################################################################################
     """.stripIndent()
 
@@ -405,13 +407,15 @@ process accuracy {
     """
 }
 
-//make dataset to recalculate PRECALC genomes already in database
+//make dataset to recalculate PRECALC genomes already in database; calculate batchwise
 process get_recalc_hashes {
 
     scratch true
 
     input:
     val params.modelfolder
+    val params.batch_no
+    val params.total_batch_no
 
     output:
     file("recalc_table.csv") into recalc_table
@@ -422,15 +426,19 @@ process get_recalc_hashes {
 
     script:
     """
-    make_recalc_output_table.py ${params.modelfolder}
+    make_recalc_output_table.py ${params.modelfolder} ${params.batch_no} ${params.total_batch_no}
     """
 
 }
 
-//TODO: This does not yet work!
-recalc_table_collated = recalc_table.splitcsv().map{l -> [l[0], l[1], l[2], file(l[3]), l[4]]}
-pica_in = accuracyout.mix(recalc_table_collated).view()
+recalc_table_collated = recalc_table.splitcsv(sep: "\t")
+        .map{l -> [ binname: l[0],
+                    mdsum: l[1],
+                    model: file(l[2]),
+                    hmmeritem: file(l[3]),
+                    accuracy: l[4] ]}
 
+pica_in = accuracyout.mix(recalc_table_collated)
 // call pica for every sample for every condition
 process pica {
 

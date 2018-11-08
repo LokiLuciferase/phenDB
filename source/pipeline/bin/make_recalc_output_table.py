@@ -7,9 +7,9 @@ import os
 import math
 
 import django
+import numpy as np
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError
-
 
 def round_nearest(x, a):
     return round(round(x / a) * a, -int(math.floor(math.log10(a))))
@@ -20,7 +20,13 @@ from phenotypePredictionApp.models import Bin, BinInJob, Job, PicaModel, HmmerRe
 
 return_tuples = []
 precalc_bins = list(Bin.objects.filter(bininjob__job__key__icontains="PHENDB_PRECALC"))
+precalc_bins = sorted(precalc_bins, key=lambda x: x.md5sum)
 model_names = [x["model_name"] for x in list(PicaModel.objects.values("model_name").distinct())]
+batch_number = sys.argv[2]
+total_batch_no = sys.argv[3]
+if batch_number >= 0:
+    split_bins = np.array_split(precalc_bins, total_batch_no)
+    precalc_bins = list(split_bins[batch_number])
 
 for bin in precalc_bins:
     hmmerpath = "{md5sum}_RECALC.out".format(md5sum=bin.md5sum)

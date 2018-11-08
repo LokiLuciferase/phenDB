@@ -179,11 +179,16 @@ def phenDB_enqueue(ppath, pipeline_path, infolder, outfolder, node_offs):
         return pipeline_call.returncode
 
 # submit a PhenDB recalculation job to redis queue
-def phenDB_recalc(ppath, pipeline_path, outfolder):
+def phenDB_recalc(ppath, pipeline_path, outfolder, batch_no, total_batch_no):
     # set environmental variables
     os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
     os.environ["PYTHONPATH"] = str(ppath)
-    arguments = "nextflow {pp} --recalc --outdir {of} -profile standard".format(pp=pipeline_path, of=outfolder)
+    arguments = "nextflow {pp} " \
+                "--recalc " \
+                "--outdir {of} " \
+                "--batch_no {bn} " \
+                "--total_batch_no {mbn} " \
+                "-profile standard".format(pp=pipeline_path, of=outfolder, bn=batch_no, mbn=total_batch_no)
     with open(os.path.join(outfolder, "logs/nextflow.log"), "w") as logfile:
         pipeline_call = subprocess.Popen(arguments.split(), stdout=logfile, stderr=logfile)
         pipeline_call.wait()
