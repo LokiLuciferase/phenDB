@@ -42,7 +42,7 @@ args = parser.parse_args()
 
 Entrez.email = "lukas.lueftinger@univie.ac.at"
 REFSEQ_GENOMES_BACKUP_LOC = "/var/www/refseq_genomes_precalc"
-RECALC_MAX_BATCH_NO = 50
+RECALC_MAX_BATCH_NO = 100
 
 
 # download accession IDs, names, taxon IDs and FTP paths for refseq genomes submitted in the given time span

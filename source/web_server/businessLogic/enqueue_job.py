@@ -192,4 +192,5 @@ def phenDB_recalc(ppath, pipeline_path, outfolder, batch_no, total_batch_no):
     with open(os.path.join(outfolder, "logs/nextflow.log"), "w") as logfile:
         pipeline_call = subprocess.Popen(arguments.split(), stdout=logfile, stderr=logfile)
         pipeline_call.wait()
+        remove_temp_files()
         return pipeline_call.returncode
