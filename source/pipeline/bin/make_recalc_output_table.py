@@ -16,7 +16,7 @@ def round_nearest(x, a):
 
 os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
 django.setup()
-from phenotypePredictionApp.models import Bin, BinInJob, Job, PicaModel, HmmerResult, Enog, PicaModelAccuracy
+from phenotypePredictionApp.models import Bin, BinInJob, Job, PicaModel, HmmerResult, Enog, PicaModelAccuracy, PicaResult
 
 return_tuples = []
 precalc_bins = list(Bin.objects.filter(bininjob__job__key__icontains="PHENDB_PRECALC"))
@@ -35,13 +35,16 @@ for bin in precalc_bins:
     with open(hmmerpath, "w") as hmmerfile:
         hmmerfile.write(write_out)
     for model_name in model_names:
+        newest_model = PicaModel.objects.filter(model_name=model_name).latest('model_train_date')
+        if PicaResult.objects.filter(bin=bin, model=newest_model).exists(): # don't recalc if for same bin and same model results exist
+            continue
         binname = bin.md5sum
         md5sum = bin.md5sum
         model = "/".join([sys.argv[1], model_name])
         hmmeritem = os.path.abspath(hmmerpath)
-        accuracy = PicaModelAccuracy.objects.get(model=PicaModel.objects.filter(model_name=model_name).latest('model_train_date'),
-                                                comple=round_nearest(float(bin.comple),0.05),
-                                                conta=round_nearest(float(bin.conta),0.05)).mean_balanced_accuracy
+        accuracy = PicaModelAccuracy.objects.get(model=newest_model,
+                                                 comple=round_nearest(float(bin.comple),0.05),
+                                                 conta=round_nearest(float(bin.conta),0.05)).mean_balanced_accuracy
         return_tuples.append((binname, md5sum, model, hmmeritem, str(accuracy)))
 
 with open("recalc_table.csv", "w") as out_table:
