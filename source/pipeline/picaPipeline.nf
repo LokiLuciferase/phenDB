@@ -33,6 +33,7 @@ log.info"""
     Input folder containing bin files: $params.inputfolder
     Output directory: $outdir
     Job name: $jobname
+
     ##################################################################################
     """.stripIndent()
 
