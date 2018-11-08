@@ -52,10 +52,10 @@ for result in conditions:  # result = [modelname, verdict, pica_p_val, balanced_
         sys.exit(e)
 try:
     PicaResult.objects.bulk_create(modelresultlist)
+# TODO: inconsistency of pica pval despite same model version??
 except IntegrityError:
     for result in modelresultlist:
-        PicaResult.objects.get_or_create(verdict=result.verdict,
-                                         accuracy=result.accuracy,
-                                         pica_pval=result.pica_pval,
-                                         bin=result.bin,
-                                         model=result.model)
+        if not PicaResult.objects.filter(bin=result.bin,
+                                         model=result.model).exists():
+            result.save()
+            print(result)
