@@ -42,7 +42,7 @@ class MailNotification(threading.Thread):
         ps.stdin.write(message.message().as_bytes())
         (stdout, stderr) = ps.communicate()
 
-        with open("/apps/phenDB_devel_LL/logs/logmail.txt", "w") as file_log:
+        with open("/apps/phenDB/logs/logmail.txt", "w") as file_log:
             file_log.write("stdout: ")
             file_log.write(stdout)
             file_log.write("stderr: ")
