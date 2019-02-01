@@ -181,8 +181,8 @@ def rerun_known_genomes(ppath, outfolder):
 
         if pipeline_call.result is 0:
             print("Batch {i}: Recalculation was successful.".format(i=batch_no))
-        print("All recalculations successful.")
-        return True
+    print("All recalculations successful.")
+    return True
 
 
 # submit a PhenDB job to redis queue, with job ID "PHENDB_PRECALC", sleep until finished, return True if success
