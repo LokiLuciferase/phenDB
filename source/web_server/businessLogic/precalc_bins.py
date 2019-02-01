@@ -20,7 +20,7 @@ from rq import Queue
 from phenotypePredictionApp.variables import PHENDB_BASEDIR, PHENDB_QUEUE, PHENDB_DEBUG
 from enqueue_job import phenDB_enqueue, phenDB_recalc
 
-ppath = "apps/phenDB/source/web_server"
+ppath = "/apps/phenDB/source/web_server"
 os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
 sys.path.append(ppath)
 django.setup()
@@ -166,21 +166,21 @@ def load_unadded_genome_ids(savepath):
 
 # Re-add genomes from local cache to phenDB to make predictions on new picamodels
 def rerun_known_genomes(ppath, outfolder):
-        for batch_no in range(RECALC_MAX_BATCH_NO):
-            print("Batch {i}: Starting...".format(i=batch_no))
-            check_add_precalc_job()
-            pipeline_path = os.path.join(PHENDB_BASEDIR, "source/pipeline/picaPipeline.nf")
-            q = Queue(PHENDB_QUEUE, connection=Redis())
-            pipeline_call = q.enqueue_call(func=phenDB_recalc,
-                                           args=(ppath, pipeline_path, outfolder, batch_no, RECALC_MAX_BATCH_NO),
-                                           timeout='72h',
-                                           ttl='72h',
-                                           )
-            while pipeline_call.result is None:
-                sleep(30)
+    for batch_no in range(RECALC_MAX_BATCH_NO):
+        print("Batch {i}: Starting...".format(i=batch_no))
+        check_add_precalc_job()
+        pipeline_path = os.path.join(PHENDB_BASEDIR, "source/pipeline/picaPipeline.nf")
+        q = Queue(PHENDB_QUEUE, connection=Redis())
+        pipeline_call = q.enqueue_call(func=phenDB_recalc,
+                                       args=(ppath, pipeline_path, outfolder, batch_no, RECALC_MAX_BATCH_NO),
+                                       timeout='72h',
+                                       ttl='72h',
+                                       )
+        while pipeline_call.result is None:
+            sleep(30)
 
-            if pipeline_call.result is 0:
-                print("Batch {i}: Recalculation was successful.".format(i=batch_no))
+        if pipeline_call.result is 0:
+            print("Batch {i}: Recalculation was successful.".format(i=batch_no))
         print("All recalculations successful.")
         return True
 
