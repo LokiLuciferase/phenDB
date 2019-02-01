@@ -121,14 +121,16 @@ def download_genomes(los, path):
 
 # check if a job with id "PHENDB_PRECALC" exists in the DB; if not, create it (required for phenDB pipeline)
 def check_add_precalc_job(jobname="PHENDB_PRECALC"):
+    print("Checking if PHENDB_PRECALC job exists in database...")
     try:
         pc_job = Job.objects.get(key=jobname)
         pc_job.job_date = datetime.now()
         pc_job.save()
+        print("PHENDB_PRECALC job date updated.")
     except:
         new_precalc_job = Job(key=jobname)
         new_precalc_job.save()
-
+        print("PHENDB_PRECALC job created.")
 
 # attempt to add scientific names, taxids and accession ids to bins with the given name in the DB. Using Taxon table
 def add_taxids_to_precalc_bins(los):
@@ -165,6 +167,7 @@ def load_unadded_genome_ids(savepath):
 # Re-add genomes from local cache to phenDB to make predictions on new picamodels
 def rerun_known_genomes(ppath, outfolder):
         for batch_no in range(RECALC_MAX_BATCH_NO):
+            print("Batch {i}: Starting...".format(i=batch_no))
             check_add_precalc_job()
             pipeline_path = os.path.join(PHENDB_BASEDIR, "source/pipeline/picaPipeline.nf")
             q = Queue(PHENDB_QUEUE, connection=Redis())
