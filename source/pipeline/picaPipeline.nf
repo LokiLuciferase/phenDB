@@ -411,8 +411,6 @@ process accuracy {
 //make dataset to recalculate PRECALC genomes already in database; calculate batchwise
 process get_recalc_hashes {
 
-    scratch true
-
     input:
     val params.modelfolder
 
@@ -442,7 +440,6 @@ pica_in = accuracyout.mix(recalc_table_collated)
 process pica {
 
     tag { "${binname}_${model.getBaseName()}" }
-    scratch true
     memory = '800 MB'
 
     input:
