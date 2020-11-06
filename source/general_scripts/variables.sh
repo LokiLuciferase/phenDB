@@ -8,3 +8,5 @@ export PHENDB_DEBUG=True
 
 export PYTHONPATH="${BASEDIR}/source/web_server:$PYTHONPATH"
 export DJANGO_SETTINGS_MODULE="phenotypePrediction.settings"
+
+mkdir -p "$BASEDIR/logs"
