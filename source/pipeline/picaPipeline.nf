@@ -328,7 +328,7 @@ process compleconta {
 
     script:
     """
-    compleconta_taxonomy.py $prodigalitem $hmmeritem | tail -1 > complecontaitem.txt
+    compleconta_py3.py $prodigalitem $hmmeritem | tail -1 > complecontaitem.txt
     """
 }
 
