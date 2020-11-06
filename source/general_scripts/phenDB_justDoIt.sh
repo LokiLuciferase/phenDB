@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-source "/apps/phenDB/source/general_scripts/variables.sh"
 
 function usage()
 {

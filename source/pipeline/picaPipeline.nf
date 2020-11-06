@@ -436,6 +436,7 @@ recalc_table_collated = recalc_table.splitcsv(sep: "\t")
                     accuracy: l[4] + "\n" ]}  //same output as given by process accuracy
 
 pica_in = accuracyout.mix(recalc_table_collated)
+
 // call pica for every sample for every condition
 process pica {
 

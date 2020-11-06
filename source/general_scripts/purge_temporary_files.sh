@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-set -e
-source "/apps/phenDB/source/general_scripts/variables.sh"
+set -euo pipefail
 
 cd ${BASEDIR}/logs
 

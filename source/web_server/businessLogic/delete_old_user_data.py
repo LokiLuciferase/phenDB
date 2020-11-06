@@ -9,9 +9,10 @@ from redis import Redis
 from rq import Queue
 
 os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
-sys.path.append("/apps/phenDB/source/web_server")
+PHENDB_BASEDIR = os.environ['BASEDIR']
+sys.path.append(f"{PHENDB_BASEDIR}/source/web_server")
 
-from phenotypePredictionApp.variables import PHENDB_QUEUE, PHENDB_BASEDIR
+from phenotypePredictionApp.variables import PHENDB_QUEUE
 from enqueue_job import delete_user_data
 
 # enqueue a call to delete_user_data() into the redis queue

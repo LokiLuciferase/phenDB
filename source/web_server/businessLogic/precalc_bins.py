@@ -20,9 +20,9 @@ from rq import Queue
 from phenotypePredictionApp.variables import PHENDB_BASEDIR, PHENDB_QUEUE, PHENDB_DEBUG
 from enqueue_job import phenDB_enqueue, phenDB_recalc
 
-ppath = "/apps/phenDB/source/web_server"
+PHENDB_BASEDIR = os.environ['BASEDIR']
+sys.path.append(f"{PHENDB_BASEDIR}/source/web_server")
 os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
-sys.path.append(ppath)
 django.setup()
 from phenotypePredictionApp.models import Bin, Job, BinInJob, Taxon
 

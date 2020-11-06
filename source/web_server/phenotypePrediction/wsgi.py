@@ -12,7 +12,8 @@ import sys
 
 from django.core.wsgi import get_wsgi_application
 
-sys.path.append("/apps/phenDB/source/web_server")
+PHENDB_BASEDIR = os.environ['BASEDIR']
+sys.path.append(f"{PHENDB_BASEDIR}/source/web_server")
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "phenotypePrediction.settings")
 
 application = get_wsgi_application()
