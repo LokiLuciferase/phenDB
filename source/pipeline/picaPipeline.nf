@@ -451,12 +451,13 @@ process pica {
 
     script:
     RULEBOOK = model.getBaseName()
-    TEST_MODEL = "$model/${RULEBOOK}.rules"
+    TEST_MODEL = "$model/${RULEBOOK}.class"
 
     """
-    echo -ne "${binname}\t" > tempfile.tmp
-    cut -f2 $hmmeritem | tr "\n" "\t" >> tempfile.tmp
-    python2 \$(which test.py) -m $TEST_MODEL -t $RULEBOOK -s tempfile.tmp > picaout.result
+    echo "#feature_type:eggNOG5-tax-2" > tempfile.tmp
+    echo -ne "${binname}\t" >> tempfile.tmp
+    cut -f2 $hmmeritem | tr "\\n" "\\t" >> tempfile.tmp
+    phenotrex predict --genotype tempfile.tmp --classifier $TEST_MODEL > picaout.result
     echo -n \$(cat picaout.result | tail -n1 | cut -f2,3)
     """
 }
