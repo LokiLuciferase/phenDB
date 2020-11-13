@@ -173,8 +173,8 @@ class PicaModelAccuracy(models.Model):
     comple = models.FloatField()
     conta = models.FloatField()
     mean_balanced_accuracy  = models.FloatField()
-    mean_fp_rate = models.FloatField()
-    mean_fn_rate = models.FloatField()
+    mean_fp_rate = models.FloatField(null=True)
+    mean_fn_rate = models.FloatField(null=True)
 
     def __str__(self):
         return "Name: {mid}\t type= {type} \t Completeness: {comple} \t " \
@@ -195,7 +195,7 @@ class PicaModelTrainingData(models.Model):
 
     model = models.ForeignKey(PicaModel, on_delete=models.CASCADE)
     tax_id = models.CharField(max_length=10)
-    assembly_id = models.CharField(max_length=20)
+    assembly_id = models.CharField(max_length=64)
     verdict = models.NullBooleanField()
 
     def __str__(self):

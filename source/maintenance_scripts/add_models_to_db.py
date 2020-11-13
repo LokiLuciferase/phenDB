@@ -1,19 +1,17 @@
 #!/usr/bin/env python3
 from typing import Union, Optional, Tuple
 from pathlib import Path
-import os
-import sys
-import timeit
 import json
 
 import click
 import django
-from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 
 
 django.setup()
-from phenotypePredictionApp.models import Enog, PicaModel, EnogRank, PicaModelAccuracy, PicaModelTrainingData
+from phenotypePredictionApp.models import (
+    Enog, PicaModel, EnogRank, PicaModelAccuracy, PicaModelTrainingData
+)
 
 DB_ENOGS = {v.enog_name: v for k, v in Enog.objects.in_bulk().items()}
 
@@ -50,6 +48,12 @@ def load_model(d: Union[str, Path]) -> Optional[Tuple]:
         type=model_type,
         model_train_date=timezone.now()
     )
+    try:
+        newmodel.save()
+    except Exception as e:
+        print(f'Error during model saving: {e}')
+        raise e
+
 
     with open(d/f'{d.name}.rank') as fin:
         fin.readline()
@@ -63,6 +67,12 @@ def load_model(d: Union[str, Path]) -> Optional[Tuple]:
             pred_class=(False if float(y) <= -1 else True))
         for i, (_, x, y) in enumerate(wts)
     ]
+    try:
+        EnogRank.objects.bulk_create(enog_rank_list)
+    except Exception as e:
+        print(f'Error during EnogRank data saving: {e}')
+        newmodel.delete()
+        raise e
 
     with open(d/f'{d.name}.accuracy.json') as fin:
         accs = json.load(fin)
@@ -78,6 +88,12 @@ def load_model(d: Union[str, Path]) -> Optional[Tuple]:
         )
         for i in range(21 * 21)
     ]
+    try:
+        PicaModelAccuracy.objects.bulk_create(acc_list)
+    except Exception as e:
+        print(f'Error during PicaModelAccuracy saving: {e}')
+        newmodel.delete()
+        raise e
 
     train_list = [
         PicaModelTrainingData(
@@ -88,44 +104,35 @@ def load_model(d: Union[str, Path]) -> Optional[Tuple]:
         )
         for x, y in train_data
     ]
-    return newmodel, train_list, enog_rank_list, acc_list
-
-
-def upload_model(model, training_data, enog_rank_data, acc_data) -> bool:
     try:
-        model.save()
+        PicaModelTrainingData.objects.bulk_create(train_list)
     except Exception as e:
-        print(f'Error during model saving: {e}')
-        return False
+        print(f'Error during PicaModelTrainingData saving: {e}')
+        newmodel.delete()
 
-    for table, data, desc in zip(
-        (PicaModelTrainingData, PicaModelAccuracy, EnogRank),
-        (training_data, acc_data, enog_rank_data),
-        ('training', 'accuracy', 'ENOG rank')
-    ):
-        try:
-            table.objects.bulk_create(data)
-        except Exception as e:
-            print(f'Error during {desc} data saving: {e}')
-            model.delete()
-            return False
-    return True
+    return newmodel, train_list, enog_rank_list, acc_list
 
 
 @click.command()
 @click.argument('model_dir', type=click.Path(file_okay=False, exists=True))
-def main(model_dir: Union[str, Path]):
+@click.option('--drop', is_flag=True)
+def main(model_dir: Union[str, Path], drop):
+    if drop:
+        print('Deleting all existing models from DB and assorted data.')
+        PicaModel.objects.all().delete()
+
     results = []
     for model in Path(str(model_dir)).iterdir():
         if model.is_file():
             continue
         try:
-            td = load_model(model)
+            print(f'Attempting to upload model {model}...')
+            load_model(model)
         except Exception as e:
             print(f'Error during Model data loading: {e}')
             results.append((model, False))
             continue
-        results.append(model, upload_model(*td))
+        results.append((model, True))
     for m, r in results:
         if not r:
             print(f'Upload failed for model {m}.')

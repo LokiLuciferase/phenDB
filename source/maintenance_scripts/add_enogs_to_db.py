@@ -1,19 +1,16 @@
-from typing import Union, Tuple, List
-from pathlib import Path
-
 import click
-import os
 import django
-from django.utils import timezone
 import gzip
-import sys
 
 django.setup()
 from phenotypePredictionApp.models import Enog
 
 @click.command()
 @click.argument('f', type=click.Path(dir_okay=False, exists=True))
-def add_enogs_to_db(f):
+@click.option('--drop', is_flag=True)
+def add_enogs_to_db(f, drop):
+    if drop:
+        Enog.objects.all().delete()
     enogs = []
     with gzip.open(f, mode='rt') as fin:
         for i, line in enumerate(fin.readlines()):

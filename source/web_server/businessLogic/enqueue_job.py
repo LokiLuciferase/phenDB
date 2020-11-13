@@ -9,7 +9,7 @@ import subprocess
 from phenotypePredictionApp.variables import PHENDB_BASEDIR, PHENDB_QUEUE, PHENDB_DEBUG
 
 
-TAXONOMY_NAMES_FILE = "/var/www/krona_taxonomy/taxonomy.tab"  # using kronatools taxonomy names, easily updatable
+TAXONOMY_NAMES_FILE = "/apps/miniconda3/opt/krona/taxonomy/taxonomy.tab"  # using kronatools taxonomy names, easily updatable
 
 
 # update kronatools taxonomy file via subprocess, then use updated file to rebuild Taxon table in PhenDB DB.
@@ -21,7 +21,8 @@ def update_taxonomy(ppath):
     from phenotypePredictionApp.models import Taxon
 
     print("Updating KronaTools Taxonomy DB using updateTaxonomy.sh...")
-    update_call = subprocess.run("/apps/KronaTools/updateTaxonomy.sh", check=True)
+    # TODO: fix hardcoded path
+    update_call = subprocess.run("ktUpdateTaxonomy.sh", check=True)
     if not update_call.returncode == 0:
         raise RuntimeError("Updating of taxonomy.tab exited with error code. Aborting.")
     print("Done.")
