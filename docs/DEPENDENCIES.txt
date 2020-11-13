@@ -1,23 +1,4 @@
-python3
-python2, and installed pip (using get-pip.py) and numpy, biopython
-python-devel (installed via yum)
-django.ipware (external dependancy -> not included in django)
-nextflow (requires java8), installed as suggested on the nextflow homepage
-django (requires python), installed via pip (pip for python3)
-prodigal (installed from source/github)
+miniconda3 (python3.7+)
 hmmer (installed newest binaries from website)
-PICA (installed from source/github)
-Biopython (installed via pip and pip3)
-singularity (installed from source/github)
-compleconta (installed from source/github(phyden/compleconta))
-httpd-devel (installed via yum)
-mod_wsgi (installed from source/github, configured --with-python=/usr/bin/python3)
-gunicorn (installed via pip3)
-MySQL-python (installed via yum)
-mariadb-devel (installed via yum)
-mysqlclient (installed via pip3)
-pymysql (installed via pip3)
-graphviz (installed via yum)
-redis (downloaded and installed from website)
-redis-python and rq (installed via pip3)
-kronatools (installed from source/github)
+httpd-dev
+mariadb-server

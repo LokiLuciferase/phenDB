@@ -17,16 +17,11 @@ function usage()
 
 function purge() {
     echo "Purging samples from database ${DB}..."
-    echo "Warning! This will also delete precalculated refseq genomes!"
     read -p "Continue (Y/N)? " do_continue
     if ! [[ ${do_continue} = "Y" ]]; then
         exit 0
     fi
-    mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_bininjob;"
-    mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_hmmerresult;"
-    mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_picaresult;"
-    mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_bin;"
-    mysql -u root -e "use ${DB}; delete from phenotypePredictionApp_job;"
+    python3 ${BASEDIR}/source/maintenance_scripts/purge_user_data.py
 }
 
 function start_queue() {
@@ -53,7 +48,22 @@ function start_queue() {
     nohup rq worker \
     --path ${BASEDIR}/source/web_server \
     --path ${BASEDIR}/source/web_server/businessLogic \
-    --name phenDB phenDB &>> rq_worker.log &
+    --name ${PHENDB_QUEUE} ${PHENDB_QUEUE} &>> rq_worker.log &
+}
+
+
+function start_debug_server() {
+  echo "Starting debug http server..."
+  mkdir -p ${BASEDIR}/logs
+  cd ${BASEDIR}/logs
+
+  if [[ $(ps aux | grep "[r]unserver") != "" ]]; then
+      echo "An instance of the Django development server is already running."
+      exit 1
+  fi
+
+  nohup python3 ${BASEDIR}/source/web_server/manage.py runserver localhost:8999 &> debug_server.log &
+
 }
 
 function monitor_queue() {
@@ -75,6 +85,7 @@ function stop() {
         sleep 3
     done
     kill $(pgrep redis-server)
+    kill $(pgrep -f "manage.py runserver") || true
 }
 
 # Start redis queue and RQ worker if not yet running.
@@ -88,6 +99,7 @@ function start() {
     start_queue
     exit 0
 }
+
 
 if [[ $# -eq 0 ]]; then
     usage
@@ -106,6 +118,9 @@ while [ "$1" != "" ]; do
             ;;
         --start-queue)
             start_queue
+            ;;
+        --start-debug-server)
+            start_debug_server
             ;;
         --monitor-queue)
             monitor_queue

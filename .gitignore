@@ -109,4 +109,5 @@ ENV/
 /source/web_server/web_server.iml
 /source/web_server/phenotypePredictionApp/phenDB.sqlite3
 settings.py
+secrets.sh
 /.idea/
