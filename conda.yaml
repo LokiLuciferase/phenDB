@@ -4,22 +4,30 @@ channels:
   - defaults
 dependencies:
   - _libgcc_mutex=0.1=main
-  - ca-certificates=2020.6.20=hecda079_0
-  - certifi=2020.6.20=py38h924ce5b_2
+  - ca-certificates=2020.10.14=0
+  - certifi=2020.6.20=pyhd3eb1b0_3
   - cffi=1.14.0=py38he30daa8_1
   - chardet=3.0.4=py38_1003
   - conda=4.9.1=py38h06a4308_0
   - conda-package-handling=1.6.1=py38h7b6447c_0
+  - coreutils=8.25=1
   - cryptography=2.9.2=py38h1ba5d50_0
+  - curl=7.69.1=hbc83047_0
   - idna=2.9=py_1
+  - krb5=1.17.1=h173b8e3_0
   - krona=2.7.1=pl526_1
   - ld_impl_linux-64=2.33.1=h53a641e_7
+  - libcurl=7.69.1=h20c2e04_0
   - libedit=3.1.20181209=hc058e9b_0
   - libffi=3.3=he6710b0_1
+  - libgcc=7.2.0=h69d50b8_2
   - libgcc-ng=9.1.0=hdf63c60_0
+  - libssh2=1.9.0=h1ba5d50_1
   - libstdcxx-ng=9.1.0=hdf63c60_0
   - muscle=3.8.1551=hc9558a2_5
   - ncurses=6.2=he6710b0_1
+  - nextflow=20.04.1=hecc5488_0
+  - openjdk=8.0.152=h7b6447c_3
   - openssl=1.1.1h=h516909a_0
   - perl=5.26.2=h14c3975_0
   - pip=20.0.2=py38_3
@@ -52,6 +60,7 @@ dependencies:
     - click==7.1.2
     - codecov==2.1.10
     - colorama==0.4.4
+    - configparser==5.0.1
     - coverage==5.3
     - cycler==0.10.0
     - dataclasses==0.6
@@ -78,7 +87,7 @@ dependencies:
     - matplotlib==3.3.2
     - mccabe==0.6.1
     - mod-wsgi==4.7.1
-    - mysqlclient==2.0.1
+    - mysqlclient==1.4.6
     - numba==0.51.2
     - numpy==1.19.4
     - packaging==20.4
