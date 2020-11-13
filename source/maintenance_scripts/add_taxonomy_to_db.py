@@ -62,10 +62,8 @@ def update_taxonomy(taxonomy_dir, drop):
         sys.stdout.flush()
         subset = taxonomy_entries[-10000:]
         taxonomy_entries = taxonomy_entries[:-10000]
-        for e in subset:
-            pk = e[0]
-            dflt = {"taxon_rank": e[1], "taxon_name": e[2]}
-            Taxon.objects.update_or_create(tax_id=pk, defaults=dflt)
+        taxa_subset = [Taxon(tax_id=e[0], taxon_rank=e[1], taxon_name=e[2]) for e in subset]
+        Taxon.objects.bulk_create(taxa_subset)
     print("Finished updating Taxonomy Table.")
 
 
