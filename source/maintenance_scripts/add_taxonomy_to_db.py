@@ -45,7 +45,7 @@ def update_taxonomy(taxonomy_dir, drop):
             tax_id, other, parent, rank, namestring = line.strip().split("\t")
             new_taxon_tup = (tax_id, rank, namestring)
             taxonomy_entries.append(new_taxon_tup)
-    print("Done.")
+    print("\nDone.")
 
     if len(taxonomy_entries) < 1700000:
         raise RuntimeError("Something went wrong during database read-in. Aborting.")
