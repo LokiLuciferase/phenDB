@@ -1,0 +1,3 @@
+[submodule "deps/compleconta"]
+	path = deps/compleconta
+	url = https://github.com/phyden/compleconta.git
