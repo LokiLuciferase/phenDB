@@ -54,9 +54,17 @@ def update_taxonomy(taxonomy_dir, drop):
     if drop:
         print('Truncating taxonomy DB.')
         Taxon.objects.all().delete()
+
     print("Updating taxonomy DB...")
-    taxa = [Taxon(tax_id=e[0], taxon_rank=e[1], taxon_name=e[2]) for e in taxonomy_entries]
-    Taxon.objects.bulk_create(taxa)
+    while len(taxonomy_entries) > 0:
+        sys.stdout.write("{n}          entries left to add.\r".format(n=len(taxonomy_entries)))
+        sys.stdout.flush()
+        subset = taxonomy_entries[-10000:]
+        taxonomy_entries = taxonomy_entries[:-10000]
+        for e in subset:
+            pk = e[0]
+            dflt = {"taxon_rank": e[1], "taxon_name": e[2]}
+            Taxon.objects.update_or_create(tax_id=pk, defaults=dflt)
     print("Finished updating Taxonomy Table.")
 
 
