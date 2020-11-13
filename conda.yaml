@@ -31,6 +31,7 @@ dependencies:
   - openssl=1.1.1h=h516909a_0
   - perl=5.26.2=h14c3975_0
   - pip=20.0.2=py38_3
+  - prodigal=2.6.3=h516909a_2
   - pycosat=0.6.3=py38h7b6447c_1
   - pycparser=2.20=py_0
   - pyopenssl=19.1.0=py38_0
