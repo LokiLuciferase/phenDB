@@ -38,8 +38,9 @@ def update_taxonomy(taxonomy_dir, drop):
     taxonomy_entries = []
     counter = 0
     with open(taxonomy_file, "r") as taxfile:
-        for line in taxfile:
-            sys.stdout.write("Reading line {i}               \r".format(i=counter))
+        for i, line in enumerate(taxfile):
+            if i % 1000 == 0:
+                sys.stdout.write("Reading line {i}               \r".format(i=counter))
             sys.stdout.flush()
             counter += 1
             tax_id, other, parent, rank, namestring = line.strip().split("\t")
