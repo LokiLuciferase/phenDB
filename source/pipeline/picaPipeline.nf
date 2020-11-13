@@ -252,7 +252,7 @@ accuracy_in_from_old_model = calc_model.filter{ it[3] == "YES" }.map{ l -> [l[0]
 process hmmer {
 
     tag { binname }
-    maxForks 1  //do not parallelize!
+    maxForks { params.annotation_strategy == 'hmmer' ? 1 : 4 }  //do not parallelize!
     time 10.m
 
     input:
@@ -276,7 +276,7 @@ process hmmer {
     """
     } else {
     """
-    deepnog infer -of tsv ${item} | sed 1d | awk '\$2!=""' | tr '\\t' ' ' > hmmer.out
+    deepnog infer -of tsv ${item} | sed 1d | awk '\$2!=""' > hmmer.out
     """
     }
 
@@ -287,6 +287,7 @@ process hmmer {
 process update_job_completeness {
 
     tag { jobname }
+    maxForks 1
 
     input:
     set val(binname), val(mdsum), file(hmmeritem), file(prodigalitem) from hmmerout
