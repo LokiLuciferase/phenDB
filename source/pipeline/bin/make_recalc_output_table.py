@@ -47,6 +47,9 @@ for bin in precalc_bins:
                                                  conta=round_nearest(float(bin.conta),0.05)).mean_balanced_accuracy
         return_tuples.append((binname, md5sum, model, hmmeritem, str(accuracy)))
 
+if not return_tuples:
+    return_tuples.append(("dummy_bin", "dummy_md5sum", "dummy_model", "dummy_hmmer", "dummy_acc"))
+
 with open("recalc_table.csv", "w") as out_table:
     for t in return_tuples:
         out_table.write("\t".join(t))

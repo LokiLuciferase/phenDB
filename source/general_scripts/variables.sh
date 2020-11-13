@@ -6,6 +6,7 @@ export PHENDB_MODEL_DIR='/apps/phenotrex/models/models_live'
 export DB='phenDB_devel_LL'
 export PHENDB_DB_NAME='phenDB_devel_LL'
 export PHENDB_DB_USERNAME='devel_LL'
+export PHENDB_ANNOTATION_STRATEGY='hmmer'
 export PHENDB_DEBUG=True
 
 export PYTHONPATH="${BASEDIR}/source/web_server:$PYTHONPATH"

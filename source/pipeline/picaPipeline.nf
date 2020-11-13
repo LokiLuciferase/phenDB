@@ -262,6 +262,7 @@ process hmmer {
     set val(binname), val(mdsum), file("hmmer.out"), file(item) into hmmerout
 
     script:
+    if (params.annotation_strategy == 'hmmer'){
     """
     DISABLED=\$(echo ${params.omit_nodes} | sed -e 's/\\([^ ]\\+\\)/-e &/g')
     if [[ -n "\$DISABLED" ]] ; then
@@ -271,8 +272,15 @@ process hmmer {
     fi
     echo \$HMM_DAEMONCLIENTS
 
-    hmmc.py -i ${item} -d $hmmdb -s \$HMM_DAEMONCLIENTS -n 100 -q 5 -m 1 -f 120 -o hmmer.out 
+    hmmc.py -i ${item} -d $hmmdb -s \$HMM_DAEMONCLIENTS -n 100 -q 5 -m 1 -f 120 -o hmmer.out
     """
+    } else {
+    """
+    deepnog infer -of tsv ${item} | sed 1d | awk '\$2!=""' | tr '\\t' ' ' > hmmer.out
+    """
+    }
+
+
 }
 
 //increase completed job count after each hmmer job completion
@@ -328,6 +336,7 @@ process compleconta {
 
     script:
     """
+    set -euo pipefail
     compleconta_py3.py $prodigalitem $hmmeritem | tail -1 > complecontaitem.txt
     """
 }
@@ -427,13 +436,20 @@ process get_recalc_hashes {
     """
 
 }
-
-recalc_table_collated = recalc_table.splitcsv(sep: "\t")
+recalc_table_collated = recalc_table.splitCsv(sep: "\t")
         .map{l -> [ binname: l[0],
                     mdsum: l[1],
                     model: file(l[2]),
                     hmmeritem: file(l[3]),
                     accuracy: l[4] + "\n" ]}  //same output as given by process accuracy
+//recalc_table_collated = recalc_table.splitCsv(sep: "\t")
+//        .map{l ->
+//        if (l[0] != "dummy_bin"){
+//            return [ binname: l[0], mdsum: l[1], model: file(l[2]), hmmeritem: file(l[3]), accuracy: l[4] + "\n" ]
+//        } else {
+//            return
+//        }
+//        }  //same output as given by process accuracy
 
 pica_in = accuracyout.mix(recalc_table_collated)
 

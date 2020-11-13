@@ -118,7 +118,7 @@ def load_model(d: Union[str, Path]) -> Optional[Tuple]:
 @click.option('--drop', is_flag=True)
 def main(model_dir: Union[str, Path], drop):
     if drop:
-        print('Deleting all existing models from DB and assorted data.')
+        print('Deleting all existing models and assorted data from DB .')
         PicaModel.objects.all().delete()
 
     results = []
