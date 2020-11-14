@@ -14,8 +14,9 @@ ADD . /apps/phenDB
 WORKDIR /apps/phenDB
 
 RUN apt-get update --fix-missing \
-    && apt-get install -y apache2 apache2-dev mariadb-server libmariadbclient-dev
+    && apt-get install -y apache2 apache2-dev mariadb-server libmariadbclient-dev git hmmer
 RUN conda env update -n base -f conda.yaml && conda clean -a -y
+RUN git clone https://github.com/univieCUBE/phenotrex.git ../phenotrex && pip install ../phenotrex
 RUN service start mysql
 RUN mysql < devel_scripts/set_up_dev.sql
 RUN source source/maintenance_scripts/variables.sh

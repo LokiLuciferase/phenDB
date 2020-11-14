@@ -110,7 +110,6 @@ dependencies:
     - packaging==20.4
     - pandas==1.1.4
     - pathtools==0.1.2
-    - phenotrex==0.5.0
     - pillow==8.0.1
     - pkginfo==1.6.1
     - pluggy==0.13.1

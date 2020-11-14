@@ -1,4 +1,0 @@
-miniconda3 (python3.7+)
-hmmer (installed newest binaries from website)
-httpd-dev
-mariadb-server

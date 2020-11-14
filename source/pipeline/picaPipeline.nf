@@ -252,7 +252,7 @@ accuracy_in_from_old_model = calc_model.filter{ it[3] == "YES" }.map{ l -> [l[0]
 process hmmer {
 
     tag { binname }
-    maxForks { params.annotation_strategy == 'hmmer' ? 1 : 4 }  //do not parallelize!
+    maxForks 1
     time 10.m
 
     input:
