@@ -248,6 +248,7 @@ process determine_models_that_need_recalculation {
 // this just reformats the input and just calls accuracy if the value is YES
 accuracy_in_from_old_model = calc_model.filter{ it[3] == "YES" }.map{ l -> [l[0], l[1], l[2], l[4], l[5]] }
 
+
 // call hmmer daemon for all bins for which prodigal was run (i.e. bins that have not yet been in the db)
 process hmmer {
 
@@ -276,12 +277,11 @@ process hmmer {
     """
     } else {
     """
-    deepnog infer -of tsv ${item} | sed 1d | awk '\$2!=""' > hmmer.out
+    deepnog infer -bs 1 -nw -1 -of tsv ${item} | sed 1d | awk '\$2!=""' > hmmer.out
     """
     }
-
-
 }
+
 
 //increase completed job count after each hmmer job completion
 process update_job_completeness {
@@ -324,6 +324,7 @@ except ObjectDoesNotExist:
 """
 }
 
+
 // compute contamination and completeness using compleconta, and taxonomy
 process compleconta {
 
@@ -341,6 +342,7 @@ process compleconta {
     compleconta_py3.py $prodigalitem $hmmeritem | tail -1 > complecontaitem.txt
     """
 }
+
 
 // write output of compleconta to database for each bin
 process write_hmmer_results_to_db {
@@ -392,6 +394,7 @@ with open("${hmmeritem}", "r") as enogresfile:
         print("Could not add enogs of bin ${binname} to the db.")
 """
 }
+
 
 // instantiates an item for each compleconta output item and each model,
 accuracy_in = cc_for_accuracy
@@ -458,7 +461,7 @@ pica_in = accuracyout.mix(recalc_table_collated)
 process pica {
 
     tag { "${binname}_${model.getBaseName()}" }
-    memory = '800 MB'
+    memory = '3000 MB'
 
     input:
     set val(binname), val(mdsum), val(model), file(hmmeritem), val(accuracy) from pica_in
