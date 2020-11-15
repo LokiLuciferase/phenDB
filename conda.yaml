@@ -47,6 +47,7 @@ dependencies:
   - python=3.8.3=hcff3b4d_0
   - python_abi=3.8=1_cp38
   - readline=8.0=h7b6447c_0
+  - redis=5.0.3=h7b6447c_0
   - requests=2.23.0=py38_0
   - ruamel_yaml=0.15.87=py38h7b6447c_0
   - setuptools=46.4.0=py38_0
