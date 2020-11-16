@@ -1,7 +1,7 @@
 from django.http import HttpResponse
 from django.template import loader
 from .forms import FileForm
-from .variables import PHENDB_BASEDIR, PHENDB_QUEUE, PHENDB_DEBUG
+from .variables import PHENDB_BASEDIR, PHENDB_DATA_DIR, PHENDB_QUEUE, PHENDB_DEBUG
 from django.shortcuts import redirect
 from businessLogic.mailNotification import MailNotification
 import uuid
@@ -186,7 +186,7 @@ def getResults(request):
     queuePos, queueLen = get_current_position(key)
 
     # write queue length to binary file
-    with open(os.path.join(PHENDB_BASEDIR, "logs/queuelen"), "wb") as bytefile:
+    with open(os.path.join(PHENDB_DATA_DIR, "logs/queuelen"), "wb") as bytefile:
         for times in range(queueLen):
             bytefile.write(struct.pack('x'))
 

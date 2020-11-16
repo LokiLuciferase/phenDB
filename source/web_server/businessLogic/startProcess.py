@@ -13,17 +13,16 @@ class StartProcessThread(threading.Thread):
         self.keyname = keyname
 
     def run(self):
-        from phenotypePredictionApp.variables import PHENDB_BASEDIR, PHENDB_QUEUE, PHENDB_DEBUG
+        from phenotypePredictionApp.variables import PHENDB_BASEDIR, PHENDB_DATA_DIR, PHENDB_QUEUE, PHENDB_DEBUG
         from businessLogic.enqueue_job import phenDB_enqueue
 
         ppath = PHENDB_BASEDIR + "/source/web_server:$PYTHONPATH"
         os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
         sys.path.append(ppath)
 
-        ppath = PHENDB_BASEDIR + "/source/web_server:$PYTHONPATH"
-        infolder_base = os.path.join(PHENDB_BASEDIR, "data/uploads")
+        infolder_base = os.path.join(PHENDB_DATA_DIR, "uploads")
         pipeline_path = os.path.join(PHENDB_BASEDIR, "source/pipeline/picaPipeline.nf")
-        above_workfolder = os.path.join(PHENDB_BASEDIR, "data/results")
+        above_workfolder = os.path.join(PHENDB_DATA_DIR, "results")
         infolder = os.path.join(infolder_base, self.keyname)
 
         node_offs = ""

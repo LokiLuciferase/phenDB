@@ -6,10 +6,10 @@ import os
 import os.path
 import shutil
 import subprocess
-from phenotypePredictionApp.variables import PHENDB_BASEDIR, PHENDB_QUEUE, PHENDB_DEBUG
+from phenotypePredictionApp.variables import PHENDB_BASEDIR, PHENDB_DATA_DIR, PHENDB_QUEUE, PHENDB_DEBUG
 
 
-TAXONOMY_NAMES_FILE = "/apps/miniconda3/opt/krona/taxonomy/taxonomy.tab"  # using kronatools taxonomy names, easily updatable
+TAXONOMY_NAMES_FILE = PHENDB_DATA_DIR + "/krona/taxonomy/taxonomy.tab"  # using kronatools taxonomy names, easily updatable
 
 
 # update kronatools taxonomy file via subprocess, then use updated file to rebuild Taxon table in PhenDB DB.
@@ -87,7 +87,7 @@ def clean_up_on_pipeline_fail(keyname, ppath, failtype):
 def remove_temp_files(infolder=None):
     if PHENDB_DEBUG:
         return
-    logfolder = os.path.join(PHENDB_BASEDIR, 'logs')
+    logfolder = os.path.join(PHENDB_DATA_DIR, 'logs')
     shutil.rmtree(os.path.join(logfolder, "work"))
     if infolder:
         shutil.rmtree(infolder)
@@ -129,7 +129,7 @@ def delete_user_data(days):
 
     # delete results flat files older than days
     oldest_unixtime = float(time()) - (timedelta(days=days).total_seconds())
-    result_basedir = os.path.join(PHENDB_BASEDIR, "data/results/*")
+    result_basedir = os.path.join(PHENDB_DATA_DIR, "results/*")
     result_folders = glob.glob(result_basedir)
 
     for folder in result_folders:
@@ -137,7 +137,7 @@ def delete_user_data(days):
             shutil.rmtree(folder)
 
     # delete any file for which no job is registered in the database
-    uploadfolder = os.path.join(PHENDB_BASEDIR, "data/uploads")
+    uploadfolder = os.path.join(PHENDB_DATA_DIR, "uploads")
     retained_upload_folders = os.listdir(uploadfolder)
     for key in retained_upload_folders:
         try:

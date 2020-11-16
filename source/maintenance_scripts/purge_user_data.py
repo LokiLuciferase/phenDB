@@ -9,7 +9,7 @@ import shutil
 
 import click
 
-PHENDB_BASEDIR = os.environ['BASEDIR']
+PHENDB_BASEDIR = os.environ['PHENDB_BASEDIR']
 os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
 sys.path.append(os.path.join(PHENDB_BASEDIR, "source", "web_server"))
 

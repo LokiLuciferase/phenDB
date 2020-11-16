@@ -17,7 +17,7 @@ from datetime import date, timedelta, datetime
 from redis import Redis
 from rq import Queue
 
-from phenotypePredictionApp.variables import PHENDB_BASEDIR, PHENDB_QUEUE, PHENDB_DEBUG
+from phenotypePredictionApp.variables import PHENDB_BASEDIR, PHENDB_DATA_DIR, PHENDB_QUEUE, PHENDB_DEBUG
 from enqueue_job import phenDB_enqueue, phenDB_recalc
 
 PHENDB_BASEDIR = os.environ['BASEDIR']
@@ -207,9 +207,9 @@ def start_precalc_queue(ppath, infolder, outfolder):
 # create in, out and logfolders for phenDB input, download desired refseq genomes,
 # split into chunks to be processed sequentially
 def main():
-    unadded_saveloc = os.path.join(PHENDB_BASEDIR, "logs/unadded_refseq_genomes.tsv")
-    infolder = os.path.join(PHENDB_BASEDIR, "data/uploads/PHENDB_PRECALC")
-    outfolder = os.path.join(PHENDB_BASEDIR, "data/results/PHENDB_PRECALC_results")
+    unadded_saveloc = os.path.join(PHENDB_DATA_DIR, "logs/unadded_refseq_genomes.tsv")
+    infolder = os.path.join(PHENDB_DATA_DIR, "uploads/PHENDB_PRECALC")
+    outfolder = os.path.join(PHENDB_DATA_DIR, "results/PHENDB_PRECALC_results")
     logfolder = os.path.join(outfolder, "logs")
 
     os.makedirs(outfolder, exist_ok=True)
