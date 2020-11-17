@@ -41,7 +41,7 @@ for result in conditions:  # result = [modelname, rank, enog_name, is_present, d
         )
         # get model from db
         try:
-            this_model = PicaModel.objects.filter(model_name).latest('model_train_date')
+            this_model = PicaModel.objects.filter(model_name=model_name).latest('model_train_date')
         except ObjectDoesNotExist:
             sys.exit("Current Model for this result not found.")
 

@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 
 # these should be fine as is
-SCRIPTPATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-export BASEDIR="$(cd ${SCRIPTPATH}; cd ../..; pwd)"
-export PHENDB_BASEDIR=${BASEDIR}
+export BASEDIR="${BASEDIR:-$(pwd)}"
+export PHENDB_BASEDIR="${PHENDB_BASEDIR:-$BASEDIR}"
 export PYTHONPATH="${BASEDIR}/source/web_server:$PYTHONPATH"
 export DJANGO_SETTINGS_MODULE="phenotypePrediction.settings"
 
@@ -20,4 +19,4 @@ export PHENDB_DB_USERNAME="${PHENDB_DB_USERNAME:-${PHENDB_DESIGNATION}}"
 export PHENDB_DB_PW="${PHENDB_DB_PW:-${PHENDB_DESIGNATION}}"
 export PHENDB_ANNOTATION_STRATEGY="${PHENDB_ANNOTATION_STRATEGY:-deepnog}"
 export PHENDB_DEBUG="${PHENDB_DEBUG:-True}"
-mkdir -p ${PHENDB_LOG_DIR} 
+mkdir -p ${PHENDB_LOG_DIR}

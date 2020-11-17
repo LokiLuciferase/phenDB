@@ -2,7 +2,7 @@
 set -euo pipefail
 
 rm -f source/web_server/phenotypePredictionApp/migrations/0*.py
-sudo service mysql start
+sudo service mysql start || sudo service mariadb start
 sudo mysql < devel_scripts/set_up_dev.sql
 python3 source/web_server/manage.py makemigrations phenotypePredictionApp
 python3 source/web_server/manage.py migrate

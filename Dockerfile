@@ -19,8 +19,6 @@ RUN apt-get update --fix-missing \
     && apt-get install -y apache2 apache2-dev mariadb-server libmariadbclient-dev git hmmer sudo
 RUN conda env update -n base -f conda.yaml && conda clean -a -y
 RUN git clone https://github.com/univieCUBE/phenotrex.git ../phenotrex && pip install ../phenotrex
-# SHAP version currently broken: phenotrex requires 0.35 but the models require 0.37
-RUN pip install shap==0.37.0
 # load environment variables - prefer ones already present (pass to docker build)
 RUN source source/maintenance_scripts/variables.sh
 
