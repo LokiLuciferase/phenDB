@@ -40,12 +40,13 @@ def load_model(d: Union[str, Path]) -> Optional[Tuple]:
         with open(d/f'{d.name}.type') as fin:
             model_type = fin.read().replace('\n', '')
     except FileNotFoundError:
-        model_type = 'NA'
+        model_type = 'phenotrex-TrexSVM'
 
     newmodel = PicaModel(
         model_name=trait_name,
         model_desc=desc,
-        type=model_type,
+        alg_type=model_type,
+        feature_type='eggNOG5-tax-2',
         model_train_date=timezone.now()
     )
     try:

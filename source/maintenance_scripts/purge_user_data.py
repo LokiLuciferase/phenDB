@@ -14,7 +14,7 @@ os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
 sys.path.append(os.path.join(PHENDB_BASEDIR, "source", "web_server"))
 
 django.setup()
-from phenotypePredictionApp.models import Job, Bin, BinInJob, HmmerResult, PicaResult
+from phenotypePredictionApp.models import Job, Bin, BinInJob, HmmerResult, PicaResult, PicaResultExplanation
 
 
 @click.command()
@@ -38,8 +38,10 @@ def purge_user_data(days):
     # look for unassociated result_enog and result_model
     orphan_hmmer = HmmerResult.objects.filter(bin=None)
     orphan_verdict = PicaResult.objects.filter(bin=None)
+    orphan_expl = PicaResultExplanation.objects.filter(bin=None)
     orphan_hmmer.delete()
     orphan_verdict.delete()
+    orphan_expl.delete()
 
     # delete results flat files older than days
     oldest_unixtime = float(time()) - (timedelta(days=days).total_seconds())

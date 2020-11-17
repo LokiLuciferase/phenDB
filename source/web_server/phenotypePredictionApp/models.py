@@ -123,7 +123,8 @@ class PicaModel(models.Model):
 
     # New fields must be added at end due to web UI
     model_name = models.CharField(max_length=64)
-    type = models.CharField(max_length=2)
+    alg_type = models.CharField(max_length=64)
+    feature_type = models.CharField(max_length=64)
     model_desc = models.TextField()
     model_train_date = models.DateTimeField(auto_now=True)
 

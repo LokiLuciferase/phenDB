@@ -469,6 +469,7 @@ process pica {
 
     tag { "${binname}_${model.getBaseName()}" }
     memory = '3000 MB'
+    //scratch true
 
     input:
     set val(binname), val(mdsum), val(model), file(hmmeritem), val(accuracy) from pica_in
@@ -478,7 +479,7 @@ process pica {
     set val(binname), val(mdsum), val(RULEBOOK), file("*_explanations_formatted.tsv") optional true into picaout_db_files_explanations
 
     script:
-    explain_flag = params.get_explanations ? '--out_explain_per_sample explanations.tsv' : ''
+    explain_flag = params.get_explanations ? "--out_explain_per_sample explanations.tsv --n_samples ${params.shap_n_samples} --n_max_explained_features ${params.shap_n_features}" : ''
     RULEBOOK = model.getBaseName()
     TEST_MODEL = "$model/${RULEBOOK}.class"
 
@@ -493,7 +494,7 @@ process pica {
     if [[ -f "explanations.tsv" ]]; then
         cut -f1,2,3,4,5 explanations.tsv \\
             | sed 1d \\
-            | awk '{print \$2, "${md5sum}", "${RULEBOOK}", \$1, \$3, \$4}' > ${mdsum}_${RULEBOOK}_explanations_formatted.tsv
+            | awk '{print "${RULEBOOK}", \$1, \$3, \$4, \$5}' > ${mdsum}_${RULEBOOK}_explanations_formatted.tsv
     fi
     """
 }
@@ -548,7 +549,7 @@ job_mdsums_results = resfiles_after_db_write.map { item -> item.getBaseName() }.
 process make_downloadable_flat_files {
 
     input:
-    val(job_mdsums)
+    val(job_mdsums_results)
 
     output:
     file("*.{csv,txt}") into downloadable_files_out

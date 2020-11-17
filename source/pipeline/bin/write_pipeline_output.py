@@ -17,6 +17,7 @@ parser.add_argument("-c", "--conf_cutoff", help="prediction confidence cutoff")
 parser.add_argument("-a", "--show_all", default="false", help="Show all results")
 parser.add_argument("-d", "--dep_file", help="trait_dependencies.tsv file")
 parser.add_argument("-j", "--job_key", help="uuid4 of job")
+parser.add_argument("-e", "--explanations", help="Download explanations for predictions.")
 parser.add_argument("-m", "--md5sums", nargs="+", help="A list of md5sums calculated in this pipeline run")
 args = parser.parse_args()
 
