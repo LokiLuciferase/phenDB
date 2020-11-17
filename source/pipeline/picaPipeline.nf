@@ -232,12 +232,19 @@ process determine_models_that_need_recalculation {
     os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
 
     django.setup()
-    from phenotypePredictionApp.models import *
+    from phenotypePredictionApp.models import PicaResult, PicaResultExplanation
 
     #if this succeeds, then there is a result for this bin and the newest model version in our db
     try:
-        PicaResult.objects.get(model=PicaModel.objects.filter(model_name="${model.getBaseName()}").latest('model_train_date'), 
-                               bin=Bin.objects.get(md5sum="${mdsum}"))
+        PicaResult.objects.get(
+            model=PicaModel.objects.filter(model_name="${model.getBaseName()}").latest('model_train_date'), 
+            bin=Bin.objects.get(md5sum="${mdsum}")
+        )
+        if "${params.get_explanations}" == "true":
+            PicaResultExplanation.objects.get(
+                model=PicaModel.objects.filter(model_name="${model.getBaseName()}").latest('model_train_date'),
+                bin=Bin.objects.get(md5sum="${mdsum}")
+            )
         print("NO", end='')
     except:
         print("YES", end='')
@@ -468,8 +475,10 @@ process pica {
 
     output:
     set val(binname), val(mdsum), val(RULEBOOK), stdout, val(accuracy) into picaout_db_files
+    set val(binname), val(mdsum), val(RULEBOOK), file("*_explanations_formatted.tsv") optional true into picaout_db_files_explanations
 
     script:
+    explain_flag = params.get_explanations ? '--out_explain_per_sample explanations.tsv' : ''
     RULEBOOK = model.getBaseName()
     TEST_MODEL = "$model/${RULEBOOK}.class"
 
@@ -477,18 +486,29 @@ process pica {
     echo "#feature_type:eggNOG5-tax-2" > tempfile.tmp
     echo -ne "${binname}\t" >> tempfile.tmp
     cut -f2 $hmmeritem | tr "\\n" "\\t" >> tempfile.tmp
-    phenotrex predict --genotype tempfile.tmp --classifier $TEST_MODEL > picaout.result
+    phenotrex predict \\
+        --genotype tempfile.tmp ${explain_flag} \\
+        --classifier $TEST_MODEL > picaout.result
     echo -n \$(cat picaout.result | tail -n1 | cut -f2,3)
+    if [[ -f "explanations.tsv" ]]; then
+        cut -f1,2,3,4,5 explanations.tsv \\
+            | sed 1d \\
+            | awk '{print \$2, "${md5sum}", "${RULEBOOK}", \$1, \$3, \$4}' > ${mdsum}_${RULEBOOK}_explanations_formatted.tsv
+    fi
     """
 }
 
 db_write_pica_results = picaout_db_files.collectFile() { item ->
     [ "${item[1]}.results", "${item[2]}\t${item[3]}\t${item[4]}" ]  // use md5sum as filename for identification in DB
 }
+db_write_pica_explanations = picaout_db_files_explanations.collectFile(){
+    item -> ["${item[1]}.explanations", item[3].text + "\n"]
+}
 
 // write PICA result to database
 process write_pica_result_to_db {
 
+    tag "${mdsum_file.getBaseName()}"
     scratch true
 
     input:
@@ -503,8 +523,25 @@ process write_pica_result_to_db {
     """
 }
 
-job_mdsums = resfiles_after_db_write.map { item -> item.getBaseName() }.mix(do_not_calc_model).unique().collect()
+process write_pica_explanations_to_db {
 
+    tag "${mdsum_file.getBaseName()}"
+    scratch true
+
+    input:
+    file(mdsum_file) from db_write_pica_explanations
+
+    output:
+    file(mdsum_file) into explanations_after_db_write
+    
+    script:
+    """
+    write_pica_explanations_to_db.py ${mdsum_file} ${mdsum_file.getBaseName()}
+    """
+}
+
+job_mdsums_expl = explanations_after_db_write.map {item -> item.getBaseName() }.unique().collect()
+job_mdsums_results = resfiles_after_db_write.map { item -> item.getBaseName() }.mix(do_not_calc_model).mix(job_mdsums_expl).unique().collect()
 // access database to get results for all bin md5sums received
 // apply filtering by cutoffs and model constraints
 // and produce individual and summary files for download

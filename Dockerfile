@@ -4,6 +4,7 @@ LABEL maintainer="Lukas Lüftinger <lukas.lueftinger@ares-genetics.com>"
 LABEL description="A container for running the phenDB web server."
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
 ENV TINI_VERSION v0.19.0
+SHELL ["/bin/bash", "-c"]
 
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /usr/bin/tini
 RUN chmod +x /usr/bin/tini
@@ -12,12 +13,6 @@ ENTRYPOINT [ "/usr/bin/tini", "--" ]
 RUN mkdir -p /apps
 ADD . /apps/phenDB
 WORKDIR /apps/phenDB
-
-# ensure /data is present
-ARG ENOG_DESCRIPTIONS_FILENAME
-RUN mount | grep '/data' || exit 1
-RUN [ -d "/data/models" ] || exit 1
-RUN [ -f "/data/${ENOG_DESCRIPTIONS_FILENAME}" ] || exit 1
 
 # install environment
 RUN apt-get update --fix-missing \

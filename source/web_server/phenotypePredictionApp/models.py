@@ -249,6 +249,33 @@ class PicaResult(models.Model):
                                                                                mtd=str(self.model.model_train_date))
 
 
+class PicaResultExplanation(models.Model):
+
+    class Meta:
+        unique_together = ('bin', 'model', 'enog')
+        indexes = [
+            models.Index(fields=['bin', 'model', 'enog']),
+            models.Index(fields=['bin', 'model']),
+            models.Index(fields=['bin'])
+        ]
+
+    bin  = models.ForeignKey(Bin, on_delete=models.CASCADE)
+    model = models.ForeignKey(PicaModel, on_delete=models.CASCADE)
+    enog = models.ForeignKey(Enog, on_delete=models.CASCADE)
+    enog_is_present = models.BooleanField()
+    delta_shap = models.FloatField()
+
+    def __str__(self):
+        return "Bin {mds}, Model {mo}: presence={enog_is_present} of Enog {e}" \
+               " ==> delta SHAP of {ds}.".format(
+            mds=str(self.bin.md5sum),
+            mo=str(self.model.model_name),
+            enog_is_present=str(self.enog_is_present),
+            e=str(self.enog.enog_name),
+            ds=str(self.delta_shap)
+        )
+
+
 # Contains a stripped down version of the NCBI Taxonomy Names table,
 # which only contains Scientific Names and their correlated Taxon IDs.
 class Taxon(models.Model):
