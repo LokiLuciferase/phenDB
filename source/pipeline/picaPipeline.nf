@@ -1,6 +1,45 @@
 #!/usr/bin/env nextflow
 // define static variables
 
+
+def flat_increment(task_attempt, increment){
+    def incr = task_attempt == 1 ? 1 : task_attempt * increment
+    return incr
+}
+
+// Function to ensure that resource requirements don't go beyond a maximum limit
+def check_max(obj, type) {
+  if(type == 'memory'){
+      try {
+            if((obj as nextflow.util.MemoryUnit).compareTo(params.max_memory as nextflow.util.MemoryUnit) == 1)
+              return params.max_memory as nextflow.util.MemoryUnit
+            else
+              return obj as nextflow.util.MemoryUnit
+          } catch (all) {
+                println "   ### ERROR ###   Max memory '${params.max_memory}' is not valid! Using default value: $obj"
+                return obj as nextflow.util.MemoryUnit
+              }
+    } else if(type == 'time'){
+        try {
+              if(obj.compareTo(params.max_time as nextflow.util.Duration) == 1)
+                return params.max_time as nextflow.util.Duration
+              else
+                return obj
+            } catch (all) {
+                  println "   ### ERROR ###   Max time '${params.max_time}' is not valid! Using default value: $obj"
+                  return obj
+                }
+    } else if(type == 'cpus'){
+        try {
+              return Math.min( obj, params.max_cpus as int )
+            } catch (all) {
+                println "   ### ERROR ###   Max cpus '${params.max_cpus}' is not valid! Using default value: $obj"
+                return obj
+            }
+    }
+}
+
+
 params.recalc = false
 models = file(params.modelfolder).listFiles()
 hmmdb = file(params.hmmdb)
@@ -468,8 +507,9 @@ pica_in = accuracyout.mix(recalc_table_collated)
 process pica {
 
     tag { "${binname}_${model.getBaseName()}" }
-    memory = '6000 MB'
-    //scratch true
+    cpus 1
+    errorStrategy { task.exitStatus in [104,134,136,137,138,139,143] ? 'retry' : 'terminate' }
+    memory { check_max((params.phenotrex_memory as nextflow.util.MemoryUnit) * flat_increment(task.attempt, 0.75), 'memory') }
 
     input:
     set val(binname), val(mdsum), val(model), file(hmmeritem), val(accuracy) from pica_in
@@ -484,6 +524,7 @@ process pica {
     TEST_MODEL = "$model/${RULEBOOK}.svm.class"
 
     """
+    echo "${task.memory}, ${task.cpus}" > resources.log
     echo "#feature_type:eggNOG5-tax-2" > tempfile.tmp
     echo -ne "${binname}\t" >> tempfile.tmp
     cut -f2 $hmmeritem | tr "\\n" "\\t" >> tempfile.tmp
