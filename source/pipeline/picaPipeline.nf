@@ -468,7 +468,7 @@ pica_in = accuracyout.mix(recalc_table_collated)
 process pica {
 
     tag { "${binname}_${model.getBaseName()}" }
-    memory = '3000 MB'
+    memory = '6000 MB'
     //scratch true
 
     input:
@@ -479,9 +479,9 @@ process pica {
     set val(binname), val(mdsum), val(RULEBOOK), file("*_explanations_formatted.tsv") optional true into picaout_db_files_explanations
 
     script:
-    explain_flag = params.get_explanations ? "--out_explain_per_sample explanations.tsv --n_samples ${params.shap_n_samples} --n_max_explained_features ${params.shap_n_features}" : ''
+    explain_flag = params.get_explanations ? "--out_explain_per_sample explanations.tsv --shap_n_samples ${params.shap_n_samples} --n_max_explained_features ${params.shap_n_features}" : ''
     RULEBOOK = model.getBaseName()
-    TEST_MODEL = "$model/${RULEBOOK}.class"
+    TEST_MODEL = "$model/${RULEBOOK}.svm.class"
 
     """
     echo "#feature_type:eggNOG5-tax-2" > tempfile.tmp
