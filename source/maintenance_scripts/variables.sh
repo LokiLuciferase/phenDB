@@ -5,7 +5,7 @@ export BASEDIR="${BASEDIR:-$(pwd)}"
 export PHENDB_BASEDIR="${PHENDB_BASEDIR:-$BASEDIR}"
 export PYTHONPATH="${BASEDIR}/source/web_server:$PYTHONPATH"
 export DJANGO_SETTINGS_MODULE="phenotypePrediction.settings"
-
+echo "PHENDB_BASEDIR is now ${PHENDB_BASEDIR}"
 
 # override these if necessary
 export PHENDB_DESIGNATION="${PHENDB_DESIGNATION:-phenDB_devel_LL}"
