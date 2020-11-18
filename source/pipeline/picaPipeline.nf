@@ -73,6 +73,9 @@ log.info"""
     Output directory: $outdir
     Job name: $jobname
 
+    Annotation strategy: ${params.annotation_strategy}
+    Get explanations: ${params.get_explanations}
+
     ##################################################################################
     """.stripIndent()
 

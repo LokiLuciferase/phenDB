@@ -43,6 +43,7 @@ class Job(models.Model):
     requested_balac = models.FloatField(default='0.5')
     requested_conf = models.FloatField(default='0.5')
     disable_cutoffs = models.BooleanField(default=False)
+    get_explanations = models.BooleanField(default=False)
 
 
     def get_absolute_url(self):

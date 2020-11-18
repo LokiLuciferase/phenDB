@@ -101,7 +101,9 @@ def sendinput(request):
     if(form.is_valid()):
         modelInstance = form.save(commit=False)
         modelInstance.save()
-        StartProcessThread(key).start()
+        StartProcessThread(
+            key, get_explanations=bool(postobj.get('get_explanations', False))
+        ).start()
         if postobj['user_email'] != '':
             MailNotification(key).start()
 

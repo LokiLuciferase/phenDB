@@ -159,10 +159,10 @@ def phenDB_enqueue(ppath, pipeline_path, infolder, outfolder, node_offs, get_exp
     arguments = "nextflow {pp} " \
                 "--inputfolder {inf} " \
                 "--outdir {otf} " \
-                "--get_explanations {expl_flag}" \
+                "--get_explanations {expl_flag} " \
                 "--omit_nodes {no} " \
-                "-ansi-log false" \
-                " -profile standard".format(
+                "-ansi-log false " \
+                "-profile standard".format(
         pp=pipeline_path,
         inf=infolder,
         otf=outfolder,

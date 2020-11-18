@@ -17,7 +17,7 @@ parser.add_argument("-c", "--conf_cutoff", help="prediction confidence cutoff")
 parser.add_argument("-a", "--show_all", default="false", help="Show all results")
 parser.add_argument("-d", "--dep_file", help="trait_dependencies.tsv file")
 parser.add_argument("-j", "--job_key", help="uuid4 of job")
-parser.add_argument("-e", "--explanations", help="Download explanations for predictions.")
+parser.add_argument("-e", "--explanations", action='store_true', help="Download explanations for predictions.")
 parser.add_argument("-m", "--md5sums", nargs="+", help="A list of md5sums calculated in this pipeline run")
 args = parser.parse_args()
 
@@ -26,6 +26,7 @@ BALAC_CUTOFF = float(parentjob.requested_balac)
 PICA_CONF_CUTOFF = float(parentjob.requested_conf)
 SHOW_ALL_RESULTS = bool(parentjob.disable_cutoffs)
 TRAIT_DEPENDENCY_FILE = args.dep_file
+KEEP_EXPL = args.explanations
 BIN_MDSUMS = sorted(args.md5sums, reverse=True)
 ROUND_TO = 2
 now = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
@@ -209,6 +210,11 @@ with open("trait_summary_matrix.csv", "w") as summary_matrix:
                         )
                     )
         summary_matrix.write(",".join([jam[bin.md5sum], *all_bin_predictions]) + "\n")
+
+        with open("{bn}.expl.csv".format(bn=jam[bin.md5sum])) as check_expl:
+            do_keep = len(check_expl.readlines()) > 2 and KEEP_EXPL
+        if not do_keep:
+            os.remove("{bn}.expl.csv".format(bn=jam[bin.md5sum]))
 
 with open("trait_counts.csv", "w") as count_table:
     count_table.write(COUNT_TABLE_HEADER)

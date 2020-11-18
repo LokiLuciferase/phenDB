@@ -5,15 +5,18 @@ from .models import Job
 class FileForm(forms.ModelForm):
     class Meta:
         model = Job
-        fields = ['filename',
-                  'key',
-                  'fileInput',
-                  'user_ip',
-                  'user_email',
-                  'errors',
-                  'requested_balac',
-                  'requested_conf',
-                  'disable_cutoffs']
+        fields = [
+            'filename',
+            'key',
+            'fileInput',
+            'user_ip',
+            'user_email',
+            'errors',
+            'requested_balac',
+            'requested_conf',
+            'disable_cutoffs',
+            'get_explanations',
+       ]
 
     def __init__(self, *args, **kwargs):
         super(FileForm, self).__init__(*args, **kwargs)
@@ -26,5 +29,6 @@ class FileForm(forms.ModelForm):
         self.fields['requested_balac'].initial = self.data['requested_balac']
         self.fields['requested_conf'].initial = self.data['requested_conf']
         self.fields['disable_cutoffs'].initial = self.data.get('disable_cutoffs', "0")
+        self.fields['get_explanations'].initial = self.data.get('get_explanations', '0')
         for key, value in self.data.items():
             print(str(key) + ' ' + str(value))
