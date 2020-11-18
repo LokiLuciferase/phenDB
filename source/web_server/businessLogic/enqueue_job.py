@@ -149,18 +149,26 @@ def delete_user_data(days):
 
 
 # submit a PhenDB job to Redis queue for later calculation.
-def phenDB_enqueue(ppath, pipeline_path, infolder, outfolder, node_offs):
+def phenDB_enqueue(ppath, pipeline_path, infolder, outfolder, node_offs, get_explanations):
 
     # set environmental variables
     os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
     os.environ["PYTHONPATH"] = str(ppath)
-
+    expl_flag = "true" if get_explanations else "false"
     # set pipeline arguments
-    arguments = "nextflow {pp} --inputfolder {inf} --outdir {otf} --omit_nodes {no} -ansi-log false -profile standard"\
-        .format(pp=pipeline_path,
-                inf=infolder,
-                otf=outfolder,
-                no=node_offs)
+    arguments = "nextflow {pp} " \
+                "--inputfolder {inf} " \
+                "--outdir {otf} " \
+                "--get_explanations {expl_flag}" \
+                "--omit_nodes {no} " \
+                "-ansi-log false" \
+                " -profile standard".format(
+        pp=pipeline_path,
+        inf=infolder,
+        otf=outfolder,
+        no=node_offs,
+        expl_flag=expl_flag
+    )
     # call subprocess and wait for result
     with open(os.path.join(outfolder, "logs/nextflow.log"), "w") as logfile:
         pipeline_call = subprocess.Popen(arguments.split(), stdout=logfile, stderr=logfile)
@@ -190,6 +198,7 @@ def phenDB_recalc(ppath, pipeline_path, outfolder, batch_no, total_batch_no):
                 "--recalc " \
                 "--outdir {of} " \
                 "--batch_no {bn} " \
+                "--get_explanations " \
                 "--total_batch_no {mbn} " \
                 "-profile standard".format(pp=pipeline_path, of=outfolder, bn=batch_no, mbn=total_batch_no)
     with open(os.path.join(outfolder, "logs/nextflow.log"), "w") as logfile:

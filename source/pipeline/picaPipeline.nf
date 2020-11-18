@@ -507,9 +507,7 @@ pica_in = accuracyout.mix(recalc_table_collated)
 process pica {
 
     tag { "${binname}_${model.getBaseName()}" }
-    cpus 1
-    errorStrategy { task.exitStatus in [104,134,136,137,138,139,143] ? 'retry' : 'terminate' }
-    memory { task.attempt == 1 ? (params.phenotrex_memory as nextflow.util.MemoryUnit) : (params.max_memory as nextflow.util.MemoryUnit) }
+    label "prediction"
 
     input:
     set val(binname), val(mdsum), val(model), file(hmmeritem), val(accuracy) from pica_in
