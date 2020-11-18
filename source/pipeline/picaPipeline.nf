@@ -544,7 +544,7 @@ db_write_pica_results = picaout_db_files.collectFile() { item ->
     [ "${item[1]}.results", "${item[2]}\t${item[3]}\t${item[4]}" ]  // use md5sum as filename for identification in DB
 }
 db_write_pica_explanations = picaout_db_files_explanations.collectFile(){
-    item -> ["${item[1]}.explanations", item[3].text + "\n"]
+    item -> [ "${item[1]}.explanations", item[3].text ]
 }
 
 // write PICA result to database
@@ -601,7 +601,7 @@ process make_downloadable_flat_files {
     write_pipeline_output.py \\
         --dep_file ${params.pica_dependencies} \\
         --job_key ${jobname} \\
-        --md5sums ${job_mdsums.join(" ")}
+        --md5sums ${job_mdsums_results.join(" ")}
     """
 }
 
