@@ -107,7 +107,7 @@ all_model_desc = [x.model_desc for x in all_newest_models]
 all_model_td = [x.model_train_date.strftime("%Y/%m/%d") for x in all_newest_models]
 job_results_dict = {
     x.md5sum: {
-        {y: {"predictions": None, "explanations": []} for y in all_model_names},
+        y: {"predictions": None, "explanations": []} for y in all_model_names
     } for x in job_bins
 }
 model_results_count = {x: {"+": 0, "-": 0, "n.d.": 0, "n.c.": 0} for x in all_model_names}

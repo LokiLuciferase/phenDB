@@ -271,7 +271,7 @@ process determine_models_that_need_recalculation {
     os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
 
     django.setup()
-    from phenotypePredictionApp.models import PicaResult, PicaResultExplanation
+    from phenotypePredictionApp.models import *
 
     #if this succeeds, then there is a result for this bin and the newest model version in our db
     try:
@@ -509,7 +509,7 @@ process pica {
     tag { "${binname}_${model.getBaseName()}" }
     cpus 1
     errorStrategy { task.exitStatus in [104,134,136,137,138,139,143] ? 'retry' : 'terminate' }
-    memory { check_max((params.phenotrex_memory as nextflow.util.MemoryUnit) * flat_increment(task.attempt, 0.75), 'memory') }
+    memory { task.attempt == 1 ? (params.phenotrex_memory as nextflow.util.MemoryUnit) : (params.max_memory as nextflow.util.MemoryUnit) }
 
     input:
     set val(binname), val(mdsum), val(model), file(hmmeritem), val(accuracy) from pica_in
@@ -641,7 +641,7 @@ process zip_results {
     """
     mkdir -p ${jobname}/summaries
     mkdir -p ${jobname}/individual_results
-    cp ${errorfile} ${jobname}/summaries/invalid_input_files.log.txt
+    [ -s ${errorfile} ] && cp ${errorfile} ${jobname}/summaries/invalid_input_files.log.txt
     mv *.traits.csv ${jobname}/individual_results
     mv *.csv ${jobname}/summaries
     mv *.html ${jobname}/summaries
