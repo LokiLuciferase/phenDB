@@ -644,7 +644,7 @@ process zip_results {
     mkdir -p ${jobname}/summaries
     mkdir -p ${jobname}/individual_results
     [ -s ${errorfile} ] && cp ${errorfile} ${jobname}/summaries/invalid_input_files.log.txt
-    mv trait_counts.csv bin_summary.csv ${jobname}/summaries
+    mv trait_counts.csv bin_summary.csv trait_summary_matrix.csv ${jobname}/summaries
     mv *.csv ${jobname}/individual_results
     mv *.html ${jobname}/summaries
     mv ./${jobname} phendb_${jobname}
