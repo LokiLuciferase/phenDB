@@ -280,10 +280,11 @@ process determine_models_that_need_recalculation {
             bin=Bin.objects.get(md5sum="${mdsum}")
         )
         if "${params.get_explanations}" == "true":
-            PicaResultExplanation.objects.get(
+            expl = PicaResultExplanation.objects.filter(
                 model=PicaModel.objects.filter(model_name="${model.getBaseName()}").latest('model_train_date'),
                 bin=Bin.objects.get(md5sum="${mdsum}")
             )
+            assert len(expl)
         print("NO", end='')
     except:
         print("YES", end='')
