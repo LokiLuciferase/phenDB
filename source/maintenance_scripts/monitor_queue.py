@@ -2,17 +2,17 @@
 #
 # Created by Lukas Lüftinger on 14/01/2018.
 #
+import os
 from redis import Redis
-from rq import Queue, get_failed_queue
+from rq import Queue
 from rq.worker import Worker
 from pprint import pprint
 
-PHENDB_QUEUE = "phenDB"
 
 rconn = Redis()
 workers = Worker.all(connection=rconn)
 phendb_worker = workers[0]
-q = Queue(PHENDB_QUEUE, connection=rconn)
+q = Queue(os.environ['PHENDB_QUEUE'], connection=rconn)
 
 print(
     "Successfully executed: {se}\nFailed: {fe}\nTotal time worked: {tt}\n".format(

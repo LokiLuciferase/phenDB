@@ -3,9 +3,13 @@
 # these should be fine as is
 export BASEDIR="${BASEDIR:-$(pwd)}"
 export PHENDB_BASEDIR="${PHENDB_BASEDIR:-$BASEDIR}"
-export PYTHONPATH="${BASEDIR}/source/web_server:$PYTHONPATH"
+export PYTHONPATH="${PHENDB_BASEDIR}/source/web_server:$PYTHONPATH"
 export DJANGO_SETTINGS_MODULE="phenotypePrediction.settings"
 echo "PHENDB_BASEDIR is now ${PHENDB_BASEDIR}"
+
+# source file of secret variables if exists
+SECRETS_FILE="${PHENDB_BASEDIR}/source/maintenance_scripts/secrets.sh"
+[ -f "$SECRETS_FILE" ] && source $SECRETS_FILE
 
 # override these if necessary
 export PHENDB_DESIGNATION="${PHENDB_DESIGNATION:-phenDB_devel_LL}"
