@@ -7,7 +7,6 @@ from .models import Job, PicaModel, Bin, BinInJob
 
 # create a display for the Job table
 class JobDisplay(admin.ModelAdmin):
-
     def bal_acc_cutoff(obj):
         return obj.requested_balac
 
@@ -42,29 +41,38 @@ class JobDisplay(admin.ModelAdmin):
     no_errors.boolean = True
     link_to_results.allow_tags = True
     actions = None
-    list_display = ('job_date', 'user_email', 'user_ip', 'finished_bins',
-                    'total_bins', bal_acc_cutoff, pred_conf_cutoff, disable_cutoffs, "error_type", uploaded_file_name, link_to_results)
+    list_display = (
+        "job_date",
+        "user_email",
+        "user_ip",
+        "finished_bins",
+        "total_bins",
+        bal_acc_cutoff,
+        pred_conf_cutoff,
+        disable_cutoffs,
+        "error_type",
+        uploaded_file_name,
+        link_to_results,
+    )
     list_display_links = None
-    search_fields = ('user_email', 'user_ip', 'filename')
+    search_fields = ("user_email", "user_ip", "filename")
 
 
 # create a display for the PicaModel table
 class ModelDisplay(admin.ModelAdmin):
-
     def has_add_permissions(self, request):
         return False
 
     def has_delete_permissions(self, request, obj=None):
         return False
 
-    list_display = ('model_name', 'model_desc', 'model_train_date')
+    list_display = ("model_name", "model_desc", "model_train_date")
     list_display_links = None
     actions = None
 
 
 # create a display for the Bin table
 class BinDisplay(admin.ModelAdmin):
-
     def has_add_permissions(self, request):
         return False
 

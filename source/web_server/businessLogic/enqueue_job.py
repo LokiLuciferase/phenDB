@@ -6,15 +6,23 @@ import os
 import os.path
 import shutil
 import subprocess
-from phenotypePredictionApp.variables import PHENDB_BASEDIR, PHENDB_DATA_DIR, PHENDB_QUEUE, PHENDB_DEBUG
+from phenotypePredictionApp.variables import (
+    PHENDB_BASEDIR,
+    PHENDB_DATA_DIR,
+    PHENDB_QUEUE,
+    PHENDB_DEBUG,
+)
 
 
-TAXONOMY_NAMES_FILE = PHENDB_DATA_DIR + "/krona/taxonomy/taxonomy.tab"  # using kronatools taxonomy names, easily updatable
+TAXONOMY_NAMES_FILE = (
+    PHENDB_DATA_DIR + "/krona/taxonomy/taxonomy.tab"
+)  # using kronatools taxonomy names, easily updatable
 
 
 # update kronatools taxonomy file via subprocess, then use updated file to rebuild Taxon table in PhenDB DB.
 def update_taxonomy(ppath):
     import django
+
     os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
     sys.path.append(ppath)
     django.setup()
@@ -48,13 +56,13 @@ def update_taxonomy(ppath):
 
     # drop all rows from old taxonomy DB
     print("Updating taxonomy DB...")
-    #Taxon.objects.all().delete()
+    # Taxon.objects.all().delete()
     while len(taxonomy_entries) > 0:
         sys.stdout.write("{n}          entries left to add.\r".format(n=len(taxonomy_entries)))
         sys.stdout.flush()
         subset = taxonomy_entries[-10000:]
         taxonomy_entries = taxonomy_entries[:-10000]
-        #Taxon.objects.bulk_create(subset)
+        # Taxon.objects.bulk_create(subset)
         for e in subset:
             pk = e[0]
             dflt = {"taxon_rank": e[1], "taxon_name": e[2]}
@@ -66,10 +74,12 @@ def update_taxonomy(ppath):
 # Make a distinction for precalculated refseq genomes: spare already finished precalculation bins
 def clean_up_on_pipeline_fail(keyname, ppath, failtype):
     import django
+
     os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
     sys.path.append(str(ppath))
     django.setup()
     from phenotypePredictionApp.models import Job, Bin, BinInJob
+
     currentjob = Job.objects.get(key=keyname)
     currentjob.errors = None  # set error for website
     currentjob.error_type = failtype
@@ -87,7 +97,7 @@ def clean_up_on_pipeline_fail(keyname, ppath, failtype):
 def remove_temp_files(infolder=None):
     if PHENDB_DEBUG:
         return
-    logfolder = os.path.join(PHENDB_DATA_DIR, 'logs')
+    logfolder = os.path.join(PHENDB_DATA_DIR, "logs")
     shutil.rmtree(os.path.join(logfolder, "work"))
     if infolder:
         shutil.rmtree(infolder)
@@ -104,7 +114,14 @@ def delete_user_data(days):
     os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
     sys.path.append(os.path.join(PHENDB_BASEDIR, "source", "web_server"))
     django.setup()
-    from phenotypePredictionApp.models import Job, Bin, BinInJob, HmmerResult, PicaResult, PicaResultExplanation
+    from phenotypePredictionApp.models import (
+        Job,
+        Bin,
+        BinInJob,
+        HmmerResult,
+        PicaResult,
+        PicaResultExplanation,
+    )
 
     oldest = datetime.today() - timedelta(days=days)
 
@@ -118,7 +135,9 @@ def delete_user_data(days):
     orphan_bij = BinInJob.objects.filter(job=None)
     orphan_bij.delete()
 
-    orphan_bins = Bin.objects.filter(bininjob=None).exclude(bininjob__job__key__icontains="PHENDB_PRECALC")
+    orphan_bins = Bin.objects.filter(bininjob=None).exclude(
+        bininjob__job__key__icontains="PHENDB_PRECALC"
+    )
     orphan_bins.delete()
 
     # look for unassociated result_enog and result_model
@@ -156,18 +175,16 @@ def phenDB_enqueue(ppath, pipeline_path, infolder, outfolder, node_offs, get_exp
     os.environ["PYTHONPATH"] = str(ppath)
     expl_flag = "true" if get_explanations else "false"
     # set pipeline arguments
-    arguments = "nextflow {pp} " \
-                "--inputfolder {inf} " \
-                "--outdir {otf} " \
-                "--get_explanations {expl_flag} " \
-                "--omit_nodes {no} " \
-                "-ansi-log false " \
-                "-profile standard".format(
-        pp=pipeline_path,
-        inf=infolder,
-        otf=outfolder,
-        no=node_offs,
-        expl_flag=expl_flag
+    arguments = (
+        "nextflow {pp} "
+        "--inputfolder {inf} "
+        "--outdir {otf} "
+        "--get_explanations {expl_flag} "
+        "--omit_nodes {no} "
+        "-ansi-log false "
+        "-profile standard".format(
+            pp=pipeline_path, inf=infolder, otf=outfolder, no=node_offs, expl_flag=expl_flag
+        )
     )
     # call subprocess and wait for result
     with open(os.path.join(outfolder, "logs/nextflow.log"), "w") as logfile:
@@ -189,18 +206,21 @@ def phenDB_enqueue(ppath, pipeline_path, infolder, outfolder, node_offs, get_exp
             raise RuntimeError("No input files have passed error checking.")
         return pipeline_call.returncode
 
+
 # submit a PhenDB recalculation job to redis queue
 def phenDB_recalc(ppath, pipeline_path, outfolder, batch_no, total_batch_no):
     # set environmental variables
     os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
     os.environ["PYTHONPATH"] = str(ppath)
-    arguments = "nextflow {pp} " \
-                "--recalc " \
-                "--outdir {of} " \
-                "--batch_no {bn} " \
-                "--get_explanations " \
-                "--total_batch_no {mbn} " \
-                "-profile standard".format(pp=pipeline_path, of=outfolder, bn=batch_no, mbn=total_batch_no)
+    arguments = (
+        "nextflow {pp} "
+        "--recalc "
+        "--outdir {of} "
+        "--batch_no {bn} "
+        "--get_explanations "
+        "--total_batch_no {mbn} "
+        "-profile standard".format(pp=pipeline_path, of=outfolder, bn=batch_no, mbn=total_batch_no)
+    )
     with open(os.path.join(outfolder, "logs/nextflow.log"), "w") as logfile:
         pipeline_call = subprocess.Popen(arguments.split(), stdout=logfile, stderr=logfile)
         pipeline_call.wait()

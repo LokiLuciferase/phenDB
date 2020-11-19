@@ -9,16 +9,23 @@ import shutil
 
 import click
 
-PHENDB_BASEDIR = os.environ['PHENDB_BASEDIR']
+PHENDB_BASEDIR = os.environ["PHENDB_BASEDIR"]
 os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
 sys.path.append(os.path.join(PHENDB_BASEDIR, "source", "web_server"))
 
 django.setup()
-from phenotypePredictionApp.models import Job, Bin, BinInJob, HmmerResult, PicaResult, PicaResultExplanation
+from phenotypePredictionApp.models import (
+    Job,
+    Bin,
+    BinInJob,
+    HmmerResult,
+    PicaResult,
+    PicaResultExplanation,
+)
 
 
 @click.command()
-@click.option('--days', type=int, default=-1)
+@click.option("--days", type=int, default=-1)
 def purge_user_data(days):
     oldest = datetime.today() - timedelta(days=days)
 
@@ -32,7 +39,9 @@ def purge_user_data(days):
     orphan_bij = BinInJob.objects.filter(job=None)
     orphan_bij.delete()
 
-    orphan_bins = Bin.objects.filter(bininjob=None).exclude(bininjob__job__key__icontains="PHENDB_PRECALC")
+    orphan_bins = Bin.objects.filter(bininjob=None).exclude(
+        bininjob__job__key__icontains="PHENDB_PRECALC"
+    )
     orphan_bins.delete()
 
     # look for unassociated result_enog and result_model
@@ -62,5 +71,5 @@ def purge_user_data(days):
             shutil.rmtree(os.path.join(uploadfolder, key))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     purge_user_data()

@@ -14,7 +14,12 @@ class StartProcessThread(threading.Thread):
         self.get_explanations = get_explanations
 
     def run(self):
-        from phenotypePredictionApp.variables import PHENDB_BASEDIR, PHENDB_DATA_DIR, PHENDB_QUEUE, PHENDB_DEBUG
+        from phenotypePredictionApp.variables import (
+            PHENDB_BASEDIR,
+            PHENDB_DATA_DIR,
+            PHENDB_QUEUE,
+            PHENDB_DEBUG,
+        )
         from businessLogic.enqueue_job import phenDB_enqueue
 
         ppath = PHENDB_BASEDIR + "/source/web_server:$PYTHONPATH"
@@ -22,7 +27,7 @@ class StartProcessThread(threading.Thread):
         sys.path.append(ppath)
 
         infolder_base = os.path.join(PHENDB_DATA_DIR, "uploads")
-        pipeline_path = os.path.join(PHENDB_BASEDIR, "source/pipeline/picaPipeline.nf")
+        pipeline_path = os.path.join(PHENDB_BASEDIR, "source/pipeline/main.nf")
         above_workfolder = os.path.join(PHENDB_DATA_DIR, "results")
         infolder = os.path.join(infolder_base, self.keyname)
 
@@ -37,11 +42,12 @@ class StartProcessThread(threading.Thread):
 
         # add the function call to the redis queue
         q = Queue(PHENDB_QUEUE, connection=Redis())
-        q.enqueue_call(func=phenDB_enqueue,
-                       args=(ppath, pipeline_path, infolder, outfolder, node_offs, get_explanations),
-                       timeout='48h',
-                       ttl='48h',
-                       job_id=self.keyname
-                       )
+        q.enqueue_call(
+            func=phenDB_enqueue,
+            args=(ppath, pipeline_path, infolder, outfolder, node_offs, get_explanations),
+            timeout="48h",
+            ttl="48h",
+            job_id=self.keyname,
+        )
         # return pipeline_job
         # here we could return len(q). or fetch it somewhere else. We could also set errors in the DB.

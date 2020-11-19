@@ -2,21 +2,30 @@ from phenotypePredictionApp.models import Job, PicaResult, BinInJob, PicaModel, 
 
 
 class PicaResultForUI:
-
     def __init__(self, job, requested_conf=None, requested_balac=None, disable_cutoffs=None):
         self.job = job
         self.job_date = self.job.job_date
-        self.requested_balac = float(job.requested_balac) if requested_balac is None else float(requested_balac)
-        self.requested_conf = float(job.requested_conf) if requested_conf is None else float(requested_conf)
-        self.disable_cutoffs = bool(job.disable_cutoffs) if disable_cutoffs is None else bool(disable_cutoffs)
-        self.all_bins_in_job = BinInJob.objects.filter(job=job).select_related('bin')
+        self.requested_balac = (
+            float(job.requested_balac) if requested_balac is None else float(requested_balac)
+        )
+        self.requested_conf = (
+            float(job.requested_conf) if requested_conf is None else float(requested_conf)
+        )
+        self.disable_cutoffs = (
+            bool(job.disable_cutoffs) if disable_cutoffs is None else bool(disable_cutoffs)
+        )
+        self.all_bins_in_job = BinInJob.objects.filter(job=job).select_related("bin")
         self.all_bins = [x.bin for x in self.all_bins_in_job]
         self.bin_alias_list = [x.bin_alias for x in self.all_bins_in_job]
-        all_models_for_currentjob = [x.model for x in PicaResult.objects.filter(bin=self.all_bins[0]).select_related('model')]
+        all_models_for_currentjob = [
+            x.model for x in PicaResult.objects.filter(bin=self.all_bins[0]).select_related("model")
+        ]
         all_model_names_for_currentjob = set()
         self.newest_models_for_currentjob = []
         # sort by model train date and add newest possible results for models older than job. Only add unique models
-        for picamodel in sorted(all_models_for_currentjob, key=lambda x: x.model_train_date, reverse=True):
+        for picamodel in sorted(
+            all_models_for_currentjob, key=lambda x: x.model_train_date, reverse=True
+        ):
             picamodel_name = picamodel.model_name
             picamodel_train_date = picamodel.model_train_date
             if picamodel_train_date > self.job_date:
@@ -24,8 +33,9 @@ class PicaResultForUI:
             if picamodel_name not in all_model_names_for_currentjob:
                 all_model_names_for_currentjob.add(picamodel_name)
                 self.newest_models_for_currentjob.append(picamodel)
-        self.all_results_for_currentjob = PicaResult.objects.filter(bin__in=self.all_bins,
-                                                                    model__in=self.newest_models_for_currentjob)
+        self.all_results_for_currentjob = PicaResult.objects.filter(
+            bin__in=self.all_bins, model__in=self.newest_models_for_currentjob
+        )
         self.resdic = self.__make_results_dict()
         self.__calc_prediction_details()
         self.__calc_prediction()
@@ -49,11 +59,13 @@ class PicaResultForUI:
             pred_conf = res.get("pica_pval")
             nc_masked = res.get("nc_masked")
             bin_in_resdic = resdic.setdefault(bin_alias, {})
-            bin_in_resdic[model_name] = {"verdict": verdict,
-                                         "accuracy": mean_balac,
-                                         "pica_pval": pred_conf,
-                                         "nc_masked": nc_masked,
-                                         "model_id": model_id}
+            bin_in_resdic[model_name] = {
+                "verdict": verdict,
+                "accuracy": mean_balac,
+                "pica_pval": pred_conf,
+                "nc_masked": nc_masked,
+                "model_id": model_id,
+            }
         return resdic
 
     def __calc_prediction_details(self):
@@ -71,7 +83,10 @@ class PicaResultForUI:
     def _apply_masks(self, resultdic):
         result_string = "+" if resultdic["verdict"] else "-"
         nc_masked = resultdic["nc_masked"]
-        nd_masked = resultdic["pica_pval"] <= self.requested_conf or resultdic["accuracy"] <= self.requested_balac
+        nd_masked = (
+            resultdic["pica_pval"] <= self.requested_conf
+            or resultdic["accuracy"] <= self.requested_balac
+        )
 
         if self.disable_cutoffs or (not nd_masked and not nc_masked):
             return result_string
@@ -88,11 +103,13 @@ class _PredictionDetails:
         self.picaResultForUI = picaResultForUI
         self.__calc()
 
-    TITLES = [{"title": "Bin"},
-              {"title": "<a target='_blank' href='http://phendb.org/reports/modeloverview'>Model</a>"},
-              {"title": "Prediction"},
-              {"title": "Prediction_Confidence"},
-              {"title": "Balanced_Accuracy"}]
+    TITLES = [
+        {"title": "Bin"},
+        {"title": "<a target='_blank' href='http://phendb.org/reports/modeloverview'>Model</a>"},
+        {"title": "Prediction"},
+        {"title": "Prediction_Confidence"},
+        {"title": "Balanced_Accuracy"},
+    ]
 
     def get_values(self):
         return self.values
@@ -113,7 +130,7 @@ class _PredictionDetails:
 
         for model_name in sorted(bin_dic.keys()):
             model_dic = bin_dic[model_name]
-            model_id = model_dic['model_id']
+            model_id = model_dic["model_id"]
             single_row = []
             single_row.append(bin_name)
             single_row.append(ModelLink.createModelLink(model_id=model_id, model_name=model_name))
@@ -136,7 +153,7 @@ class _Prediction:
         for bin_name in result_dic.keys():
             bin_dic = result_dic[bin_name]
             values_tmp = [bin_name]
-            self.titles = [{"title" : "Bin_name"}]
+            self.titles = [{"title": "Bin_name"}]
             self.raw_title_list = []
 
             for model_name in sorted(bin_dic.keys()):
@@ -160,21 +177,18 @@ class _Prediction:
 
 class _TraitCounts:
     """iterate over all results in result_dict, and increment counters in countdic."""
+
     def __init__(self, picaResultForUI):
         self.picaResultForUI = picaResultForUI
         self.__calc()
 
-    TITLES = [{"title": ""},
-              {"title": "+"},
-              {"title": "-"},
-              {"title": "n.d."},
-              {"title": "n.c."}]
+    TITLES = [{"title": ""}, {"title": "+"}, {"title": "-"}, {"title": "n.d."}, {"title": "n.c."}]
 
     def __calc(self):
         self.values = []
         rd = self.picaResultForUI.resdic
         model_names = [x.model_name for x in self.picaResultForUI.newest_models_for_currentjob]
-        countdic = {x: {"+":0, "-":0, "n.d.": 0, "n.c.":0} for x in model_names}
+        countdic = {x: {"+": 0, "-": 0, "n.d.": 0, "n.c.": 0} for x in model_names}
 
         for bin_name in rd.keys():
             bin_dic = rd[bin_name]
@@ -201,13 +215,15 @@ class _BinSummary:
         self.picaResultForUI = picaResultForUI
         self.__calc()
 
-    TITLES = [{"title": "Bin"},
-              {"title": "Completeness"},
-              {"title": "Contamination"},
-              {"title": "Strain heterogeneity"},
-              {"title": "Taxon ID"},
-              {"title": "Taxon name"},
-              {"title": "Taxon rank"}]
+    TITLES = [
+        {"title": "Bin"},
+        {"title": "Completeness"},
+        {"title": "Contamination"},
+        {"title": "Strain heterogeneity"},
+        {"title": "Taxon ID"},
+        {"title": "Taxon name"},
+        {"title": "Taxon rank"},
+    ]
 
     def __calc(self):
         self.values = []
@@ -221,7 +237,17 @@ class _BinSummary:
             taxon = Taxon.objects.get(tax_id=tax_id)
             taxon_name = taxon.taxon_name
             taxon_rank = taxon.taxon_rank
-            self.values.append([bin_name, round(comple, 2), round(conta, 2), strainhet, tax_id, taxon_name, taxon_rank])
+            self.values.append(
+                [
+                    bin_name,
+                    round(comple, 2),
+                    round(conta, 2),
+                    strainhet,
+                    tax_id,
+                    taxon_name,
+                    taxon_rank,
+                ]
+            )
 
     def get_values(self):
         return self.values

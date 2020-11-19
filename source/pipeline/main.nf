@@ -294,7 +294,7 @@ process determine_models_that_need_recalculation {
     """
 }
 
-// if the results in our db for this bin and model are outdated, pica needs to be called
+// if the results in our db for this bin and model are outdated, phenotrex needs to be called
 // this just reformats the input and just calls accuracy if the value is YES
 accuracy_in_from_old_model = calc_model.filter{ it[3] == "YES" }.map{ l -> [l[0], l[1], l[2], l[4], l[5]] }
 
@@ -505,20 +505,20 @@ recalc_table_collated = recalc_table.splitCsv(sep: "\t")
 //        }
 //        }  //same output as given by process accuracy
 
-pica_in = accuracyout.mix(recalc_table_collated)
+phenotrex_in = accuracyout.mix(recalc_table_collated)
 
-// call pica for every sample for every condition
-process pica {
+// call phenotrex for every sample for every condition
+process phenotrex {
 
     tag { "${binname}_${model.getBaseName()}" }
     label "prediction"
 
     input:
-    set val(binname), val(mdsum), val(model), file(hmmeritem), val(accuracy) from pica_in
+    set val(binname), val(mdsum), val(model), file(hmmeritem), val(accuracy) from phenotrex_in
 
     output:
-    set val(binname), val(mdsum), val(RULEBOOK), stdout, val(accuracy) into picaout_db_files
-    set val(binname), val(mdsum), val(RULEBOOK), file("*_explanations_formatted.tsv") optional true into picaout_db_files_explanations
+    set val(binname), val(mdsum), val(RULEBOOK), stdout, val(accuracy) into phenotrexout_db_files
+    set val(binname), val(mdsum), val(RULEBOOK), file("*_explanations_formatted.tsv") optional true into phenotrexout_db_files_explanations
 
     script:
     explain_flag = params.get_explanations ? "--out_explain_per_sample explanations.tsv --shap_n_samples ${params.shap_n_samples} --n_max_explained_features ${params.shap_n_features}" : ''
@@ -532,8 +532,8 @@ process pica {
     cut -f2 $hmmeritem | tr "\\n" "\\t" >> tempfile.tmp
     phenotrex predict \\
         --genotype tempfile.tmp ${explain_flag} \\
-        --classifier $TEST_MODEL > picaout.result
-    echo -n \$(cat picaout.result | tail -n1 | cut -f2,3)
+        --classifier $TEST_MODEL > phenotrexout.result
+    echo -n \$(cat phenotrexout.result | tail -n1 | cut -f2,3)
     if [[ -f "explanations.tsv" ]]; then
         cut -f1,2,3,4,5 explanations.tsv \\
             | sed 1d \\
@@ -542,45 +542,45 @@ process pica {
     """
 }
 
-db_write_pica_results = picaout_db_files.collectFile() { item ->
+db_write_phenotrex_results = phenotrexout_db_files.collectFile() { item ->
     [ "${item[1]}.results", "${item[2]}\t${item[3]}\t${item[4]}" ]  // use md5sum as filename for identification in DB
 }
-db_write_pica_explanations = picaout_db_files_explanations.collectFile(){
+db_write_phenotrex_explanations = phenotrexout_db_files_explanations.collectFile(){
     item -> [ "${item[1]}.explanations", item[3].text ]
 }
 
-// write PICA result to database
-process write_pica_result_to_db {
+// write phenotrex result to database
+process write_phenotrex_result_to_db {
 
     tag "${mdsum_file.getBaseName()}"
     scratch true
 
     input:
-    file(mdsum_file) from db_write_pica_results
+    file(mdsum_file) from db_write_phenotrex_results
 
     output:
     file(mdsum_file) into resfiles_after_db_write
 
     script:
     """
-    write_pica_result_to_db.py ${mdsum_file} ${mdsum_file.getBaseName()}
+    write_phenotrex_result_to_db.py ${mdsum_file} ${mdsum_file.getBaseName()}
     """
 }
 
-process write_pica_explanations_to_db {
+process write_phenotrex_explanations_to_db {
 
     tag "${mdsum_file.getBaseName()}"
     scratch true
 
     input:
-    file(mdsum_file) from db_write_pica_explanations
+    file(mdsum_file) from db_write_phenotrex_explanations
 
     output:
     file(mdsum_file) into explanations_after_db_write
     
     script:
     """
-    write_pica_explanations_to_db.py ${mdsum_file} ${mdsum_file.getBaseName()}
+    write_phenotrex_explanations_to_db.py ${mdsum_file} ${mdsum_file.getBaseName()}
     """
 }
 
@@ -601,7 +601,7 @@ process make_downloadable_flat_files {
     script:
     """
     write_pipeline_output.py \\
-        --dep_file ${params.pica_dependencies} \\
+        --dep_file ${params.phenotrex_dependencies} \\
         --job_key ${jobname} \\
         --md5sums ${job_mdsums_results.join(" ")}
     """
@@ -693,7 +693,7 @@ except IntegrityError:
 }
 
 workflow.onComplete {
-    println "picaPipeline completed at: $workflow.complete"
+    println "phenotrexPipeline completed at: $workflow.complete"
     println "Execution status: ${ workflow.success ? 'OK' : 'failed' }"
 }
 

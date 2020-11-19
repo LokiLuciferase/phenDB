@@ -9,7 +9,7 @@ from redis import Redis
 from rq import Queue
 
 os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
-PHENDB_BASEDIR = os.environ['BASEDIR']
+PHENDB_BASEDIR = os.environ["BASEDIR"]
 sys.path.append(f"{PHENDB_BASEDIR}/source/web_server")
 
 from phenotypePredictionApp.variables import PHENDB_QUEUE
@@ -20,10 +20,11 @@ from enqueue_job import delete_user_data
 days_back = 30
 
 q = Queue(PHENDB_QUEUE, connection=Redis())
-q.enqueue_call(func=delete_user_data,
-               args=(days_back,),
-               timeout='10m',
-               ttl='10m',
-               job_id="db_maintenance_clean_old",
-               at_front=True
-               )
+q.enqueue_call(
+    func=delete_user_data,
+    args=(days_back,),
+    timeout="10m",
+    ttl="10m",
+    job_id="db_maintenance_clean_old",
+    at_front=True,
+)

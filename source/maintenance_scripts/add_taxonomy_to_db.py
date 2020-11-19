@@ -14,19 +14,14 @@ from phenotypePredictionApp.models import Taxon
 
 @click.command()
 @click.argument(
-    'taxonomy_dir',
-    default="/apps/miniconda3/opt/krona/taxonomy",
-    type=click.Path(file_okay=False)
+    "taxonomy_dir", default="/apps/miniconda3/opt/krona/taxonomy", type=click.Path(file_okay=False)
 )
-@click.option('--drop', is_flag=True)
+@click.option("--drop", is_flag=True)
 def update_taxonomy(taxonomy_dir, drop):
     taxonomy_dir = Path(str(taxonomy_dir))
-    taxonomy_file = taxonomy_dir/'taxonomy.tab'
+    taxonomy_file = taxonomy_dir / "taxonomy.tab"
     print("Updating KronaTools Taxonomy DB using ktUpdateTaxonomy.sh...")
-    update_call = subprocess.run(
-        ["ktUpdateTaxonomy.sh", taxonomy_dir],
-        check=True
-    )
+    update_call = subprocess.run(["ktUpdateTaxonomy.sh", taxonomy_dir], check=True)
     if not update_call.returncode == 0:
         raise RuntimeError("Updating of taxonomy.tab exited with error code. Aborting.")
     print("Done.")
@@ -53,7 +48,7 @@ def update_taxonomy(taxonomy_dir, drop):
 
     # drop all rows from old taxonomy DB
     if drop:
-        print('Truncating taxonomy DB.')
+        print("Truncating taxonomy DB.")
         Taxon.objects.all().delete()
 
     print("Updating taxonomy DB...")
@@ -67,5 +62,5 @@ def update_taxonomy(taxonomy_dir, drop):
     print("Finished updating Taxonomy Table.")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     update_taxonomy()

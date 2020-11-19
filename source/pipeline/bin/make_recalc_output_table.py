@@ -11,12 +11,23 @@ import numpy as np
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError
 
+
 def round_nearest(x, a):
     return round(round(x / a) * a, -int(math.floor(math.log10(a))))
 
+
 os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
 django.setup()
-from phenotypePredictionApp.models import Bin, BinInJob, Job, PicaModel, HmmerResult, Enog, PicaModelAccuracy, PicaResult
+from phenotypePredictionApp.models import (
+    Bin,
+    BinInJob,
+    Job,
+    PicaModel,
+    HmmerResult,
+    Enog,
+    PicaModelAccuracy,
+    PicaResult,
+)
 
 return_tuples = []
 precalc_bins = list(Bin.objects.filter(bininjob__job__key__icontains="PHENDB_PRECALC"))
@@ -30,21 +41,27 @@ if batch_number >= 0:
 
 for bin in precalc_bins:
     hmmerpath = "{md5sum}_RECALC.out".format(md5sum=bin.md5sum)
-    enoglist = [x["enog_name"] for x in Enog.objects.filter(hmmerresult__bin=bin).values("enog_name")]
+    enoglist = [
+        x["enog_name"] for x in Enog.objects.filter(hmmerresult__bin=bin).values("enog_name")
+    ]
     write_out = "\n".join(["\t".join(["dummy", x, "dummy"]) for x in enoglist])
     with open(hmmerpath, "w") as hmmerfile:
         hmmerfile.write(write_out)
     for model_name in model_names:
-        newest_model = PicaModel.objects.filter(model_name=model_name).latest('model_train_date')
-        if PicaResult.objects.filter(bin=bin, model=newest_model).exists(): # don't recalc if for same bin and same model results exist
+        newest_model = PicaModel.objects.filter(model_name=model_name).latest("model_train_date")
+        if PicaResult.objects.filter(
+            bin=bin, model=newest_model
+        ).exists():  # don't recalc if for same bin and same model results exist
             continue
         binname = bin.md5sum
         md5sum = bin.md5sum
         model = "/".join([sys.argv[1], model_name])
         hmmeritem = os.path.abspath(hmmerpath)
-        accuracy = PicaModelAccuracy.objects.get(model=newest_model,
-                                                 comple=round_nearest(float(bin.comple),0.05),
-                                                 conta=round_nearest(float(bin.conta),0.05)).mean_balanced_accuracy
+        accuracy = PicaModelAccuracy.objects.get(
+            model=newest_model,
+            comple=round_nearest(float(bin.comple), 0.05),
+            conta=round_nearest(float(bin.conta), 0.05),
+        ).mean_balanced_accuracy
         return_tuples.append((binname, md5sum, model, hmmeritem, str(accuracy)))
 
 if not return_tuples:

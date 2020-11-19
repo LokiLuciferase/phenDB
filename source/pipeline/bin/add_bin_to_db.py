@@ -33,14 +33,22 @@ try:
             hmmer.write("dummy\t" + entry.enog.enog_name + "\tdummy\n")
 
     with open("reconstructed_compleconta_file.txt", "w") as complecon:
-        recon_cc_string = "\t".join([str(x) for x in (thisbin.comple,
-                                                       thisbin.conta,
-                                                       thisbin.strainhet,
-                                                       thisbin.tax_id,
-                                                       "dummy", "dummy")])
+        recon_cc_string = "\t".join(
+            [
+                str(x)
+                for x in (
+                    thisbin.comple,
+                    thisbin.conta,
+                    thisbin.strainhet,
+                    thisbin.tax_id,
+                    "dummy",
+                    "dummy",
+                )
+            ]
+        )
         complecon.write(recon_cc_string)
 
-    print("NO", end='')
+    print("NO", end="")
 
     # Also update the job completeness here, because then hmmer wont be called
     current_finished = parentjob.finished_bins
@@ -54,7 +62,7 @@ except ObjectDoesNotExist:
     # write impossible Nr. for comple and conta that would cause an error during get_accuracy if not overwritten:
     thisbin = Bin(md5sum=mdsum, comple=2, conta=2, strainhet=2)
     thisbin.save()
-    print("YES", end='')
+    print("YES", end="")
 
     # if it not in the db yet, just create dummy files
     with open("reconstructed_hmmer_file.txt", "w") as hmmer:
@@ -66,7 +74,9 @@ try:
     assoc = BinInJob(bin=thisbin, job=parentjob, bin_alias=binname)
     assoc.save()
 except IntegrityError:
-    if binname.startswith("PHENDB_PRECALC"):  # allow muliple identical files in same job if precalculation job
+    if binname.startswith(
+        "PHENDB_PRECALC"
+    ):  # allow muliple identical files in same job if precalculation job
         pass
     else:
         raise

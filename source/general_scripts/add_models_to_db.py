@@ -43,13 +43,19 @@ def rankfile_to_list(rankfile, groupfile, db_enogs):
 
         try:
             # check if the enog is contained in the database, if yes, add the enog_ranks object to the enog_rank_list try:
-            new_enog_rank = EnogRank(model=newmodel,
-                                     enog=db_enogs[enog_name],
-                                     internal_rank=counter,
-                                     score=float(score),
-                                     pred_class=(False if float(score) <= 0 else True))
+            new_enog_rank = EnogRank(
+                model=newmodel,
+                enog=db_enogs[enog_name],
+                internal_rank=counter,
+                score=float(score),
+                pred_class=(False if float(score) <= 0 else True),
+            )
             enog_rank_list.append(new_enog_rank)
-            sys.stdout.write("Added Enog Nr. {nr}        of {totnr}.\r".format(nr=counter, totnr=num_lines_ranksfile))
+            sys.stdout.write(
+                "Added Enog Nr. {nr}        of {totnr}.\r".format(
+                    nr=counter, totnr=num_lines_ranksfile
+                )
+            )
             sys.stdout.flush()
         # If the "enog" is not contained in the db, it might actually be a "feature group"
         # check this by looking up in the feature_group dict. If it is the case, add all enogs in the
@@ -59,20 +65,29 @@ def rankfile_to_list(rankfile, groupfile, db_enogs):
                 nr_of_enogs_in_fg = len(featuregroup_dict[enog_name])
                 for fg_enog in featuregroup_dict[enog_name]:
                     try:
-                        new_enog_rank = EnogRank(model=newmodel,
-                                                 enog=db_enogs[fg_enog],
-                                                 internal_rank=counter,
-                                                 score=float(score) / nr_of_enogs_in_fg,
-                                                 pred_class=(False if float(score) <= 0 else True))
+                        new_enog_rank = EnogRank(
+                            model=newmodel,
+                            enog=db_enogs[fg_enog],
+                            internal_rank=counter,
+                            score=float(score) / nr_of_enogs_in_fg,
+                            pred_class=(False if float(score) <= 0 else True),
+                        )
                         enog_rank_list.append(new_enog_rank)
                     except KeyError:
-                        sys.exit("\n ERROR: The .rank.groups file of the model contained {fg_enog} which could not "
-                                 "be found in the database. ABORTING. \n".format(fg_enog=fg_enog))
+                        sys.exit(
+                            "\n ERROR: The .rank.groups file of the model contained {fg_enog} which could not "
+                            "be found in the database. ABORTING. \n".format(fg_enog=fg_enog)
+                        )
 
             except KeyError:
-                sys.exit("\n ERROR. The .rank file of the model contained {enog_name} which could be found neither "
-                         "in the database nor in the .rank.groups file. ABORTING. \n".format(enog_name=enog_name))
+                sys.exit(
+                    "\n ERROR. The .rank file of the model contained {enog_name} which could be found neither "
+                    "in the database nor in the .rank.groups file. ABORTING. \n".format(
+                        enog_name=enog_name
+                    )
+                )
     return enog_rank_list
+
 
 # store a dictionary of all enogs that are currently in the db
 # if statement forces the objects to be loaded from the database (?)
@@ -99,7 +114,9 @@ if db_enogs:
         # new_version_nr=1
 
         try:  # check if there is a .description file, if there is, read the description
-            with open(PICAMODELFOLDER + "/" + picamodel + "/" + picamodel + ".description", "r") as descfile:
+            with open(
+                PICAMODELFOLDER + "/" + picamodel + "/" + picamodel + ".description", "r"
+            ) as descfile:
                 desc = ""
                 for line in descfile:
                     desc += " " + line.rstrip()
@@ -107,22 +124,29 @@ if db_enogs:
             desc = ""
 
         try:  # check if there is a .type file, if there is, read the description
-            with open(PICAMODELFOLDER + "/" + picamodel + "/" + picamodel + ".type", "r") as typefile:
+            with open(
+                PICAMODELFOLDER + "/" + picamodel + "/" + picamodel + ".type", "r"
+            ) as typefile:
                 for line in typefile:
                     type += line.rstrip()
         except FileNotFoundError:
             type = "NA"
 
         # add the model to the database
-        newmodel = PicaModel(model_name=picamodel, model_desc=desc, type=type,
-                             model_train_date=timezone.now())
+        newmodel = PicaModel(
+            model_name=picamodel, model_desc=desc, type=type, model_train_date=timezone.now()
+        )
         newmodel.save()
 
         # add the ranks of the models to the database
         # read the .rank file of the model and extract enogs and their ranks
-        num_lines_ranksfile = file_len(PICAMODELFOLDER + "/" + picamodel + "/" + picamodel + ".rank")
+        num_lines_ranksfile = file_len(
+            PICAMODELFOLDER + "/" + picamodel + "/" + picamodel + ".rank"
+        )
         with open(PICAMODELFOLDER + "/" + picamodel + "/" + picamodel + ".rank", "r") as rankfile:
-            with open(PICAMODELFOLDER + "/" + picamodel + "/" + picamodel + ".rank.groups", "r") as groupfile:
+            with open(
+                PICAMODELFOLDER + "/" + picamodel + "/" + picamodel + ".rank.groups", "r"
+            ) as groupfile:
                 print("Creating list of enogs...")
                 try:
                     enog_rank_list_filled = rankfile_to_list(rankfile, groupfile, db_enogs)
@@ -146,18 +170,25 @@ if db_enogs:
             acc_list = []
             for i in range(0, 21 * 21):
                 this_data = data[i]
-                acc_list.append(PicaModelAccuracy(model=newmodel,
-                                                  comple=this_data["completeness"], conta=this_data["contamination"],
-                                                  mean_balanced_accuracy=this_data["mean_balanced_accuracy"],
-                                                  mean_fp_rate=this_data["mean_fp_rate"],
-                                                  mean_fn_rate=this_data["mean_fn_rate"]))
+                acc_list.append(
+                    PicaModelAccuracy(
+                        model=newmodel,
+                        comple=this_data["completeness"],
+                        conta=this_data["contamination"],
+                        mean_balanced_accuracy=this_data["mean_balanced_accuracy"],
+                        mean_fp_rate=this_data["mean_fp_rate"],
+                        mean_fn_rate=this_data["mean_fn_rate"],
+                    )
+                )
             print("writing accuracy entries into db...")
             PicaModelAccuracy.objects.bulk_create(acc_list)
 
         except Exception as e:  # specifc error here?
             newmodel.delete()
             print(e)
-            sys.exit("\n There was a problem while processing the accuracy file or while writing it to the db ")
+            sys.exit(
+                "\n There was a problem while processing the accuracy file or while writing it to the db "
+            )
 
         print("Attempting to add information on training data of model...")
         # check if the model has a .phenotype file, and upload information to model_used_genomes
@@ -173,10 +204,15 @@ if db_enogs:
                 taxid_list = [x.strip().split("\t") for x in tin.readlines()]
                 taxid_dict = {x: y for x, y in taxid_list}
 
-            train_list = [PicaModelTrainingData(model=newmodel,
-                                                tax_id=taxid_dict[x],
-                                                assembly_id=x,
-                                                verdict=(True if y == "YES" else False)) for x, y in train_data]
+            train_list = [
+                PicaModelTrainingData(
+                    model=newmodel,
+                    tax_id=taxid_dict[x],
+                    assembly_id=x,
+                    verdict=(True if y == "YES" else False),
+                )
+                for x, y in train_data
+            ]
             print("Writing training data to db...")
             PicaModelTrainingData.objects.bulk_create(train_list)
 

@@ -41,7 +41,7 @@ for result in conditions:  # result = [modelname, rank, enog_name, is_present, d
         )
         # get model from db
         try:
-            this_model = PicaModel.objects.filter(model_name=model_name).latest('model_train_date')
+            this_model = PicaModel.objects.filter(model_name=model_name).latest("model_train_date")
         except ObjectDoesNotExist:
             sys.exit("Current Model for this result not found.")
 
@@ -50,7 +50,7 @@ for result in conditions:  # result = [modelname, rank, enog_name, is_present, d
             bin=parentbin,
             enog=DB_ENOGS[enog_name],
             enog_is_present=enog_is_present,
-            delta_shap=delta_shap
+            delta_shap=delta_shap,
         )
         expl_list.append(expl)
     except (IntegrityError,) as e:
@@ -62,9 +62,7 @@ try:
 except IntegrityError:
     for result in expl_list:
         if not PicaResultExplanation.objects.filter(
-            model=result.model,
-            bin=result.bin,
-            enog=result.enog
+            model=result.model, bin=result.bin, enog=result.enog
         ).exists():
             result.save()
             print(result)

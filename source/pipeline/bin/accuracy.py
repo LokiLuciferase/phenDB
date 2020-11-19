@@ -5,10 +5,12 @@ import sys
 import os
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError
+
 os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
 django.setup()
 from phenotypePredictionApp.models import Taxon, Bin, PicaModelAccuracy, PicaModel
 import math
+
 
 def round_nearest(x, a):
     return round(round(x / a) * a, -int(math.floor(math.log10(a))))
@@ -24,7 +26,7 @@ try:
         comple, conta, strainhet, taxid, tname, trank = ccfile.readline().strip().split("\t")
 except ValueError:
     raise ValueError
-    #comple, conta, strainhet, taxid, tname, trank = [0 for x in range(6)]
+    # comple, conta, strainhet, taxid, tname, trank = [0 for x in range(6)]
 
 cc = [float(x) for x in [comple, conta, strainhet]]
 for i in range(len(cc)):
@@ -55,6 +57,10 @@ except ObjectDoesNotExist:
 # check the balanced accuracy. other metrices would be very similar to evaluate, just change the part after the last dot
 # the print statments includes a newline at the end, this is important for processing further downstream
 
-print(PicaModelAccuracy.objects.get(model=PicaModel.objects.filter(model_name=modelname).latest('model_train_date'),
-comple=round_nearest(float(cc[0]),0.05),
-conta=round_nearest(float(cc[1]),0.05)).mean_balanced_accuracy)
+print(
+    PicaModelAccuracy.objects.get(
+        model=PicaModel.objects.filter(model_name=modelname).latest("model_train_date"),
+        comple=round_nearest(float(cc[0]), 0.05),
+        conta=round_nearest(float(cc[1]), 0.05),
+    ).mean_balanced_accuracy
+)

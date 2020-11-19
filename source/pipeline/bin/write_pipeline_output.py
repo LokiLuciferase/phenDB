@@ -9,7 +9,15 @@ import argparse
 
 os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
 django.setup()
-from phenotypePredictionApp.models import Job, Bin, BinInJob, PicaModel, PicaResult, PicaResultExplanation, Taxon
+from phenotypePredictionApp.models import (
+    Job,
+    Bin,
+    BinInJob,
+    PicaModel,
+    PicaResult,
+    PicaResultExplanation,
+    Taxon,
+)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-b", "--balac_cutoff", help="Balanced accuracy cutoff")
@@ -17,8 +25,12 @@ parser.add_argument("-c", "--conf_cutoff", help="prediction confidence cutoff")
 parser.add_argument("-a", "--show_all", default="false", help="Show all results")
 parser.add_argument("-d", "--dep_file", help="trait_dependencies.tsv file")
 parser.add_argument("-j", "--job_key", help="uuid4 of job")
-parser.add_argument("-e", "--explanations", action='store_true', help="Download explanations for predictions.")
-parser.add_argument("-m", "--md5sums", nargs="+", help="A list of md5sums calculated in this pipeline run")
+parser.add_argument(
+    "-e", "--explanations", action="store_true", help="Download explanations for predictions."
+)
+parser.add_argument(
+    "-m", "--md5sums", nargs="+", help="A list of md5sums calculated in this pipeline run"
+)
 args = parser.parse_args()
 
 parentjob = Job.objects.get(key=args.job_key)
@@ -30,9 +42,13 @@ KEEP_EXPL = args.explanations
 BIN_MDSUMS = sorted(args.md5sums, reverse=True)
 ROUND_TO = 2
 now = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
-INDIVIDUAL_RESULTS_HEADER = "Model_Name,Prediction,Prediction_Confidence,Balanced_Accuracy,Model_Description\n"
+INDIVIDUAL_RESULTS_HEADER = (
+    "Model_Name,Prediction,Prediction_Confidence,Balanced_Accuracy,Model_Description\n"
+)
 INDIVIDUAL_EXPL_HEADER = "Model_Name,Enog_Name,Enog_Present,Delta_SHAP,Enog_Annotation\n"
-BIN_SUMMARY_HEADER = "Bin_Name,Completeness,Contamination,Strain_Heterogeneity,Taxon_ID,Taxon_Name,Taxon_Rank\n"
+BIN_SUMMARY_HEADER = (
+    "Bin_Name,Completeness,Contamination,Strain_Heterogeneity,Taxon_ID,Taxon_Name,Taxon_Rank\n"
+)
 COUNT_TABLE_HEADER = "Model_Name,+,-,n.d.,n.c.\n"
 KRONA_FILE_HEADER = "#bin name\t#taxon_id\n"
 
@@ -80,15 +96,22 @@ def filter_by_hierarchy(rd, bl, ml, schema, show_all=False):
             current_cstr = dep_dic[model_name]
             for constraint_model, c_s in current_cstr.items():
                 try:
-                    if rd[bin.md5sum][constraint_model]["predictions"]["Prediction"] not in ("n.d.", "n.c.", c_s):
+                    if rd[bin.md5sum][constraint_model]["predictions"]["Prediction"] not in (
+                        "n.d.",
+                        "n.c.",
+                        c_s,
+                    ):
                         rd[bin.md5sum][model_name]["predictions"]["Prediction"] = "n.c."
                         # also update all results of this bin with this model (also old ones)
                         # n.c. masking in db, for web UI
-                        to_be_masked = PicaResult.objects.filter(bin=bin, model__model_name=model_name)
+                        to_be_masked = PicaResult.objects.filter(
+                            bin=bin, model__model_name=model_name
+                        )
                         to_be_masked.update(nc_masked=True)
                 except KeyError:
                     print("Invalid constraint definition: unknown model.")
     return rd, bl  # remove in the end
+
 
 # model-bin-related information
 job_bins = list(Bin.objects.filter(md5sum__in=BIN_MDSUMS))
@@ -103,13 +126,14 @@ archaea_results = all_job_results.filter(model__model_name="ARCHAEA")
 archaea_results.update(pica_pval="1")
 
 all_model_names = sorted(list(set([x.model.model_name for x in first_bin_results])))
-all_newest_models = [PicaModel.objects.filter(model_name=x).latest("model_train_date") for x in all_model_names]
+all_newest_models = [
+    PicaModel.objects.filter(model_name=x).latest("model_train_date") for x in all_model_names
+]
 all_model_desc = [x.model_desc for x in all_newest_models]
 all_model_td = [x.model_train_date.strftime("%Y/%m/%d") for x in all_newest_models]
 job_results_dict = {
-    x.md5sum: {
-        y: {"predictions": None, "explanations": []} for y in all_model_names
-    } for x in job_bins
+    x.md5sum: {y: {"predictions": None, "explanations": []} for y in all_model_names}
+    for x in job_bins
 }
 model_results_count = {x: {"+": 0, "-": 0, "n.d.": 0, "n.c.": 0} for x in all_model_names}
 
@@ -117,27 +141,27 @@ for pica_result in all_job_results:
     pica_verdict_to_string = {1: "+", 0: "-"}
     string_verdict = pica_verdict_to_string[int(pica_result.verdict)]
     this_result_dict = {
-        "Model_name"       : pica_result.model.model_name,
+        "Model_name": pica_result.model.model_name,
         "Model_description": pica_result.model.model_desc,
-        "Prediction"       : string_verdict,
-        "PICA_probability" : pica_result.pica_pval,
-        "Balanced_Accuracy": pica_result.accuracy
+        "Prediction": string_verdict,
+        "PICA_probability": pica_result.pica_pval,
+        "Balanced_Accuracy": pica_result.accuracy,
     }
-    job_results_dict[
-        pica_result.bin.md5sum
-    ][pica_result.model.model_name]["predictions"] = this_result_dict
+    job_results_dict[pica_result.bin.md5sum][pica_result.model.model_name][
+        "predictions"
+    ] = this_result_dict
 
 for pica_expl in all_job_expl:
     this_expl = {
-        "Model_name"       : pica_expl.model.model_name,
-        "Enog_name"        : pica_expl.enog.enog_name,
-        "Enog_present"     : pica_expl.enog_is_present,
-        "Delta_SHAP"       : pica_expl.delta_shap,
-        "Enog_Annotation"  : pica_expl.enog.enog_descr,
+        "Model_name": pica_expl.model.model_name,
+        "Enog_name": pica_expl.enog.enog_name,
+        "Enog_present": pica_expl.enog_is_present,
+        "Delta_SHAP": pica_expl.delta_shap,
+        "Enog_Annotation": pica_expl.enog.enog_descr,
     }
-    job_results_dict[
-        pica_expl.bin.md5sum
-    ][pica_expl.model.model_name]["explanations"].append(this_expl)
+    job_results_dict[pica_expl.bin.md5sum][pica_expl.model.model_name]["explanations"].append(
+        this_expl
+    )
 
 # filter results as desired
 cutoff_filtered_job_results = filter_by_cutoff(
@@ -145,7 +169,7 @@ cutoff_filtered_job_results = filter_by_cutoff(
     all_job_results,
     balac=BALAC_CUTOFF,
     pica=PICA_CONF_CUTOFF,
-    show_all=SHOW_ALL_RESULTS
+    show_all=SHOW_ALL_RESULTS,
 )
 
 hf_job_results, bins_tax_fixed = filter_by_hierarchy(
@@ -153,19 +177,20 @@ hf_job_results, bins_tax_fixed = filter_by_hierarchy(
     job_bins,
     all_model_names,
     schema=TRAIT_DEPENDENCY_FILE,
-    show_all=SHOW_ALL_RESULTS
+    show_all=SHOW_ALL_RESULTS,
 )
 
 # write summaries and individual files
 with open("trait_summary_matrix.csv", "w") as summary_matrix:
-    summary_matrix.write("# PhenDB\n"
-                         "# Time of run: {da}\n"
-                         "# Balanced accuracy cut-off: {co}\n"
-                         "# Prediction confidence cut-off: {pco}\n"
-                         "# Disable all cut-offs? {unl}\n".format(da=now,
-                                                                  co=BALAC_CUTOFF,
-                                                                  pco=PICA_CONF_CUTOFF,
-                                                                  unl=SHOW_ALL_RESULTS))
+    summary_matrix.write(
+        "# PhenDB\n"
+        "# Time of run: {da}\n"
+        "# Balanced accuracy cut-off: {co}\n"
+        "# Prediction confidence cut-off: {pco}\n"
+        "# Disable all cut-offs? {unl}\n".format(
+            da=now, co=BALAC_CUTOFF, pco=PICA_CONF_CUTOFF, unl=SHOW_ALL_RESULTS
+        )
+    )
     summary_matrix.write("# Summary of Trait Prediction Results:\n\n")
     summary_matrix.write("," + ",".join(all_model_desc) + "\n")
     summary_matrix.write("Model train date," + ",".join(all_model_td) + "\n")
@@ -174,12 +199,13 @@ with open("trait_summary_matrix.csv", "w") as summary_matrix:
     # write individual result files and append to list for each bin
     for bin in bins_tax_fixed:
         all_bin_predictions = []
-        with open("{bn}.traits.csv".format(bn=jam[bin.md5sum]), "w") as ind_t, \
-            open("{bn}.expl.csv".format(bn=jam[bin.md5sum]), "w") as ind_expl:
+        with open("{bn}.traits.csv".format(bn=jam[bin.md5sum]), "w") as ind_t, open(
+            "{bn}.expl.csv".format(bn=jam[bin.md5sum]), "w"
+        ) as ind_expl:
             ind_t.write(INDIVIDUAL_RESULTS_HEADER)
             ind_expl.write(INDIVIDUAL_EXPL_HEADER)
             for model in all_model_names:
-                r = hf_job_results[bin.md5sum][model]['predictions']
+                r = hf_job_results[bin.md5sum][model]["predictions"]
                 if type(r["PICA_probability"]) == float:
                     r["PICA_probability"] = round(r["PICA_probability"], ROUND_TO)
                 if type(r["Balanced_Accuracy"]) == float:
@@ -192,12 +218,12 @@ with open("trait_summary_matrix.csv", "w") as summary_matrix:
                         pred=r["Prediction"],
                         pica_conf=r["PICA_probability"],
                         balac=r["Balanced_Accuracy"],
-                        desc=r["Model_description"]
+                        desc=r["Model_description"],
                     )
                 )
-                expl_to_write = hf_job_results[bin.md5sum][model]['explanations']
+                expl_to_write = hf_job_results[bin.md5sum][model]["explanations"]
                 expl_to_write = sorted(
-                    expl_to_write, key=lambda x: abs(x['Delta_SHAP']), reverse=True
+                    expl_to_write, key=lambda x: abs(x["Delta_SHAP"]), reverse=True
                 )
                 for e in expl_to_write:
                     ind_expl.write(
@@ -238,14 +264,15 @@ with open("bin_summary.csv", "w") as taxfile:
             tid = "1"
             tname = "root"
             trank = "no rank"
-        taxfile.write("{bn},{com},{con},{sh},{ti},{tn},{tr}\n".format(
+        taxfile.write(
+            "{bn},{com},{con},{sh},{ti},{tn},{tr}\n".format(
                 bn=jam[bin.md5sum],
                 com=bin.comple,
                 con=bin.conta,
                 sh=bin.strainhet,
                 ti=tid,
                 tn=tname,
-                tr=trank
+                tr=trank,
             )
         )
 with open("taxonomy_krona.tsv", "w") as tax_krona:

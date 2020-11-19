@@ -22,40 +22,40 @@ except ObjectDoesNotExist:
     sys.exit("Bin not found.")
 
 conditions = []
-with open(mdsum_file, "r") as picaresults:
-    for line in picaresults:
+with open(mdsum_file, "r") as phenotrex_results:
+    for line in phenotrex_results:
         conditions.append(line.split())
 
 modelresultlist = []
-for result in conditions:  # result = [modelname, verdict, pica_p_val, balanced_accuracy]
+for result in conditions:  # result = [modelname, verdict, phenotrex_p_val, balanced_accuracy]
     try:
         get_bool = {"YES": True, "NO": False, "N/A": None}
         if result[2] == "NA" or result[2] == "N/A":
-            get_pica_pval = float(0)
+            get_phenotrex_pval = float(0)
         else:
-            get_pica_pval = float(result[2])
+            get_phenotrex_pval = float(result[2])
         boolean_verdict = get_bool[result[1]]
         # get model from db
         try:
-            this_model = PicaModel.objects.filter(model_name=result[0]).latest('model_train_date')
+            this_model = PicaModel.objects.filter(model_name=result[0]).latest("model_train_date")
         except ObjectDoesNotExist:
             sys.exit("Current Model for this result not found.")
 
-        modelresult = PicaResult(verdict=boolean_verdict,
-                                 accuracy=float(result[3]),
-                                 pica_pval=get_pica_pval,
-                                 bin=parentbin,
-                                 model=this_model
-                                 )
+        modelresult = PicaResult(
+            verdict=boolean_verdict,
+            accuracy=float(result[3]),
+            pica_pval=get_phenotrex_pval,
+            bin=parentbin,
+            model=this_model,
+        )
         modelresultlist.append(modelresult)
     except (IntegrityError,) as e:
         sys.exit(e)
 try:
     PicaResult.objects.bulk_create(modelresultlist)
-# TODO: inconsistency of pica pval despite same model version??
+# TODO: inconsistency of phenotrex pval despite same model version??
 except IntegrityError:
     for result in modelresultlist:
-        if not PicaResult.objects.filter(bin=result.bin,
-                                         model=result.model).exists():
+        if not PicaResult.objects.filter(bin=result.bin, model=result.model).exists():
             result.save()
             print(result)
