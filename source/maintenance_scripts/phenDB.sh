@@ -93,7 +93,11 @@ function run_fg() {
     &> redis_worker.log &
   RQ_PID=$!
   # start web server
-  gunicorn -w 4 --chdir ${PHENDB_BASEDIR}/source/web_server phenotypePrediction.wsgi | tee web_server.log
+  gunicorn \
+    -w 4 \
+    -b localhost:${PHENDB_WEB_PORT} \
+    --chdir ${PHENDB_BASEDIR}/source/web_server \
+    phenotypePrediction.wsgi | tee web_server.log
   kill ${RQ_PID}
   sleep 5
   kill ${REDIS_PID} || true
