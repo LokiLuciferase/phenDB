@@ -13,5 +13,5 @@ mkdir -p ${PHENDB_DATA_DIR}/krona/taxonomy
 bash source/maintenance_scripts/purge_temporary_files.sh
 python3 source/maintenance_scripts/purge_user_data.py
 python3 source/maintenance_scripts/add_taxonomy_to_db.py ${PHENDB_DATA_DIR}/krona/taxonomy
-python3 source/maintenance_scripts/add_enogs_to_db.py ${PHENDB_DATA_DIR}/annotations.tsv.gz
-python3 source/maintenance_scripts/add_models_to_db.py ${PHENDB_DATA_DIR}/models
+python3 source/maintenance_scripts/add_enogs_to_db.py ${PHENDB_ENOG_ANNOT_FILE}
+python3 source/maintenance_scripts/add_models_to_db.py ${PHENDB_MODEL_DIR}

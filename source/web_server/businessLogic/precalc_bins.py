@@ -25,9 +25,6 @@ from phenotypePredictionApp.variables import (
 )
 from enqueue_job import phenDB_enqueue, phenDB_recalc
 
-PHENDB_BASEDIR = os.environ["BASEDIR"]
-sys.path.append(f"{PHENDB_BASEDIR}/source/web_server")
-os.environ["DJANGO_SETTINGS_MODULE"] = "phenotypePrediction.settings"
 django.setup()
 from phenotypePredictionApp.models import Bin, Job, BinInJob, Taxon
 
@@ -64,10 +61,17 @@ parser.add_argument(
     action="store_true",
     help="Re-enter known genomes to PhenDB (for re-calculation of results with updated models)",
 )
+parser.add_argument(
+    "-e",
+    "--get_explanations",
+    default=False,
+    action="store_true",
+    help="Whether to compute SHAP explanations for precalculated bins."
+)
 args = parser.parse_args()
 
 Entrez.email = "lukas.lueftinger@univie.ac.at"
-REFSEQ_GENOMES_BACKUP_LOC = "/var/www/refseq_genomes_precalc"
+REFSEQ_GENOMES_BACKUP_LOC =  f"{PHENDB_DATA_DIR}/refseq_genomes_precalc"
 RECALC_MAX_BATCH_NO = 100
 
 
@@ -148,7 +152,10 @@ def download_genomes(los, path):
                     finished = True
                 except ftplib.error_temp:
                     print("Trying again after FTP temporary error. Sleeping 30 sec first.")
-                    sleep(30)
+                    sleep(5)
+                except EOFError:
+                    print("Trying again after FTP temporary error. Sleeping 30 sec first.")
+                    sleep(5)
         shutil.copytree(tmpname, path)
 
 
@@ -214,7 +221,7 @@ def rerun_known_genomes(ppath, outfolder):
         while pipeline_call.result is None:
             sleep(30)
 
-        if pipeline_call.result is 0:
+        if pipeline_call.result == 0:
             print("Batch {i}: Recalculation was successful.".format(i=batch_no))
     print("All recalculations successful.")
     return True
@@ -222,18 +229,21 @@ def rerun_known_genomes(ppath, outfolder):
 
 # submit a PhenDB job to redis queue, with job ID "PHENDB_PRECALC", sleep until finished, return True if success
 def start_precalc_queue(ppath, infolder, outfolder):
+    os.environ['PYTHONPATH'] = PHENDB_BASEDIR + "/source/web_server:$PYTHONPATH"
+    from enqueue_job import phenDB_enqueue, phenDB_recalc
+
     pipeline_path = os.path.join(PHENDB_BASEDIR, "source/pipeline/main.nf")
     q = Queue(PHENDB_QUEUE, connection=Redis())
     pipeline_call = q.enqueue_call(
         func=phenDB_enqueue,
-        args=(ppath, pipeline_path, infolder, outfolder, ""),
+        args=(ppath, pipeline_path, infolder, outfolder, "", args.get_explanations),
         timeout="72h",
         ttl="72h",
     )
     while pipeline_call.result is None:
         sleep(30)
 
-    if pipeline_call.result is 0:
+    if pipeline_call.result == 0:
         print("Precalculation was successful.")
         return True
     print("Precalculation has failed!")
@@ -246,6 +256,7 @@ def main():
     unadded_saveloc = os.path.join(PHENDB_DATA_DIR, "logs/unadded_refseq_genomes.tsv")
     infolder = os.path.join(PHENDB_DATA_DIR, "uploads/PHENDB_PRECALC")
     outfolder = os.path.join(PHENDB_DATA_DIR, "results/PHENDB_PRECALC_results")
+    ppath = PHENDB_BASEDIR + "/source/web_server:$PYTHONPATH"
     logfolder = os.path.join(outfolder, "logs")
 
     os.makedirs(outfolder, exist_ok=True)
