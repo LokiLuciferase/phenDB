@@ -82,7 +82,6 @@ function start() {
 
 function run_fg() {
   cd ${PHENDB_LOG_DIR} || exit 1
-  service mysql start || service mariadb start
   # start redis-server
   nohup redis-server &> redis_server.log &
   [[ "$?" != "" ]] && REDIS_PID=$! || REDIS_PID=""
