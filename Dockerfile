@@ -16,7 +16,9 @@ WORKDIR /apps/phenDB
 
 # install environment
 RUN apt-get update --fix-missing \
-    && apt-get install -y apache2 apache2-dev mariadb-server libmariadbclient-dev git hmmer sudo wget
+    && apt-get install -y apache2 apache2-dev apache2-utils libexpat1 ssl-cert mariadb-server libmariadbclient-dev git hmmer sudo wget
+RUN apt-get install -y libapache2-mod-wsgi
+RUN useradd apache && mkhomedir_helper apache
 
 # if data directory is not given, download from CUBE fileshare
 RUN if [ ! -d /apps/phenDB/data ]; then \
@@ -26,6 +28,7 @@ RUN if [ ! -d /apps/phenDB/data ]; then \
 RUN conda env update -n base -f conda.yaml && conda clean -a -y
 RUN git clone https://github.com/univieCUBE/phenotrex.git ../phenotrex && pip install ../phenotrex
 RUN cp devel_scripts/httpd.conf /etc/apache2/apache2.conf
+
 
 # set up database and run service
 RUN source source/maintenance_scripts/variables.sh \
