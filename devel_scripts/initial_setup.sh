@@ -6,6 +6,7 @@ sudo service mysql start || sudo service mariadb start
 sudo mysql -f < devel_scripts/set_up_dev.sql
 python3 source/web_server/manage.py makemigrations phenotypePredictionApp
 python3 source/web_server/manage.py migrate
+python3 source/web_server/manage.py collectstatic
 
 mkdir -p ${PHENDB_DATA_DIR}/{results,uploads,logs}
 mkdir -p ${PHENDB_DATA_DIR}/krona/taxonomy

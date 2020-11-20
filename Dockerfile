@@ -5,6 +5,8 @@ LABEL maintainer="Lukas Lüftinger <lukas.lueftinger@ares-genetics.com>"
 LABEL description="A container for running the phenDB web server."
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
 ENV TINI_VERSION v0.19.0
+EXPOSE 80
+EXPOSE 3306
 
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /usr/bin/tini
 RUN chmod +x /usr/bin/tini
@@ -16,9 +18,7 @@ WORKDIR /apps/phenDB
 
 # install environment
 RUN apt-get update --fix-missing \
-    && apt-get install -y apache2 apache2-dev apache2-utils libexpat1 ssl-cert mariadb-server libmariadbclient-dev git hmmer sudo wget
-RUN apt-get install -y libapache2-mod-wsgi
-RUN useradd apache && mkhomedir_helper apache
+    && apt-get install -y mariadb-server libmariadbclient-dev git hmmer sudo wget
 
 # if data directory is not given, download from CUBE fileshare
 RUN if [ ! -d /apps/phenDB/data ]; then \
@@ -27,10 +27,10 @@ RUN if [ ! -d /apps/phenDB/data ]; then \
 
 RUN conda env update -n base -f conda.yaml && conda clean -a -y
 RUN git clone https://github.com/univieCUBE/phenotrex.git ../phenotrex && pip install ../phenotrex
-RUN cp devel_scripts/httpd.conf /etc/apache2/apache2.conf
 
-
-# set up database and run service
+# set up database and web server
 RUN source source/maintenance_scripts/variables.sh \
     && bash devel_scripts/initial_setup.sh \
-    && service apache2 start
+    && ln -s source/maintenance_scripts/phenDB.sh ./phenDB.sh
+
+CMD ["source", "source/maintenance_scripts/variables.sh", "&&", "/bin/bash", "phenDB.sh"]

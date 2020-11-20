@@ -8,9 +8,8 @@ function usage()
     echo ""
     echo -e "\t-h, --help\tDisplay this message and exit"
     echo -e "\t--purge\tremove jobs, bins and associated data\n\t\tfrom database"
+    echo -e "\t--run-fg\tRun deployment-ready configuration in foreground: redis-server, rq and gunicorn. Logs at ${PHENDB_LOG_DIR}"
     echo -e "\t--start-queue\tActivate redis and python-rq tools if they are not running. Logs at ${PHENDB_LOG_DIR}"
-    echo -e "\t--start-debug-server\tActivate Django debug HTTP server for testing. Logs at ${PHENDB_LOG_DIR}"
-    echo -e "\t--monitor-queue\tRuns a script to display current status of redis queue."
     echo -e "\t--stop\tStops queue gracefully. Pending jobs are saved."
     echo -e "\t--force-stop\tStops queue immediately. All pending jobs are lost."
     echo ""
@@ -52,26 +51,6 @@ function start_queue() {
     --name ${PHENDB_QUEUE} ${PHENDB_QUEUE} &>> rq_worker.log &
 }
 
-
-function start_debug_server() {
-  echo "Starting debug http server..."
-  mkdir -p ${PHENDB_LOG_DIR}
-  cd ${PHENDB_LOG_DIR}
-
-  if [[ $(ps aux | grep "[r]unserver") != "" ]]; then
-      echo "An instance of the Django development server is already running."
-      exit 1
-  fi
-
-  nohup python3 ${PHENDB_BASEDIR}/source/web_server/manage.py runserver localhost:8999 &> debug_server.log &
-
-}
-
-function monitor_queue() {
-    echo "Running the redis monitoring script..."
-    python3 ${PHENDB_BASEDIR}/source/general_scripts/monitor_queue.py
-}
-
 # hard shutdown: kill everything
 function force_stop() {
     kill $(pgrep -f "manage.py runserver" | tr "\n" " ") || true
@@ -101,6 +80,26 @@ function start() {
     exit 0
 }
 
+function run_fg() {
+  cd ${PHENDB_LOG_DIR} || exit 1
+  service mysql start || service mariadb start
+  # start redis-server
+  nohup redis-server &> redis_server.log &
+  [[ "$?" != "" ]] && REDIS_PID=$! || REDIS_PID=""
+  # start rq worker
+  nohup nohup rq worker \
+    --path ${PHENDB_BASEDIR}/web_server \
+    --path ${PHENDB_BASEDIR}/web_server/businessLogic/ \
+    --name ${PHENDB_QUEUE} ${PHENDB_QUEUE} \
+    &> redis_worker.log &
+  RQ_PID=$!
+  # start web server
+  gunicorn -w 4 --chdir ${PHENDB_BASEDIR}/source/web_server phenotypePrediction.wsgi | tee web_server.log
+  kill ${RQ_PID}
+  sleep 5
+  kill ${REDIS_PID} || true
+}
+
 
 if [[ $# -eq 0 ]]; then
     usage
@@ -120,12 +119,6 @@ while [ "$1" != "" ]; do
         --start-queue)
             start_queue
             ;;
-        --start-debug-server)
-            start_debug_server
-            ;;
-        --monitor-queue)
-            monitor_queue
-            ;;
         --force-stop)
             force_stop
             ;;
@@ -134,6 +127,9 @@ while [ "$1" != "" ]; do
             ;;
         --stop)
             stop
+            ;;
+        --run-fg)
+            run_fg
             ;;
         *)
             echo "ERROR: unknown parameter \"$PARAM\""
