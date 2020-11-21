@@ -18,7 +18,7 @@ WORKDIR /apps/phenDB
 
 # install environment
 RUN apt-get update --fix-missing \
-    && apt-get install -y mariadb-server libmariadbclient-dev git hmmer sudo wget
+    && apt-get install -y build-essential mariadb-server libmariadbclient-dev git hmmer sudo wget
 
 # if data directory is not given, download from CUBE fileshare
 RUN if [ ! -d /apps/phenDB/data ]; then \
