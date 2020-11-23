@@ -9,6 +9,8 @@ function usage()
     echo -e "\t-h, --help\tDisplay this message and exit"
     echo -e "\t--purge\tremove jobs, bins and associated data\n\t\tfrom database"
     echo -e "\t--run-fg\tRun deployment-ready configuration in foreground: redis-server, rq and gunicorn. Logs at ${PHENDB_LOG_DIR}"
+    echo -e "\t--dump-db\tDump current database state to ${PHENDB_DATA_DIR}/db_dumps."
+    echo -e "\t--load-db\tLoad most recent database state from ${PHENDB_DATA_DIR}/db_dumps."
     echo -e "\t--start-queue\tActivate redis and python-rq tools if they are not running. Logs at ${PHENDB_LOG_DIR}"
     echo -e "\t--stop\tStops queue gracefully. Pending jobs are saved."
     echo -e "\t--force-stop\tStops queue immediately. All pending jobs are lost."
@@ -103,6 +105,19 @@ function run_fg() {
   kill ${REDIS_PID} || true
 }
 
+function load_db() {
+  [ "$(mount | grep /mnt)" = "" ] && return  # nothing to do: no input directory
+  MOST_RECENT_DUMP=$(ls -dArt ${PHENDB_DATA_DIR}/db_dumps/* | tail -n 1)
+  echo "Loading most recent DB dump: ${MOST_RECENT_DUMP}"
+  mysql ${PHENDB_DB_NAME} < ${MOST_RECENT_DUMP}
+}
+
+function dump_db() {
+  mkdir -p ${PHENDB_DATA_DIR}/db_dumps
+  NEW_DUMP=${PHENDB_DATA_DIR}/db_dumps/phenDB_$(date +"%d-%m-%Y").sql
+  echo "Writing DB dump to: ${NEW_DUMP}"
+  mysqldump ${PHENDB_DB_NAME} > ${NEW_DUMP}
+}
 
 if [[ $# -eq 0 ]]; then
     usage
@@ -133,6 +148,12 @@ while [ "$1" != "" ]; do
             ;;
         --run-fg)
             run_fg
+            ;;
+        --dump-db)
+            dump_db
+            ;;
+        --load-db)
+            load_db
             ;;
         *)
             echo "ERROR: unknown parameter \"$PARAM\""

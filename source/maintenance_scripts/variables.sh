@@ -5,6 +5,7 @@ export BASEDIR="${BASEDIR:-$(pwd)}"
 export PHENDB_BASEDIR="${PHENDB_BASEDIR:-$BASEDIR}"
 export PYTHONPATH="${PHENDB_BASEDIR}/source/web_server:$PYTHONPATH"
 export DJANGO_SETTINGS_MODULE="phenotypePrediction.settings"
+export DJANGO_SECRET_KEY="${DJANGO_SECRET_KEY:-testing}"
 echo "PHENDB_BASEDIR is now ${PHENDB_BASEDIR}"
 
 # source file of secret variables if exists
@@ -19,6 +20,7 @@ export PHENDB_MODEL_DIR="${PHENDB_MODEL_DIR:-${PHENDB_DATA_DIR}/phenotrex/models
 export PHENDB_ENOG_ANNOT_FILE="${PHENDB_ENOG_ANNOT_FILE:-${PHENDB_DATA_DIR}/eggnog5/annotations.tsv.gz}"
 export PHENDB_ENOG_NAMES_FILE="${PHENDB_ENOG_NAMES_FILE:-${PHENDB_DATA_DIR}/eggnog5/hmmer.db.names.gz}"
 export PHENDB_WEB_PORT="${PHENDB_WEB_PORT:-80}"
+export PHENDB_DB_PORT="${PHENDB_DB_PORT:-33060}"
 export PHENDB_QUEUE="${PHENDB_QUEUE:-${PHENDB_DESIGNATION}}"
 export PHENDB_DB_NAME="${PHENDB_DB_NAME:-${PHENDB_DESIGNATION}}"
 export PHENDB_DB_USERNAME="${PHENDB_DB_USERNAME:-${PHENDB_DESIGNATION}}"
