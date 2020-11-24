@@ -620,7 +620,7 @@ process krona {
 
  script:
  """
- ktImportTaxonomy $kronain -o krona_taxonomy.html
+ ktImportTaxonomy $kronain -tax ${params.kronafolder} -o krona_taxonomy.html
  """
 }
 
