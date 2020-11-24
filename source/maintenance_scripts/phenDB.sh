@@ -106,7 +106,7 @@ function run_fg() {
 }
 
 function load_db() {
-  [ "$(mount | grep /mnt)" = "" ] && return  # nothing to do: no input directory
+  [ "$(mount | grep ${PHENDB_DATA_DIR})" = "" ] && return  # nothing to do: no input directory
   MOST_RECENT_DUMP=$(ls -dArt ${PHENDB_DATA_DIR}/db_dumps/* | tail -n 1)
   echo "Loading most recent DB dump: ${MOST_RECENT_DUMP}"
   mysql ${PHENDB_DB_NAME} < ${MOST_RECENT_DUMP}
