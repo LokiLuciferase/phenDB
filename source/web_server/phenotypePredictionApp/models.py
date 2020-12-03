@@ -116,8 +116,8 @@ class PicaModel(models.Model):
     model_train_date = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return "Name: {mid}\t Description: {md}\tDate of Training: {mtd} \t " "Type= {type}".format(
-            mid=self.model_name, md=self.model_desc, mtd=str(self.model_train_date), type=self.type
+        return "Name: {mid}\t Description: {md}\tDate of Training: {mtd} \t " "Type={type}".format(
+            mid=self.model_name, md=self.model_desc, mtd=str(self.model_train_date), type=self.alg_type
         )
 
 

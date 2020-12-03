@@ -1,46 +1,72 @@
-AEROBE: Aerobic respiration
-alkb: Alkane degradation
-ANAEROBE: Anaerobic respiration
-AOB: Ammonia-oxidizing bacteria
-ARCHAEA: Domain membership to Archaea
-ars: Arsenic detoxification
-AUTO: Autotrophic metabolism
-avre: Plant pathogenicity based on AvrE virulence factor
-baicd: Secondary bile acids production
-bena: Benzoate degradation via hydroxylation
-bpp: Phytate hydrolysis
-bsh: glycine and taurine are de-conjugation from bile salts
-buk2: Butyrate-production
-chb: Chitine degradation
-cnta: Aromatic-ring-hydroxylation
-coos: Carbon monoxide assimilation
-cutc: Trimethylamine production via choline
-dbfa4: bibenzofuran (DF) dibenzo-p-dioxin (DD) degradation
-FACULTATIVE: Facultative anaerobe
-GRAMNEGATIVE: Gram negative bacteria
-HALO: Halophile
-hsdh: Steroid hormone metabolism
-hyda: Hydrogen production
-METHANOTROPH: Methane utilization as carbon source
-MOTILE: Motile bacteria
-naph2: Naphthalene degradation
-nif: Nitrogen fixation
-NOB: Nitrite-oxidizing bacteria
-p450: Fatty acid degradation
-phnx: Phosphonate hydrolisis
-phod: Recycling of organic phosphorus
-PHOTO: Phototroph bacteria
-psa: Capsular polysaccharide biosynthesis
-PSYCHRO: Psychrophile
-Sa_PENR: Penicillin resistance model for Staphylococcus aureus
-soxb: Thiosulfate oxidation
-SPORE: Spore formation
-SYMBIONT: Obligate intracellular lifestyle
-T3SS: T3 Secretion System
-T4SS: T4 Secretion System
-T6SS: T6 Secretion System
-THERM: Thermophile
-THERM_OR_TOLERANT: Mesophile
-txta: Plant pathogenicity based on Thaxtomins
-urea: Ureolytic activity
-xen: Reduction of various α,β-unsaturated and nitro compounds
+model_name	model_desc
+alkb	 Organism is capable of degrading alkanes (M)
+AOB	 Organism is part of the clade of ammonia-oxidizing bacteria (E)
+ARCHAEA	 Organism is an archaeon (C)
+ars	 Organism is capable of arsenic detoxification (M)
+AUTO	 Organism is capable of growth with CO2 as sole carbon source (C)
+avre	 Organism is a plant pathogen (based on AvrE virulence factor) (M)
+baicd	 Organism is capable of producing secondary bile acids (M)
+bena	 Organism is capable of degrading benzoate via hydroxylation (M)
+bpp	 Organism is capable of hydrolyzing phytate (M)
+bsh	 Organism is capable of deconjugating glycine and taurine from bile salts (M)
+buk2	 Organism is capable of producing butyrate (M)
+chb	 Organism is capable of degrading chitine (M)
+cnta	 Organism is capable of aromatic ring hydroxylation (M)
+coos	 Organism is capable of assimilating CO (M)
+cutc	 Organism is capable of producing trimethylamine via choline (M)
+dbfa4	 Organism is capable of performing dibenzofuran degradation (M)
+FACULTATIVE	 Organism is a facultative anaerobe (C)
+HALO	 Organism has a halophilic lifestyle (C)
+hsdh	 Organism is capable of degrading bile acids (M)
+hyda	 Organism is capable of producing H2 gas (M)
+METHANOTROPH	 Organism is capable of growth with methane as the sole carbon source (C)
+naph2	 Organism is capable of degrading naphtalene (M)
+nif	 Organism is capable of fixing N2 (E)
+NOB	 Organism is part of the clade of nitrite-oxidizing bacteria (E)
+p450	 Organism is capable of degrading fatty acids (M)
+PEN_180	 Organism is resistant to penicillin (trained on S. aureus) (E)
+phnx	 Organism is capable of hydrolyzing phosphonate (M)
+phod	 Organism is capable of recycling organic phosphorus (M)
+PHOTO	 Organism is capable of photon capture for energy acquisition (C)
+psa	 Organism is capable of synthesizing capsular polysaccharide (M)
+PSYCHRO	 Organism has a psychrophilic lifestyle (C)
+soxb	 Organism is capable of oxidizing thiosulfate (M)
+SYMBIONT	 Organism has an obligate intracellular lifestyle (C)
+T3SS	 Organism expresses a Type III secretion system (C)
+T4SS	 Organism expresses a Type IV secretion system (C)
+T6SS	 Organism expresses a Type VI secretion system (C)
+THERM	 Organism has a thermophilic lifestyle (C)
+THERM_OR_TOLERANT	 Organism has a thermophilic lifestyle or is thermotolerant (C)
+txta	 Organism is a plant pathogen (based on thaxtomin synthesis capability) (M)
+urea	 Organism is capable of degrading urea (M)
+xen	  Organism is capable of reducing various alpha-beta-unsaturated and nitro compounds (M)
+Aerobe	 Organism is capable of aerobic respiration (T)
+Anaerobe	 Organism is capable of anaerobic respiration (T)
+gram_stain	 Cells of organism stain Gram-positive (+) or Gram-negative (-) (T)
+motility	 Organism is capable of self-propelled motion (T)
+sporulation	 Organism is capable of producing endospores for persistence (T)
+Sulfate_reducer	 Organism is capable of using sulfate as terminal electron acceptor (T)
+amikacin_resistant	 Organism is resistant to amikacin. (Trained on Acinetobacter baumannii.) (E)
+ciprofloxacin_resistant	 Organism is resistant to ciprofloxacin. (Trained on Acinetobacter baumannii.) (E)
+xen	 Organism is capable of reducing various alpha-beta-unsaturated and nitro compounds (M)
+ac	 Organism is producing acetic_acid
+actn_R	 Organism is producing R_acetoin
+Asaccharolytic	 Organism has a Asaccharolytic lifestyle
+btoh	 Organism is producing 1_butanol
+but	 Organism is producing butyric_acid
+etoh	 Organism is producing ethanol
+Fermentative	 Organism has a Fermentative lifestyle
+for	 Organism is producing formic_acid
+glc_D	 Organism is producing D_glucose
+h2	 Organism is producing hydrogen
+indole	 Organism is producing indole
+isobut	 Organism is producing isobutyric_acid
+isoval	 Organism is producing isovaleric_acid
+lac_D	 Organism is producing D_lactic_acid
+lac_L	 Organism is producing L_lactic_acid
+nanoaerobemicro	 Organism has a nanoaerobemicro lifestyle
+nonfermentative	 Organism has a nonfermentative lifestyle
+ppa	 Organism is producing propionic_acid
+Saccharolytic	 Organism has a Saccharolytic lifestyle
+succ	 Organism is producing succinic_acid
+glc_D	 Organism is utilizing D_glucose

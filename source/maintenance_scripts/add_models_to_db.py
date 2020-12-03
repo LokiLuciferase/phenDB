@@ -6,7 +6,7 @@ import json
 import click
 import django
 from django.utils import timezone
-
+import pandas as pd
 
 django.setup()
 from phenotypePredictionApp.models import (
@@ -20,7 +20,7 @@ from phenotypePredictionApp.models import (
 DB_ENOGS = {v.enog_name: v for k, v in Enog.objects.in_bulk().items()}
 
 
-def load_model(d: Union[str, Path]) -> Optional[Tuple]:
+def load_model(d: Union[str, Path], desc: str = None) -> Optional[Tuple]:
     d = Path(str(d))
 
     with open(d / f"{d.name}.phenotype") as fin_p, open(d / f"{d.name}.taxids") as fin_t:
@@ -35,7 +35,7 @@ def load_model(d: Union[str, Path]) -> Optional[Tuple]:
         with open(d / f"{d.name}.description") as fin:
             desc = fin.read().replace("\n", " ")
     except FileNotFoundError:
-        desc = ""
+        pass
 
     try:
         with open(d / f"{d.name}.type") as fin:
@@ -45,7 +45,7 @@ def load_model(d: Union[str, Path]) -> Optional[Tuple]:
 
     newmodel = PicaModel(
         model_name=trait_name,
-        model_desc=desc,
+        model_desc=(desc if desc is not None else ''),
         alg_type=model_type,
         feature_type="eggNOG5-tax-2",
         model_train_date=timezone.now(),
@@ -117,19 +117,23 @@ def load_model(d: Union[str, Path]) -> Optional[Tuple]:
 
 @click.command()
 @click.argument("model_dir", type=click.Path(file_okay=False, exists=True))
+@click.option("--desc_file", type=click.Path(dir_okay=False, exists=True), default=None)
 @click.option("--drop", is_flag=True)
-def main(model_dir: Union[str, Path], drop):
+def main(model_dir: Union[str, Path], desc_file, drop):
     if drop:
         print("Deleting all existing models and assorted data from DB .")
         PicaModel.objects.all().delete()
-
+    if desc_file is not None:
+        desc_dic = pd.read_csv(desc_file, sep='\t').set_index('model_name').iloc[:, 0].to_dict()
+    else:
+        desc_dic = {}
     results = []
     for model in Path(str(model_dir)).iterdir():
         if model.is_file():
             continue
         try:
             print(f"Attempting to upload model {model}...")
-            load_model(model)
+            load_model(model, desc=desc_dic.get(model, None))
         except Exception as e:
             print(f"Error during Model data loading: {e}")
             results.append((model, False))

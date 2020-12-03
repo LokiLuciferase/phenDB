@@ -15,4 +15,11 @@ bash source/maintenance_scripts/purge_temporary_files.sh
 python3 source/maintenance_scripts/purge_user_data.py
 python3 source/maintenance_scripts/add_taxonomy_to_db.py ${PHENDB_DATA_DIR}/krona/taxonomy
 python3 source/maintenance_scripts/add_enogs_to_db.py ${PHENDB_ENOG_ANNOT_FILE}
-python3 source/maintenance_scripts/add_models_to_db.py ${PHENDB_MODEL_DIR}
+python3 source/maintenance_scripts/add_models_to_db.py ${PHENDB_MODEL_DIR} --desc_file ${PHENDB_BASEDIR}/source/pipeline/trait_descriptions.txt
+
+# add precalculated refseq data
+PRECALC_DIR=${PHENDB_DATA_DIR}/phenotrex/refseq_precalculated_condensed/
+python3 devel_scripts/batch_load_refseq_precalc/02_load_to_db.py \
+    --preds ${PRECALC_DIR}/predictions.feather \
+    --expl ${PRECALC_DIR}/explanations.feather \
+    --ccs ${PRECALC_DIR}/compleconta.feather
