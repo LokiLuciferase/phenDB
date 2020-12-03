@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if [ ! -d "${PHENDB_DATA_DIR}" ]; then
+  wget https://fileshare.csb.univie.ac.at/phenDB/phenDB_data/latest.tar.gz \
+  && tar -xvf latest.tar.gz && rm latest.tar.gz && mv latest/* ${PHENDB_DATA_DIR}; fi
+
 rm -f source/web_server/phenotypePredictionApp/migrations/0*.py
 sudo service mysql restart || sudo service mariadb restart
 sudo mysql -f < devel_scripts/set_up_dev.sql
