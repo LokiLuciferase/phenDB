@@ -14,11 +14,6 @@ WORKDIR /apps/phenDB
 RUN apt-get update --fix-missing \
     && apt-get install -y build-essential mariadb-server libmariadbclient-dev git hmmer sudo wget zip unzip gzip
 
-# if data directory is not given, download from CUBE fileshare
-RUN if [ ! -d /apps/phenDB/data/models ]; then \
-    wget https://fileshare.csb.univie.ac.at/phenDB/phenDB_data/latest.tar.gz \
-    && tar -xvf latest.tar.gz && rm latest.tar.gz && mv latest/* data/; fi
-
 RUN conda env update -n base -f conda.yaml && conda clean -a -y
 RUN git clone https://github.com/univieCUBE/phenotrex.git ../phenotrex && pip install ../phenotrex
 

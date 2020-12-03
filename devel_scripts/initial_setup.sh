@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [ ! -d "${PHENDB_DATA_DIR}" ]; then
+if [ ! -d "${PHENDB_DATA_DIR}"/phenotrex/models ]; then
   wget https://fileshare.csb.univie.ac.at/phenDB/phenDB_data/latest.tar.gz \
   && tar -xvf latest.tar.gz && rm latest.tar.gz && mv latest/* ${PHENDB_DATA_DIR}; fi
 
