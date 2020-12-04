@@ -112,3 +112,4 @@ source/web_server/static
 settings.py
 secrets.sh
 /.idea/
+/data

@@ -169,10 +169,13 @@ process fasta_sanity_check {
     set val(binname), file("sanitychecked.fasta"), stdout into fasta_sanity_check_out
 
     script:
-    binname = item.getName()
-
+    filename = item.getName()
+    binname = filename[-3..-1] == '.gz' ? filename[0..-4] : filename
     """
-    fasta_sanity_check.py ${binname} ${item} ${errorfile}
+    if [ "${filename}" != "${binname}" ]; then
+        gunzip -c \$(readlink ${filename}) > ${binname}
+    fi
+    fasta_sanity_check.py ${binname} ${binname} ${errorfile}
     """
 }
 

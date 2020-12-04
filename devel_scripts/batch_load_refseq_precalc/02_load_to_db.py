@@ -91,9 +91,7 @@ def import_to_db(preds, expl, ccs):
             conta = round_5perc(bin.conta)
             try:
                 acc = PicaModelAccuracy.objects.get(
-                    model=this_model,
-                    comple=comple,
-                    conta=comple
+                    model=this_model, comple=comple, conta=conta
                 ).mean_balanced_accuracy
                 this_pred = PicaResult(
                         bin=bin,
