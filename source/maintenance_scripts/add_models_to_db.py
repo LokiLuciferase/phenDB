@@ -56,7 +56,7 @@ def load_model(d: Union[str, Path], desc: str = None) -> Optional[Tuple]:
         print(f"Error during model saving: {e}")
         raise e
 
-    with open(d / f"{d.name}.rank") as fin:
+    with open(d / f"{d.name}.svm.rank") as fin:
         fin.readline()
         wts = [x.strip().split() for x in fin.readlines()]
     enog_rank_list = [

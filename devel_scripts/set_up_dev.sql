@@ -1,6 +1,6 @@
 
-drop database phenDB_devel_LL;
-drop user 'phenDB_devel_LL'@'localhost';
-create database phenDB_devel_LL;
-create user 'phenDB_devel_LL'@'localhost' identified by 'phenDB_devel_LL';
-grant all privileges on phenDB_devel_LL.* to 'phenDB_devel_LL'@'localhost';
+drop database SED_REPLACE_ME;
+drop user 'SED_REPLACE_ME'@'localhost';
+create database SED_REPLACE_ME;
+create user 'SED_REPLACE_ME'@'localhost' identified by 'SED_REPLACE_ME';
+grant all privileges on SED_REPLACE_ME.* to 'SED_REPLACE_ME'@'localhost';

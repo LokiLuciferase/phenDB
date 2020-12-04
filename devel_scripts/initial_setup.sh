@@ -7,7 +7,7 @@ if [ ! -d "${PHENDB_DATA_DIR}"/phenotrex/models ]; then
 
 rm -f source/web_server/phenotypePredictionApp/migrations/0*.py
 sudo service mysql restart || sudo service mariadb restart
-sudo mysql -f < devel_scripts/set_up_dev.sql
+sudo mysql -f < <(sed "s/SED_REPLACE_ME/${PHENDB_DESIGNATION}/g"  devel_scripts/set_up_dev.sql)
 python3 source/web_server/manage.py makemigrations phenotypePredictionApp
 python3 source/web_server/manage.py migrate
 python3 source/web_server/manage.py collectstatic
