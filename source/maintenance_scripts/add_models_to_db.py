@@ -133,7 +133,7 @@ def main(model_dir: Union[str, Path], desc_file, drop):
             continue
         try:
             print(f"Attempting to upload model {model}...")
-            load_model(model, desc=desc_dic.get(model, None))
+            load_model(model, desc=desc_dic.get(model.name, None))
         except Exception as e:
             print(f"Error during Model data loading: {e}")
             results.append((model, False))
