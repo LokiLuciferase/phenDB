@@ -102,8 +102,7 @@ def import_to_db(preds, expl, ccs):
                 )
                 these_preds.append(this_pred)
             except:
-                print(bin.comple, comple, bin.conta, conta, this_model)
-                print(row)
+                print(f'Could not add: bin={bin.assembly_id}, comple={comple}, conta={conta}')
         PicaResult.objects.bulk_create(these_preds)
 
     for model_name, df in expl.groupby('Model Name'):
@@ -121,7 +120,7 @@ def import_to_db(preds, expl, ccs):
                     delta_shap=row['SHAP value']
                 )
                 these_expl.append(this_expl)
-
+        PicaResultExplanation.objects.bulk_create(these_expl)
 
 if __name__ == '__main__':
     import_to_db()
