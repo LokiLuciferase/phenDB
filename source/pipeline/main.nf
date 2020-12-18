@@ -602,10 +602,11 @@ process make_downloadable_flat_files {
     file("taxonomy_krona.tsv") into tax_for_krona
 
     script:
+    get_expl_flag = params.get_explanations ? '-e' : ''
     """
     write_pipeline_output.py \\
         --dep_file ${params.phenotrex_dependencies} \\
-        --job_key ${jobname} \\
+        --job_key ${jobname} ${get_expl_flag} \\
         --md5sums ${job_mdsums_results.join(" ")}
     """
 }

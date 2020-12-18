@@ -16,6 +16,9 @@ class JobDisplay(admin.ModelAdmin):
     def disable_cutoffs(obj):
         return True if obj.disable_cutoffs else ""
 
+    def expl_requested(obj):
+        return True if obj.get_explanations else ""
+
     def no_errors(obj):
         if obj.errors == None:
             return None
@@ -50,6 +53,7 @@ class JobDisplay(admin.ModelAdmin):
         bal_acc_cutoff,
         pred_conf_cutoff,
         disable_cutoffs,
+        expl_requested,
         "error_type",
         uploaded_file_name,
         link_to_results,
