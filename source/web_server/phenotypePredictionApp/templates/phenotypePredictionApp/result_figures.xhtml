@@ -66,9 +66,9 @@
             <form enctype="multipart/form-data" method="post" id="update_result_form">
                 {% csrf_token %}
                 <div id="results_advanced_explanation" class="row">
-                <span> Change the cut-offs and update the result figures (only applies to the online results in the
+                <span> Change the cut-offs and update result tables (only applies to the online results in the
                 section "Explore Your Results Online", not to the zipped result folder provided in the section
-                "Download Your Full Results"). Go to our <a target="_blank" href="http://phendb.org/help">Help section</a> to
+                "Download Your Full Results"). <br> Please visit the <a target="_blank" href="http://phendb.org/help">Help section</a> to
                 learn more about cut-offs and filtering applied by PhenDB.
                 </span>
                 </div>
@@ -83,7 +83,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="column inputField" style="flex:50">
+                    <div class="column inputField" style="flex:0; align-items:flex-end">
                         <input id="results_advanced_requested_balac" style="flex:100" name="requested_balac" type="text" value="0.75"></input>
                     </div>
                 </div>
@@ -98,7 +98,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="column inputField" style="flex:50">
+                    <div class="column inputField" style="flex:0; align-items:flex-end">
                         <input id="results_advanced_requested_conf" style="flex:100" name="requested_conf" type="text" value="0.6"></input>
                     </div>
                 </div>
@@ -106,7 +106,7 @@
                     <div class="column" style="flex:50">
                         <label for="results_advanced_disable_cutoffs"><b>Disable all filters and cut-offs</b></label>
                     </div>
-                    <div class="column inputField" style="flex:50; align-items:flex-start">
+                    <div class="column inputField" style="flex:50; align-items:flex-end">
                         <input id="results_advanced_disable_cutoffs" name="disable_cutoffs" type="checkbox" value="0" onclick="try {UIDisableLogic.click_on_disable_cutoffs_checkbox([{id: 'results_advanced_requested_conf', elm_type: 'puispinner'}, {id : 'results_advanced_requested_balac', elm_type: 'puispinner'}], this);} catch(e) {console.error(e.message);}"></input>
                     </div>
                 </div>
@@ -118,7 +118,9 @@
                     </div>
                 </div>
                 <div class="row">
-                    <button id="results_advanced_submit" type="button">Submit</button>
+                <div class="column" style="flex:100; align-items:flex-end">
+                    <button id="results_advanced_submit" type="button" style="flex:0; align-items:flex-end">Submit</button>
+                    </div>
                 </div>
             </form>
         </div>
