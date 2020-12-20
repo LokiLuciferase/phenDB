@@ -45,6 +45,7 @@ class JobDisplay(admin.ModelAdmin):
     link_to_results.allow_tags = True
     actions = None
     list_display = (
+        "key",
         "job_date",
         "user_email",
         "user_ip",

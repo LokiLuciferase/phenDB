@@ -119,6 +119,8 @@ var initializeDataTablesGlobal;
 function DataTableData() {
     this.prediction_details_values;
     this.prediction_details_titles;
+    this.explanation_details_values;
+    this.explanation_details_titles;
     this.bin_alias_list;
     this.model_list;
     this.prediction_values;
@@ -155,6 +157,14 @@ function InitializeAllDataTables(dataTableData) {
             this.tables['table_prediction_details'].add_colvis_filter("Show/Hide columns", false);
         } catch (e) {
             console.error("table_prediction_details failed" + " " + e);
+        }
+        try {
+            this.tables['table_explanation_details'] = new DataTable(this.dataTableData.explanation_details_values, this.dataTableData.explanation_details_titles, "#table_explanation_details", "phendb_explanation_details");
+            this.tables['table_explanation_details'].addFiltering("#trait_explanation_details_bin_filter", this.dataTableData.bin_alias_list, 0);
+            this.tables['table_explanation_details'].addFiltering('#trait_explanation_details_model_filter', this.dataTableData.model_list, 1)
+            this.tables['table_explanation_details'].add_colvis_filter("Show/Hide columns", false);
+        } catch (e) {
+            console.error("table_explanation_details failed" + " " + e);
         }
         try {
             this.tables['table_prediction'] = new DataTable(this.dataTableData.prediction_values, this.dataTableData.prediction_titles, "#table_prediction", "phendb_prediction");

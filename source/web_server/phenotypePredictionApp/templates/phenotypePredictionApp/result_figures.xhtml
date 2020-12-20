@@ -36,6 +36,28 @@
                     </div>
                     <table id="table_prediction_details" class="result_table"></table>
                 </div>
+                {% if getExplanations == 'true' %}
+                <h3>Prediction Explanations (SHAP)</h3>
+                <div id="trait_explanation_details">
+                    <div class="row" style="padding-bottom: 30px">
+                        <div class="column" style="width: 100px; padding-right:10px">
+                            Filter Bins
+                        </div>
+                        <div class="column">
+                            <input id="trait_explanation_details_bin_filter"></input>
+                        </div>
+                    </div>
+                    <div class="row" style="padding-bottom: 30px">
+                        <div class="column" style="width: 100px; padding-right:10px">
+                            Filter Model
+                        </div>
+                        <div class="column">
+                            <input id="trait_explanation_details_model_filter"></input>
+                        </div>
+                    </div>
+                    <table id="table_explanation_details" class="result_table"></table>
+                </div>
+                {% endif %}
                 <h3>Trait Count Summary</h3>
                 <div id="trait_counts_summary">
                      <div class="row" style="padding-bottom: 30px">
@@ -130,6 +152,8 @@
             var dataTableData = new DataTableData();
             dataTableData.prediction_details_values = {{ prediction_details_values | safe}};
             dataTableData.prediction_details_titles = {{ prediction_details_titles | jsonify | safe}};
+            dataTableData.explanation_details_values = {{ explanation_details_values | safe}};
+            dataTableData.explanation_details_titles = {{ explanation_details_titles | jsonify | safe}};
             dataTableData.bin_alias_list = {{ bin_alias_list | safe }};
             dataTableData.model_list = {{ model_list | safe }};
             dataTableData.prediction_values = {{ prediction_values | safe}};

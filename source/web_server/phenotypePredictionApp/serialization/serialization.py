@@ -1,4 +1,6 @@
-from phenotypePredictionApp.models import Job, PicaResult, BinInJob, PicaModel, Taxon
+from phenotypePredictionApp.models import (
+    Job, PicaResult, BinInJob, PicaModel, PicaResultExplanation, Taxon, Enog
+)
 
 
 class PicaResultForUI:
@@ -14,12 +16,20 @@ class PicaResultForUI:
         self.disable_cutoffs = (
             bool(job.disable_cutoffs) if disable_cutoffs is None else bool(disable_cutoffs)
         )
+        self.get_explanations = bool(job.get_explanations)
         self.all_bins_in_job = BinInJob.objects.filter(job=job).select_related("bin")
+        self.all_enogs = Enog.objects.all()
         self.all_bins = [x.bin for x in self.all_bins_in_job]
         self.bin_alias_list = [x.bin_alias for x in self.all_bins_in_job]
         all_models_for_currentjob = [
             x.model for x in PicaResult.objects.filter(bin=self.all_bins[0]).select_related("model")
         ]
+        if self.get_explanations:
+            self.all_expl_in_job = PicaResultExplanation.objects.filter(
+                bin__in=self.all_bins, model__in=all_models_for_currentjob
+            )
+        else:
+            self.all_expl_in_job = {}
         all_model_names_for_currentjob = set()
         self.newest_models_for_currentjob = []
         # sort by model train date and add newest possible results for models older than job. Only add unique models
@@ -38,6 +48,7 @@ class PicaResultForUI:
         )
         self.resdic = self.__make_results_dict()
         self.__calc_prediction_details()
+        self.__calc_explanation_details()
         self.__calc_prediction()
         self.__calc_trait_counts()
         self.__calc_bin_summary()
@@ -49,6 +60,7 @@ class PicaResultForUI:
         resdic = {}
         bin_id_to_bij_id = {x.bin_id: x.bin_alias for x in self.all_bins_in_job}
         bin_id_to_alias = {x.id: bin_id_to_bij_id[x.id] for x in self.all_bins}
+        enog_id_to_enog = {x.id: (x.enog_name, x.enog_descr) for x in self.all_enogs}
         model_id_to_name = {x.id: x.model_name for x in self.newest_models_for_currentjob}
         for res in list(self.all_results_for_currentjob.values()):
             model_id = res.get("model_id")
@@ -59,17 +71,36 @@ class PicaResultForUI:
             pred_conf = res.get("pica_pval")
             nc_masked = res.get("nc_masked")
             bin_in_resdic = resdic.setdefault(bin_alias, {})
+
             bin_in_resdic[model_name] = {
                 "verdict": verdict,
                 "accuracy": mean_balac,
                 "pica_pval": pred_conf,
                 "nc_masked": nc_masked,
                 "model_id": model_id,
+                "explanations": []
             }
+        for expl in list(self.all_expl_in_job.values()):
+            model_id = expl.get('model_id')
+            bin_alias = bin_id_to_alias[expl.get("bin_id")]
+            model_name = model_id_to_name[model_id]
+            enog_id = expl.get('enog_id')
+            enog_is_present = expl.get('enog_is_present')
+            delta_shap = expl.get('delta_shap')
+            enog_name, enog_descr = enog_id_to_enog[enog_id]
+            resdic[bin_alias][model_name]['explanations'].append({
+                'enog_name': enog_name,
+                'enog_descr': enog_descr,
+                'enog_is_present': enog_is_present,
+                'delta_shap': delta_shap
+            })
         return resdic
 
     def __calc_prediction_details(self):
         self.prediction_details = _PredictionDetails(self)
+
+    def __calc_explanation_details(self):
+        self.explanation_details = _ExplanationDetails(self)
 
     def __calc_prediction(self):
         self.prediction = _Prediction(self)
@@ -139,6 +170,37 @@ class _PredictionDetails:
             single_row.append(round(model_dic["accuracy"], 2))
             arr.append(single_row)
         return arr
+
+
+class _ExplanationDetails:
+    def __init__(self, picaResultForUI):
+        self.picaResultForUI = picaResultForUI
+        self.__calc()
+
+    TITLES = [
+        {"title": "Bin"},
+        {"title": "<a target='_blank' href='http://phendb.org/reports/modeloverview'>Model</a>"},
+        {"title": "ENOG ID"},
+        {"title": "ENOG Present in Bin"},
+        {"title": "Resulting SHAP Value"},
+    ]
+
+    def get_values(self):
+        return self.values
+
+    def get_titles(self):
+        return _ExplanationDetails.TITLES
+
+    def __calc(self):
+        arr = []
+        rd = self.picaResultForUI.resdic
+        for bin_name in rd.keys():
+            bin_dic = rd[bin_name]
+            for model_name in sorted(bin_dic.keys()):
+                expls = rd[bin_name][model_name]['explanations']
+                for e in expls:
+                    arr.append([bin_name, model_name] + list(e.values()))
+        self.values = arr
 
 
 class _Prediction:
@@ -259,9 +321,36 @@ class _BinSummary:
 class ModelLink:
     URL_SKELETON = "http://phendb.org/reports/modeldetails?model_id="
 
+    @staticmethod
     def createModelLink(model_id, model_name):
         link = ModelLink.__getUrlForModel(model_id)
         return "<a target='_blank' href='" + link + "'>" + model_name + "</a>"
 
+    @staticmethod
     def __getUrlForModel(model_id):
         return ModelLink.URL_SKELETON + str(model_id)
+
+
+class EnogLink:
+    URL_SKELETON = "https://phendb.csb.univie.ac.at/reports/enog?enog_name="
+
+    @staticmethod
+    def createEnogLink(enog_id):
+        link = EnogLink.__getUrlForEnog(enog_id)
+        return "<a target='_blank' href='" + link + "'>" + enog_id + "</a>"
+
+    @staticmethod
+    def __getUrlForEnog(enog_id):
+        return EnogLink.URL_SKELETON + str(enog_id)
+#
+#
+# if __name__ == '__main__':
+#
+#     from pprint import pprint
+#     import django
+#     django.setup()
+#     from phenotypePredictionApp.models import (
+#         Job, PicaResult, BinInJob, PicaModel, PicaResultExplanation, Taxon, Enog
+#     )
+#     p = PicaResultForUI(job=Job.objects.get(key='ae1fdbff-d331-4240-8b2c-1761c23c760f'))
+#     pprint(p.resdic)

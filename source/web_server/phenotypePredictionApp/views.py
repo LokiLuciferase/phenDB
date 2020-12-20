@@ -229,10 +229,17 @@ def getResults(request):
         "errorMessagePU": errorMessagePU,
         "queuePos": queuePos + 1,
         "queueLen": queueLen,
+        "getExplanations": job.get_explanations,
         "prediction_details_values": pica_result_for_ui.prediction_details.get_values()
         if pica_result_for_ui is not None
         else "",
         "prediction_details_titles": pica_result_for_ui.prediction_details.get_titles()
+        if pica_result_for_ui is not None
+        else "",
+        "explanation_details_values": pica_result_for_ui.explanation_details.get_values()
+        if pica_result_for_ui is not None
+        else "",
+        "explanation_details_titles": pica_result_for_ui.explanation_details.get_titles()
         if pica_result_for_ui is not None
         else "",
         "prediction_values": pica_result_for_ui.prediction.get_values()
@@ -260,7 +267,7 @@ def getResults(request):
         if pica_result_for_ui is not None
         else "",
     }
-
+    print(context)
     return HttpResponse(template.render(context, request))
 
 
