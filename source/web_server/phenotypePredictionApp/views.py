@@ -1,7 +1,7 @@
 from django.http import HttpResponse
 from django.template import loader
 from .forms import FileForm
-from .variables import PHENDB_BASEDIR, PHENDB_DATA_DIR, PHENDB_QUEUE, PHENDB_DEBUG
+from .variables import PHENDB_DATA_DIR, PHENDB_QUEUE, PHENDB_DEV_EMAIL
 from django.shortcuts import redirect
 from businessLogic.mailNotification import MailNotification
 import uuid
@@ -181,12 +181,18 @@ def getResults(request):
             refresh = True
             showErrorMessage = False
         elif job.error_type == "UNKNOWN":
+            # Try to send mail to devs notifying them about the issue
+            exitcode = MailNotification.send_mail_now(
+                PHENDB_DEV_EMAIL, content=f'Unknown error encountered with job {job.key}'
+            )
+            error_message_suffix = f' For assistance please contact us' \
+                                   f' at {PHENDB_DEV_EMAIL} referencing job ID {job.key}'
             refresh = False
             showErrorMessage = True
             showProgressBar = False
             errorSeverityPU = "error"
             errorSummaryPU = "Unknown Error"
-            errorMessagePU = "An unknown internal error has occurred."
+            errorMessagePU = f"An unknown internal error has occurred. {error_message_suffix}"
         elif job.error_type == "ALL_DROPPED":
             refresh = False
             showErrorMessage = True

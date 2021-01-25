@@ -1,14 +1,23 @@
-from django.core.mail import send_mail
 import time
-import os
 import threading
-from django.core.mail import *
-import subprocess
-from phenotypePredictionApp.models import *
+from django.core.mail import EmailMessage
+from phenotypePredictionApp.models import Job
 from subprocess import Popen, PIPE
 
 
 class MailNotification(threading.Thread):
+    @staticmethod
+    def send_mail_now(mail_address: str, content: str, subject: str = 'PhenDB Dev Notice') -> int:
+        # TODO: had to set /var/spool/clientmqueue to 777 to allow sending by httpd
+        ps = Popen(["/usr/sbin/sendmail", mail_address], stdin=PIPE, stderr=PIPE)
+        message = EmailMessage()
+        message.from_email = "donotreply@phen.csb.univie.ac.at"
+        message.subject = subject
+        message.body = content
+        ps.stdin.write(message.message().as_bytes())
+        (stdout, stderr) = ps.communicate()
+        return ps.returncode
+
     def __init__(self, key):
         threading.Thread.__init__(self)
         self.key = key
@@ -21,28 +30,16 @@ class MailNotification(threading.Thread):
             self.runCounter += 1
             obj = Job.objects.get(key=self.key)
             if obj.total_bins == obj.finished_bins and obj.total_bins != 0:
-                self.__sendMail(
-                    obj.user_email, "https://phen.csb.univie.ac.at/phendb/results/" + self.key
+                body = f"Your PhenDB results are now available under" \
+                       f" https://phen.csb.univie.ac.at/phendb/results/{self.key}" \
+                       f"\n\nThis mail was sent automatically. Please do not respond to it."
+                MailNotification.send_mail_now(
+                    mail_address=obj.user_email,
+                    content=body,
+                    subject='PhenDB notification'
                 )
                 break
             sleepTime = self.initialSleep * self.runCounter
             if sleepTime > self.maxSleep:
                 sleepTime = self.maxSleep
             time.sleep(sleepTime)
-
-    def __sendMail(self, mailAddress, url):
-        # TODO: had to set /var/spool/clientmqueue to 777 to allow sending by httpd
-        # Fix this soon
-        ps = Popen(["/usr/sbin/sendmail", mailAddress], stdin=PIPE, stderr=PIPE)
-
-        message = EmailMessage()
-        message.from_email = "donotreply@phen.csb.univie.ac.at"
-        message.subject = "PhenDB notification"
-        message.body = (
-            "Your PhenDB results are now available under "
-            + url
-            + "\n \nThis mail was sent automatically. Please do not respond to it."
-        )
-
-        ps.stdin.write(message.message().as_bytes())
-        (stdout, stderr) = ps.communicate()
