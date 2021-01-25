@@ -320,9 +320,9 @@ process hmmer {
     """
     DISABLED=\$(echo ${params.omit_nodes} | sed -e 's/\\([^ ]\\+\\)/-e &/g')
     if [[ -n "\$DISABLED" ]] ; then
-        HMM_DAEMONCLIENTS=\$(echo cubeb{01..30} | tr " " "\\n" | grep -v \$(echo \$DISABLED) | tr "\\n" " ")
+        HMM_DAEMONCLIENTS=\$(echo nodeb{01..30} | tr " " "\\n" | grep -v \$(echo \$DISABLED) | tr "\\n" " ")
     else
-        HMM_DAEMONCLIENTS=\$(echo cubeb{01..30})
+        HMM_DAEMONCLIENTS=\$(echo nodeb{01..30})
     fi
     echo \$HMM_DAEMONCLIENTS
 
